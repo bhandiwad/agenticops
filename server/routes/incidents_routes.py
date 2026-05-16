@@ -1557,7 +1557,7 @@ def _reload_applied_pr_info(suggestion_id_int: int, suggestion_id_raw: str) -> t
 
     if not row:
         return None, None
-    pr_url = row[0] if isinstance(row[0], str) and row[0].startswith("https://github.com/") else None
+    pr_url = row[0] if isinstance(row[0], str) and row[0].startswith("http") else None
     pr_number = int(row[1]) if row[1] is not None else None
     return pr_url, pr_number
 
@@ -1595,14 +1595,50 @@ def apply_fix_suggestion(user_id, suggestion_id: str):
     target_branch = data.get("targetBranch")
 
     try:
-        from chat.backend.agent.tools.github_apply_fix_tool import github_apply_fix
+        # Determine which provider owns this suggestion's repository
+        provider = None
+        with db_pool.get_admin_connection() as conn:
+            with conn.cursor() as cursor:
+                set_rls_context(cursor, conn, user_id, log_prefix=_LOG_PREFIX)
+                cursor.execute(
+                    """SELECT s.repository FROM incident_suggestions s
+                       WHERE s.id = %s""",
+                    (suggestion_id_int,),
+                )
+                row = cursor.fetchone()
+                if row and row[0]:
+                    repo_name = row[0]
+                    cursor.execute(
+                        """SELECT provider FROM connected_repos
+                           WHERE repo_full_name = %s LIMIT 1""",
+                        (repo_name,),
+                    )
+                    provider_row = cursor.fetchone()
+                    if provider_row:
+                        provider = provider_row[0]
 
-        result_json = github_apply_fix(
-            suggestion_id=suggestion_id_int,
-            use_edited_content=use_edited_content,
-            target_branch=target_branch,
-            user_id=user_id,
-        )
+        if not provider:
+            return jsonify({"error": "Cannot determine VCS provider for this suggestion — repository not found in connected repos"}), 400
+
+        if provider == "gitlab":
+            from chat.backend.agent.tools.gitlab_tool import gitlab_tool
+            result_json = gitlab_tool(
+                action="apply_fix",
+                suggestion_id=suggestion_id_int,
+                target_branch=target_branch,
+                use_edited_content=use_edited_content,
+                user_id=user_id,
+            )
+        elif provider == "github":
+            from chat.backend.agent.tools.github_apply_fix_tool import github_apply_fix
+            result_json = github_apply_fix(
+                suggestion_id=suggestion_id_int,
+                use_edited_content=use_edited_content,
+                target_branch=target_branch,
+                user_id=user_id,
+            )
+        else:
+            return jsonify({"error": f"Unsupported VCS provider: {provider}"}), 400
         result = json.loads(result_json)
 
         if result.get("success"):
