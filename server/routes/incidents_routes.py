@@ -1362,6 +1362,13 @@ KEY: Do NOT automatically start a full investigation unless explicitly asked. De
             incident_id=None,  # Don't trigger RCA workflow - this is a Q&A chat
             send_notifications=False,  # No notifications for Q&A
             mode=mode,  # Pass mode for execution capability
+            # `full_message` wraps `question` in <context>/<user_message> tags
+            # for the LLM. State.question (used by immediate_save and the
+            # input rail) must be the bare user text so the persistence-layer
+            # dedup matches the pre-seeded user row from
+            # create_background_chat_session — otherwise the question lands
+            # in chat_sessions.messages 2–3 times per turn.
+            rail_text=question,
         )
 
         logger.info(
@@ -1992,3 +1999,57 @@ def get_recent_unlinked_incidents(user_id):
     except Exception as exc:
         logger.exception("[INCIDENTS] Failed to get recent unlinked incidents")
         return jsonify({"error": "Failed to get recent incidents"}), 500
+
+
+_ALLOWED_SEVERITIES = {"critical", "high", "medium", "low"}
+
+
+@incidents_bp.route("/api/incidents/trigger-rca", methods=["POST"])
+@require_permission("incidents", "write")
+def trigger_rca_from_chat(user_id):
+    """Create an incident from a free-text description and dispatch the full
+    background RCA pipeline. Same code path the UI's RCA button invokes
+    (via the agent's `trigger_rca` LangChain tool), exposed as a direct
+    endpoint so MCP / API clients can hit it without going through the chat
+    agent. Returns the new incident_id and an RCA session_id for tracking.
+    """
+    data = request.get_json(silent=True) or {}
+    issue_description = (data.get("issue_description") or "").strip()
+    if not issue_description:
+        return jsonify({"error": "issue_description is required"}), 400
+    if len(issue_description) > 4000:
+        return jsonify({"error": "issue_description too long (max 4000 chars)"}), 400
+
+    title = (data.get("title") or "").strip()
+    service = (data.get("service") or "").strip()
+    severity = (data.get("severity") or "medium").strip().lower()
+    if severity not in _ALLOWED_SEVERITIES:
+        return jsonify({
+            "error": f"Invalid severity. Must be one of: {', '.join(sorted(_ALLOWED_SEVERITIES))}"
+        }), 400
+
+    from chat.backend.agent.tools.trigger_rca_tool import trigger_rca as _agent_trigger_rca
+    try:
+        raw = _agent_trigger_rca(
+            issue_description=issue_description,
+            title=title,
+            service=service,
+            severity=severity,
+            user_id=user_id,
+        )
+    except Exception:
+        logger.exception("[INCIDENTS] trigger_rca tool raised")
+        return jsonify({"error": "RCA dispatch failed"}), 500
+
+    try:
+        payload = json.loads(raw) if isinstance(raw, str) else raw
+    except Exception:
+        logger.exception("[INCIDENTS] trigger_rca tool returned unparseable payload")
+        return jsonify({"error": "RCA dispatch returned an invalid response"}), 500
+
+    if not isinstance(payload, dict):
+        return jsonify({"error": "RCA dispatch returned an invalid response"}), 500
+
+    if payload.get("error") and not payload.get("incident_id"):
+        return jsonify(payload), 400
+    return jsonify(payload), 200
