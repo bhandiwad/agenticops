@@ -321,6 +321,13 @@ def process_grafana_alert(
                                 continue
 
                             # -- Firing: create incident and trigger RCA --
+                            if skip_rca:
+                                logger.info(
+                                    "[GRAFANA][ALERT] skip_rca=True (auto-connect webhook), skipping incident creation for user %s (fp=%s)",
+                                    user_id, fingerprint,
+                                )
+                                continue
+
                             severity = _extract_severity(alert_payload)
                             service = _extract_service(alert_payload)
 
@@ -504,7 +511,7 @@ def process_grafana_alert(
                                 logger.warning("[GRAFANA][ALERT] Failed to enqueue summary for incident %s (%s): %s", incident_id, per_alert_title, summary_exc)
 
                             # Trigger full RCA background chat
-                            if not skip_rca and _should_trigger_background_chat(user_id, alert_payload):
+                            if _should_trigger_background_chat(user_id, alert_payload):
                                 try:
                                     from chat.background.task import (
                                         run_background_chat, create_background_chat_session, is_background_chat_allowed,
