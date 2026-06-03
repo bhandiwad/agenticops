@@ -14,15 +14,34 @@ The surface is **hybrid**: a small set of always-visible tools handles the 80% c
 
 | Tool | Description |
 |------|-------------|
-| `chat_with_aurora` | **Default for any open-ended question.** Aurora's agent picks the right data sources, runs RCAs, and cites sources. Prefer this over individual tools unless the user explicitly asks for raw data. |
 | `list_incidents` | List Aurora incidents, optionally filtered by status |
 | `get_incident` | Full incident details with summary, suggestions, citations |
-| `ask_incident` | Incident-scoped follow-up Q&A |
-| `trigger_rca` | Kick off (or restart) Aurora's RCA pipeline for an incident |
+| `incident_findings` | What each RCA sub-agent investigated: role, `tools_used`, citations, follow-ups |
+| `incident_finding_detail` | One sub-agent's full finding + per-step `tool_call_history` (the exact tools/steps the RCA ran) |
+| `incident_list_alerts` | The incident's correlated alerts: source, title, service, severity, correlation score |
+| `get_infrastructure_context` | System topology: environments, services, dependencies, CI/CD, and monitoring — a snapshot of how the system fits together |
+| `list_services` | Services in the dependency graph (filters: `resource_type`, `provider`) |
+| `service_impact` | Blast radius — downstream services that depend on a given service |
+| `list_actions` | List the org's Aurora actions (automations): trigger, mode, run count, last-run status |
+| `get_action` | One action's config plus its 20 most recent runs |
+| `list_action_runs` | An action's run history: status, timing, errors (`limit`, `offset`) |
+| `ask_incident` | Incident-scoped free-text follow-up (runs an investigation) |
+| `trigger_rca` | Start a new RCA from a free-text description |
+| `regenerate_rca` | Re-run RCA for an existing incident |
 | `knowledge_base_search` | Semantic search across Aurora's ingested docs |
 | `search_runbooks` | Unified runbook search across the knowledge base, Confluence, SharePoint |
+| `chat_with_aurora` | Aurora's autonomous agent over your connected systems — investigates (multi-source RCA) *and acts* (provisions/changes infra via Terraform/kubectl/cloud CLIs, applies code fixes, remediates). Runs the full agent workflow, so it's slower than the direct read tools above. |
 | `search_tools` | Discover additional tools available behind the long-tail dispatch |
 | `call_tool` | Invoke a tool returned by `search_tools` |
+
+#### Two kinds of tools: fast reads vs. the agent
+
+The MCP surface has two complementary parts, and your AI assistant picks between them automatically — there's nothing to configure:
+
+- **Direct tools** are fast, single-purpose reads (incidents, alerts, topology, service impact, RCA findings, metrics, postmortems, your actions). They return in about a second, so most everyday questions — *"what was my last incident?"*, *"what depends on payments-svc?"* — resolve through these.
+- **`chat_with_aurora`** is Aurora's full autonomous agent running against your connected systems. It handles open-ended investigations and RCA, and can also take action — provisioning or changing infrastructure (Terraform/IaC, kubectl, cloud CLIs), applying code fixes, and remediating. It runs the full agent workflow, so it's slower and is meant for work that genuinely needs it, e.g. *"why did checkout-svc page at 3am?"* or *"set up auto-scaling for my cluster"*.
+
+The guidance for choosing between them is built into the tool descriptions, so this works across MCP clients (Cursor, Claude Desktop/Code, Codex, Windsurf, …) without any per-client tuning. Note that `chat_with_aurora` works against your *connected* data and infrastructure — it isn't a help desk for the Aurora product itself.
 
 ### Tier 2 — Connector-gated
 
@@ -30,23 +49,26 @@ These appear in your tool list only when at least one backing integration is con
 
 | Tool | Enabling integrations |
 |------|----------------------|
-| `query_logs` | Datadog · New Relic · Splunk · Coroot · Dynatrace |
-| `query_metrics` | Datadog · New Relic · Coroot · Dynatrace |
-| `query_traces` | Datadog APM · Coroot · Dynatrace |
-| `query_alerts` | Datadog · OpsGenie · incident.io |
-| `github_rca` | GitHub |
+| `query_logs` | Datadog · Splunk |
+| `query_metrics` | Datadog |
+| `query_alerts` | Datadog · New Relic · Dynatrace · OpsGenie · incident.io · Splunk |
 | `query_jira` | Jira (search, get issue) |
-| `query_incidentio` | incident.io (list, get, timeline) |
-| `query_thousandeyes` | ThousandEyes (tests, alerts, agents) |
-| `query_coroot` | Coroot (applications, incidents, logs) |
-| `query_notion` | Notion (search, fetch page) |
-| `query_bitbucket` | Bitbucket (repos, branches, PRs) |
+| `query_notion` | Notion (list databases, fetch database) |
+| `query_bitbucket` | Bitbucket (workspaces, repos, branches, PRs) |
 
 Connect a new integration in the Aurora UI and the corresponding tool appears in your MCP client on its next request — the list is rebuilt per request.
 
 ### Tier 3 — Long tail via search
 
-Specific endpoints (individual ThousandEyes routes, Notion writes, Bitbucket writes, postmortem actions, etc.) are not in the upfront list. Discover them with `search_tools("query")` and call them with `call_tool("name", { args })`. The full set is governed by a hard-coded **allowlist** in `server/aurora_mcp/registry.py`.
+Specific endpoints are not in the upfront list. Discover them with `search_tools("query")` and call them with `call_tool("name", { args })`. The full set is governed by a hard-coded **allowlist** in `server/aurora_mcp/registry.py`. Notable reads reachable here (once the connector is connected):
+
+- **DORA / SRE metrics** — `metrics_mttr`, `metrics_mttd`, `metrics_change_failure_rate`, `metrics_incident_frequency`, …
+- **Postmortems** — `postmortem_list`, `postmortem_get_for_incident`, plus exports to Confluence/Jira/Notion
+- **CI/CD deployments** — `jenkins_list_deployments`, `cloudbees_list_deployments`, `spinnaker_list_deployments` / `spinnaker_list_applications` / `spinnaker_list_pipelines` / `spinnaker_app_health` (great for *"what deployed right before this incident?"*)
+- **Sentry** — `sentry_list_projects`, `sentry_list_issues`, `sentry_list_events`
+- **Grafana** — `grafana_list_alerts`
+- **Action writes** — `action_create`, `action_update`, `action_delete`, `action_restore_default`, `action_trigger` (the action *reads* are first-class Tier-1 tools above)
+- **Logs / metrics, Jira, GitHub, Bitbucket, Notion, Confluence/SharePoint runbooks** — and more
 
 **Out of scope for MCP** (deliberately not in the allowlist): Terraform apply/destroy, kubectl mutations, raw shell exec, Cloudflare WAF/DNS writes. These remain in the agent's internal surface only.
 
@@ -139,6 +161,39 @@ Add to Windsurf's MCP configuration:
 }
 ```
 
+> **Cursor tool cap:** Cursor advertises at most **40 MCP tools** across all configured servers (extras are silently dropped). Aurora's upfront surface is ~22 tools, so it fits comfortably — but if you run several MCP servers, keep an eye on the shared budget.
+
+### Claude Code
+
+Add the server with `claude mcp add`, or in `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "aurora": {
+      "url": "<AURORA_MCP_URL>/mcp",
+      "headers": { "Authorization": "Bearer <YOUR_MCP_TOKEN>" }
+    }
+  }
+}
+```
+
+Claude Code defers MCP tools behind its own tool search. To keep Aurora's entrypoints in context, mark the server `alwaysLoad` in your client config — no server-side change needed.
+
+### Codex
+
+Add to `~/.codex/config.toml`. Codex reads the Bearer token from an environment variable:
+
+```toml
+[mcp_servers.aurora]
+url = "<AURORA_MCP_URL>/mcp"
+bearer_token_env_var = "AURORA_MCP_TOKEN"
+```
+
+### Cline
+
+Cline defaults URL-only entries to the SSE transport, which Aurora does not use — set the transport explicitly to streamable HTTP in the server entry to avoid a connection failure.
+
 Replace `<AURORA_MCP_URL>` with your Aurora deployment's MCP endpoint:
 
 | Deployment | `<AURORA_MCP_URL>` |
@@ -174,19 +229,25 @@ The set of tools reachable through `call_tool` is hard-coded in `server/aurora_m
 Once connected, your AI assistant can interact with Aurora:
 
 ```text
-"Why did checkout-svc page at 3am?"
+"What was my most recent incident?"
+→ calls list_incidents(limit=1)   (a direct read — not chat)
+
+"What alerts fired for incident X?"
+→ calls incident_list_alerts(incident_id="X")
+
+"What depends on payments-svc?"
+→ calls service_impact(name="payments-svc")
+
+"What tools/steps did this RCA use?"
+→ calls incident_findings(incident_id="X")
+→ then incident_finding_detail(incident_id="X", agent_id="...")
+
+"What's our MTTR over the last 30 days?"
+→ calls search_tools(query="mttr dora") → call_tool("metrics_mttr", { period: "30d" })
+
+"Why did checkout-svc page at 3am — dig into it?"
 → calls chat_with_aurora("Why did checkout-svc page at 3am?")
-   Aurora's agent picks the right tools, runs the full RCA, and replies with citations.
-
-"List all investigating incidents"
-→ calls list_incidents(status="investigating")
-
-"Pull the raw Datadog logs for checkout-svc"
-→ calls query_logs(query="service:checkout-svc", source="datadog")
-
-"Are there any tools for creating Jira issues?"
-→ calls search_tools(query="jira create")
-→ then call_tool("jira_create_issue", { project: "OPS", summary: "...", ... })
+   The open-ended case: Aurora's agent runs the full RCA and replies with citations.
 ```
 
-The default path is `chat_with_aurora` — Aurora's own agent runs server-side with its full system prompts and skill loader, so behavior matches the Aurora UI. Direct tools are available for surgical access to raw data when needed.
+These map to the same capabilities you see in the Aurora UI: quick questions resolve through the fast direct tools (about a second), while `chat_with_aurora` runs Aurora's full agent server-side — the same system prompts and skill loader as the in-app chat — for investigations and actions that genuinely need it (which is why those take longer).
