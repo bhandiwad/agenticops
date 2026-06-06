@@ -46,10 +46,12 @@ def _slim_incident(incident: Any) -> Any:
     return incident
 
 
-async def _do_list_incidents(api_call: ApiCall, status: Optional[str], limit: int) -> Dict[str, Any]:
+async def _do_list_incidents(api_call: ApiCall, status: Optional[str], limit: int, offset: int) -> Dict[str, Any]:
     params: Dict[str, Any] = {"limit": limit}
     if status:
         params["status"] = status
+    if offset > 0:
+        params["offset"] = offset
     return truncate_payload(
         await api_call("GET", "/api/incidents", params=params),
         tool_name="list_incidents",
@@ -294,10 +296,19 @@ def register_tier1_tools(mcp, api_call: ApiCall) -> None:
         return truncate_payload(result, tool_name="chat_with_aurora")
 
     @mcp.tool()
-    async def list_incidents(status: Optional[str] = None, limit: int = 20) -> Dict[str, Any]:
+    async def list_incidents(status: Optional[str] = None, limit: int = 20, offset: int = 0) -> Dict[str, Any]:
         """List Aurora incidents. Optionally filter by status
-        (investigating/analyzed/merged/resolved)."""
-        return await _do_list_incidents(api_call, status, limit)
+        (investigating/analyzed/merged/resolved).
+
+        Args:
+          status: Filter by incident status (optional).
+          limit: Max incidents to return (1-100, default 20).
+          offset: Paging offset (>= 0, default 0).
+
+        Returns {incidents: [...], total: N}. Use total to know when to
+        stop paging (e.g. offset + limit >= total means last page).
+        """
+        return await _do_list_incidents(api_call, status, limit, offset)
 
     @mcp.tool()
     async def get_incident(incident_id: str) -> Dict[str, Any]:
