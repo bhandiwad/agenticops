@@ -95,6 +95,14 @@ def run_workflow(
         dispatched: List[str] = []
         event = LifecycleEvent(event_type=RCA_COMPLETED, org_id="", incident_id=incident_id)
 
+        # Resolve org custom agents so workflow agent-steps can reference them.
+        custom_roles = {}
+        try:
+            from services.registry.custom_agents import get_custom_agents_map_safe
+            custom_roles = get_custom_agents_map_safe(user_id)
+        except Exception:
+            logger.debug("run_workflow: custom-agent lookup failed; built-ins only")
+
         for step in plan_workflow(wf):
             if step.index < start_index:
                 continue  # resuming: skip already-executed steps
@@ -123,7 +131,7 @@ def run_workflow(
             if step.type == STEP_AGENT:
                 try:
                     from chat.background.task import create_background_chat_session, run_background_chat
-                    specs = build_dispatch_plan([step.ref], event)
+                    specs = build_dispatch_plan([step.ref], event, custom_roles=custom_roles)
                     for spec in specs:
                         meta = {"source": "workflow", "workflow": workflow_key, "agent": spec.agent_name}
                         session_id = create_background_chat_session(

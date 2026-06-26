@@ -45,10 +45,17 @@ def create_custom_workflow(user_id: str, org_id: str, *, key: str, name: str,
     if not _KEY_RE.match(key or ""):
         raise ValueError("key must be lowercase snake_case (2-64 chars)")
     # Validate the definition (step types + agent existence) before storing.
+    # Org custom agents are valid agent-step targets alongside built-ins.
     from services.workflows.workflow_registry import validate_workflow, workflow_from_dict
+    extra_agents = set()
+    try:
+        from services.registry.custom_agents import list_custom_agents
+        extra_agents = {a["name"] for a in list_custom_agents(user_id, org_id)}
+    except Exception:
+        logger.debug("create_custom_workflow: custom-agent lookup failed; built-ins only")
     wf = workflow_from_dict({"key": key, "name": name, "kind": kind,
                              "description": description, "steps": steps})
-    errors = validate_workflow(wf)
+    errors = validate_workflow(wf, extra_agents=extra_agents)
     if errors:
         raise ValueError("; ".join(errors))
 

@@ -72,21 +72,25 @@ DEFAULT_WORKFLOWS: Dict[str, Workflow] = {
 }
 
 
-def validate_workflow(wf: Workflow) -> List[str]:
+def validate_workflow(wf: Workflow, extra_agents: Optional["set[str]"] = None) -> List[str]:
     """Return a list of validation errors (empty == valid). Checks step types and
-    that ``agent`` steps reference real agents in the registry."""
+    that ``agent`` steps reference real agents.
+
+    ``extra_agents`` adds valid agent names beyond the built-in registry (e.g. an
+    org's custom agents), so custom workflows may compose custom agents.
+    """
     errors: List[str] = []
     if not wf.steps:
         errors.append(f"{wf.key}: workflow has no steps")
     if wf.kind not in (KIND_LLM, KIND_SOP):
         errors.append(f"{wf.key}: invalid kind {wf.kind!r}")
 
-    agent_names = set()
+    agent_names = set(extra_agents or set())
     try:
         from chat.backend.agent.orchestrator.role_registry import RoleRegistry
-        agent_names = {r.name for r in RoleRegistry.get_instance().list_all()}
+        agent_names |= {r.name for r in RoleRegistry.get_instance().list_all()}
     except Exception:
-        agent_names = set()  # registry unavailable — skip agent-existence check
+        pass  # registry unavailable — fall back to extra_agents only
 
     for i, step in enumerate(wf.steps):
         if step.type not in _STEP_TYPES:

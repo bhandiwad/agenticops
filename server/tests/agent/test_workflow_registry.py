@@ -39,6 +39,15 @@ def test_validate_flags_unknown_agent():
     assert any("unknown agent" in e for e in errors)
 
 
+def test_validate_accepts_custom_agents_via_extra_agents():
+    from services.workflows.workflow_registry import Workflow, WorkflowStep, KIND_LLM
+    wf = Workflow("c", "Custom", KIND_LLM, [WorkflowStep(STEP_AGENT, "my_custom_agent")])
+    # Unknown without extra_agents...
+    assert any("unknown agent" in e for e in validate_workflow(wf))
+    # ...valid when the org's custom agent is supplied.
+    assert validate_workflow(wf, extra_agents={"my_custom_agent"}) == []
+
+
 def test_serialize_workflow_shape():
     s = serialize_workflow(DEFAULT_WORKFLOWS["rca_complete"], enabled=False)
     assert s["key"] == "rca_complete" and s["enabled"] is False
