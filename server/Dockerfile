@@ -276,6 +276,7 @@ COPY --chmod=0555 ./utils /app/utils/
 COPY --chmod=0444 ./celery_config.py /app/celery_config.py
 COPY --chmod=0444 ./main_chatbot.py /app/main_chatbot.py
 COPY --chmod=0444 ./main_compute.py /app/main_compute.py
+COPY --chmod=0444 ./gunicorn_conf.py /app/gunicorn_conf.py
 COPY --chmod=0444 ./mcp_server.py /app/mcp_server.py
 COPY --chmod=0444 ./rbac_model.conf /app/rbac_model.conf
 
