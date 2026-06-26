@@ -19,6 +19,7 @@
 
 ## What's New
 
+- **AgenticOps Platform** — Configure and supervise Aurora as an operations teammate: a typed **agent registry**, a risk-classified **tool registry**, **trigger routing** (events → agents), human **approval gates** with auto-resume, an **MCP server registry**, and composable **workflows** — all UI-controlled per organization. See [AgenticOps Platform](#agenticops-platform).
 - **Artifacts** — Persistent agent-maintained documents in Monitor, continuously updated as investigations progress
 - **Actions** — Automated post-RCA workflows (generate postmortems, open fix PRs, notify Slack) triggered on investigation completion
 - **AWS Bedrock Support** — Use Claude, Titan, and other Bedrock models via IAM auth
@@ -134,6 +135,25 @@ Visualize your entire infrastructure as a dependency graph. When an incident occ
 </table>
 
 **More capabilities:** Knowledge Base RAG &bull; Multi-Cloud (AWS, Azure, GCP, OVH, Scaleway, Cloudflare) &bull; Any LLM (OpenAI, Anthropic, Gemini, Vertex AI, OpenRouter, Ollama) &bull; Terraform/IaC Analysis &bull; MCP Server (Cursor, Claude Desktop, Windsurf) &bull; Org-level Command Policies &bull; SigmaHQ Guardrails &bull; NeMo Input Rail
+
+---
+
+## AgenticOps Platform
+
+Beyond one-shot investigation, Aurora can run as a configurable, supervised operations teammate. Each capability is a dedicated page in the UI and is scoped, audited, and governed **per organization** — with one hard rule: **Aurora investigates and proposes autonomously, but anything that changes your systems requires human approval first.**
+
+| Page | What it does |
+|:---|:---|
+| **Tools** | Every tool the agents can use (130+), each labeled **read / write / destructive**, with a per-org on/off switch and capability/connector filters. |
+| **Agents** | The typed agents — RCA investigators (triage, correlation, dedup, runtime, change, runbook) plus lifecycle agents (Summarizer, Correlation, Dedup, Remediation Planner, Runbook Executor, Notification, Postmortem). Enable/disable, tune limits, and **version each agent's prompt**. |
+| **Triggers** | Map lifecycle events to agents — *alert created → dedup + correlate*, *incident created → summarize*, *RCA completed → summarize → notify → postmortem*, *resolved → postmortem*. Toggle any route. |
+| **Workflows** | Built-in playbooks (e.g. **Plan fix → approval → execute runbook**) plus a **step builder** to compose your own from agents, actions, and approval gates. |
+| **Approvals** | When an autonomous run wants to do something write/destructive, it pauses and queues a request here. Approve/reject with a reason — approving **auto-resumes** the run (single-use, time-bounded). |
+| **MCP** | Register external [Model Context Protocol](https://modelcontextprotocol.io) servers (auth tokens stored in Vault), mark them **read-only**, and expose their tools to the agents. |
+
+Each incident also gets an **Evidence & Replay** panel — the artifacts a run relied on, and a step-by-step timeline of every tool call for audit and debugging.
+
+**How it's governed:** a risk-aware policy engine classifies every tool (read/write/destructive); write/destructive actions in autonomous runs are gated through the approval queue; tool surfaces are scoped to each agent's capabilities; and every decision is recorded. The autonomous planes are controlled by feature flags (`AURORA_TRIGGER_ROUTER_ENABLED`, `AURORA_WORKFLOWS_ENABLED`, `AURORA_REGISTERED_MCP_ENABLED`) — on by default in the bundled Compose files.
 
 ---
 
@@ -267,7 +287,7 @@ aurora/
 
 | Layer | Stack |
 |-------|-------|
-| AI Orchestration | LangGraph, 30+ tool definitions |
+| AI Orchestration | LangGraph; typed agent + tool registries; trigger router; policy/approval gate; workflow engine |
 | Backend | Python, Flask, Celery |
 | Frontend | Next.js, TypeScript |
 | Graph DB | Memgraph |
