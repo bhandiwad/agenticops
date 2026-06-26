@@ -206,7 +206,7 @@ services:
       - "${FLASK_PORT}:${FLASK_PORT}"
     volumes:
       - terraform-workdir:/app/terraform_workdir
-    command: ["sh", "-c", "gunicorn main_compute:app -c gunicorn_conf.py"]
+    command: ["sh", "-c", "gunicorn main_compute:app --bind 0.0.0.0:${FLASK_PORT:-5080} -k gthread --threads ${GUNICORN_THREADS:-16} --workers ${GUNICORN_WORKERS:-3} --timeout 300 --preload"]
     environment:
       <<: *common-env
       OTEL_SERVICE_NAME: aurora-server

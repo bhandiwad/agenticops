@@ -45,7 +45,19 @@ def incident_stream(user_id):
             pubsub = r.pubsub()
             pubsub.subscribe(channel)
 
-            while True:
+            # Bound the connection lifetime so each stream releases its worker
+            # slot periodically instead of holding it forever. Under the sync
+            # (gthread) worker model one connection occupies one thread for its
+            # whole life, so an abandoned/zombie stream would otherwise pin a
+            # thread indefinitely and (in aggregate) starve the pool. The
+            # browser EventSource reconnects automatically when we close.
+            import time as _time
+            max_seconds = int(os.getenv("SSE_MAX_CONNECTION_SECONDS", "300"))
+            deadline = _time.monotonic() + max_seconds
+            while _time.monotonic() < deadline:
+                # get_message blocks up to timeout; the keepalive yield below
+                # also surfaces client disconnects promptly (broken-pipe ->
+                # GeneratorExit), freeing the thread within ~10s of a close.
                 message = pubsub.get_message(timeout=10.0)
                 if message and message['type'] == 'message':
                     data = message['data']
@@ -54,6 +66,9 @@ def incident_stream(user_id):
                     yield f"data: {data}\n\n"
                 elif message is None:
                     yield ": keepalive\n\n"
+            # Lifetime reached: ask the client to reconnect and end the stream so
+            # the worker thread is returned to the pool.
+            yield "event: reconnect\ndata: {}\n\n"
         except GeneratorExit:
             pass
         finally:
