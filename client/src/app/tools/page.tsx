@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Loader2, Wrench, Search, ShieldAlert, Pencil, Eye } from 'lucide-react';
+import { Loader2, Wrench, Search, ShieldAlert, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -134,12 +134,10 @@ export default function ToolsPage() {
             <Wrench className="h-6 w-6" /> Tools
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            The native tool catalog available to Aurora agents, classified by risk and capability.
-            {' '}
-            <span className="inline-flex items-center gap-1">
-              <Eye className="h-3.5 w-3.5" /> Read-only view.
-            </span>{' '}
-            Enable/disable specific write actions in Settings → Security → Action Tool Permissions.
+            Every tool Aurora&apos;s agents can use, labeled by risk. Admins can turn any tool on or
+            off for the organization with the switch on the right; disabled tools are removed from
+            every agent. For finer control over individual write actions (e.g. merge PR, apply
+            infra), use Settings → Security → Action Tool Permissions.
           </p>
         </div>
       </div>
@@ -256,8 +254,9 @@ export default function ToolsPage() {
 
       <p className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
         <Pencil className="h-3.5 w-3.5" />
-        Tool definitions are managed in code ({RISK_LABEL.read}/{RISK_LABEL.write}/{RISK_LABEL.destructive} risk
-        is fixed). Per-org write-action permissions are configured in Settings → Security.
+        Which tools exist and their {RISK_LABEL.read}/{RISK_LABEL.write}/{RISK_LABEL.destructive} risk
+        are defined by Aurora. You control availability here; finer write-action approvals live in
+        Settings → Security.
       </p>
     </div>
   );

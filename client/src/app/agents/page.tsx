@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Loader2, Bot, Search, ShieldAlert, ChevronDown, ChevronRight, Eye } from 'lucide-react';
+import { Loader2, Bot, Search, ShieldAlert, ChevronDown, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -279,12 +279,10 @@ export default function AgentsPage() {
           <Bot className="h-6 w-6" /> Agents
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Typed operational agents. RCA investigators are dispatched during root-cause analysis;
-          lifecycle agents (correlation, summarizer, notification, postmortem, ...) are dispatched by
-          the trigger router at incident lifecycle transitions.{' '}
-          <span className="inline-flex items-center gap-1">
-            <Eye className="h-3.5 w-3.5" /> Read-only view.
-          </span>
+          Aurora&apos;s specialist agents. RCA investigators run during root-cause analysis; lifecycle
+          agents (correlation, summarizer, notification, postmortem, …) run automatically at incident
+          events. Admins can enable/disable each agent, adjust its limits and model, and version its
+          prompt below.
         </p>
       </div>
 

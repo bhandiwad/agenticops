@@ -1511,6 +1511,8 @@ def initialize_tables():
                         is_system BOOLEAN NOT NULL DEFAULT false,
                         system_key VARCHAR(100),
                         default_instructions TEXT,
+                        target_type VARCHAR(20) NOT NULL DEFAULT '',
+                        target_ref VARCHAR(128) NOT NULL DEFAULT '',
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     );
@@ -1795,6 +1797,9 @@ def initialize_tables():
                 cursor.execute("ALTER TABLE actions ADD COLUMN IF NOT EXISTS is_system BOOLEAN NOT NULL DEFAULT false;")
                 cursor.execute("ALTER TABLE actions ADD COLUMN IF NOT EXISTS system_key VARCHAR(100);")
                 cursor.execute("ALTER TABLE actions ADD COLUMN IF NOT EXISTS default_instructions TEXT;")
+                # Action target: dispatch a specific agent/workflow instead of the general agent.
+                cursor.execute("ALTER TABLE actions ADD COLUMN IF NOT EXISTS target_type VARCHAR(20) NOT NULL DEFAULT '';")
+                cursor.execute("ALTER TABLE actions ADD COLUMN IF NOT EXISTS target_ref VARCHAR(128) NOT NULL DEFAULT '';")
                 cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_actions_system_key ON actions(org_id, system_key) WHERE system_key IS NOT NULL;")
                 conn.commit()
                 logging.info("Ensured system action columns exist on actions table.")

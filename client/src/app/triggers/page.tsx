@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, Route, ShieldAlert, ArrowRight, Eye, Bot } from 'lucide-react';
+import { Loader2, Route, ShieldAlert, ArrowRight, Bot } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useUser } from '@/hooks/useAuthHooks';
@@ -91,12 +91,9 @@ export default function TriggersPage() {
           <Route className="h-6 w-6" /> Triggers
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          How incident lifecycle events are routed to typed agents. Each event dispatches its
-          agents in order. Toggle a route off to stop it for your organization.
-        </p>
-        <p className="mt-2 inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs text-amber-700 dark:text-amber-400">
-          <Eye className="h-3.5 w-3.5" /> Routing is configurable now; live execution of routed
-          agents ships with the executor (next phase).
+          When these incident events occur, Aurora automatically runs the listed agents in order.
+          Toggle a route off to stop it for your organization. Agents that would change your systems
+          still require approval before running.
         </p>
       </div>
 

@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 _VALID_TRIGGER_TYPES = ("manual", "on_incident", "on_schedule")
 _VALID_MODES = ("agent", "ask")
+_VALID_TARGET_TYPES = ("", "agent", "workflow")
 
 
 _COL_FRAGMENTS = {
@@ -37,8 +38,14 @@ _COL_FRAGMENTS = {
     "trigger_config": "trigger_config = %s",
     "mode": "mode = %s",
     "enabled": "enabled = %s",
+    "target_type": "target_type = %s",
+    "target_ref": "target_ref = %s",
     "updated_at": "updated_at = %s",
 }
+
+
+def _has_target(body):
+    return bool((body.get("target_type") or "").strip())
 
 
 def _validate_trigger_config(body):
@@ -64,9 +71,27 @@ def _validate_name(body):
 
 def _validate_instructions(body):
     instructions = (body["instructions"] or "").strip()
-    if not instructions:
+    # Targeted actions (agent/workflow) define their own behavior, so free-text
+    # instructions are optional for them.
+    if not instructions and not _has_target(body):
         return None, "instructions cannot be empty"
     return instructions, None
+
+
+def _validate_target_type(body):
+    val = (body.get("target_type") or "").strip()
+    if val not in _VALID_TARGET_TYPES:
+        return None, f"target_type must be one of {_VALID_TARGET_TYPES}"
+    return val, None
+
+
+def _validate_target_ref(body):
+    val = (body.get("target_ref") or "").strip()
+    if (body.get("target_type") or "").strip() and not val:
+        return None, "target_ref is required when target_type is set"
+    if len(val) > 128:
+        return None, "target_ref too long"
+    return val, None
 
 
 def _validate_description(body):
@@ -109,6 +134,8 @@ _FIELD_VALIDATORS = [
     ("trigger_config", _validate_trigger_config_json),
     ("mode", _validate_mode),
     ("enabled", _validate_enabled),
+    ("target_type", _validate_target_type),
+    ("target_ref", _validate_target_ref),
 ]
 
 
@@ -132,7 +159,10 @@ def _parse_update_fields(body):
 
 def _validate_create_fields(name, instructions, body):
     """Return error message string if validation fails, else None."""
-    if not name or not instructions:
+    if not name:
+        return "name is required"
+    # Instructions are required only for general (untargeted) actions.
+    if not instructions and not _has_target(body):
         return "name and instructions are required"
     if len(name) > 255:
         return "name must be 255 characters or fewer"
@@ -142,6 +172,11 @@ def _validate_create_fields(name, instructions, body):
         return f"trigger_type must be one of {_VALID_TRIGGER_TYPES}"
     if mode not in _VALID_MODES:
         return f"mode must be one of {_VALID_MODES}"
+    target_type = (body.get("target_type") or "").strip()
+    if target_type not in _VALID_TARGET_TYPES:
+        return f"target_type must be one of {_VALID_TARGET_TYPES}"
+    if target_type and not (body.get("target_ref") or "").strip():
+        return "target_ref is required when target_type is set"
     return None
 
 
@@ -171,6 +206,7 @@ def list_actions(user_id):
                     SELECT a.id, a.name, a.description, a.instructions, a.trigger_type,
                            a.trigger_config, a.mode, a.enabled, a.created_at, a.updated_at,
                            a.is_system, a.system_key, a.default_instructions,
+                           a.target_type, a.target_ref,
                            COUNT(r.id) AS run_count,
                            MAX(r.started_at) AS last_run_at,
                            (SELECT r2.status FROM action_runs r2
@@ -218,6 +254,12 @@ def create_action(user_id):
     trigger_type = body.get("trigger_type", "manual")
     mode = body.get("mode", "agent")
     trigger_config = body.get("trigger_config", {})
+    target_type = (body.get("target_type") or "").strip()
+    target_ref = (body.get("target_ref") or "").strip()
+    # Targeted actions define behavior via the agent/workflow; keep a short
+    # non-empty instructions value to satisfy the NOT NULL column.
+    if target_type and not instructions:
+        instructions = f"Run {target_type}: {target_ref}"
 
     if trigger_type == "on_schedule":
         interval = trigger_config.get("interval_seconds")
@@ -236,11 +278,11 @@ def create_action(user_id):
 
             cur.execute(
                 """INSERT INTO actions (org_id, created_by, name, description, instructions,
-                   trigger_type, trigger_config, mode)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                   trigger_type, trigger_config, mode, target_type, target_ref)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                    RETURNING id, created_at""",
                 (org_id, user_id, name, description, instructions,
-                 trigger_type, json.dumps(trigger_config), mode),
+                 trigger_type, json.dumps(trigger_config), mode, target_type, target_ref),
             )
             row = cur.fetchone()
             conn.commit()
@@ -253,6 +295,8 @@ def create_action(user_id):
         "trigger_type": trigger_type,
         "mode": mode,
         "enabled": True,
+        "target_type": target_type,
+        "target_ref": target_ref,
         "created_at": (row[1].isoformat() + "Z") if row[1] else None,
     }), 201
 
@@ -272,6 +316,7 @@ def _get_action_response(action_id):
                 """SELECT id, org_id, created_by, name, description, instructions,
                           trigger_type, trigger_config, mode, enabled,
                           is_system, system_key, default_instructions,
+                          target_type, target_ref,
                           created_at, updated_at
                    FROM actions WHERE id = %s""",
                 (action_id,),

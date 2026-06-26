@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, Server, ShieldAlert, Plus, Trash2, Eye } from 'lucide-react';
+import { Loader2, Server, ShieldAlert, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -111,12 +111,9 @@ export default function McpPage() {
           <Server className="h-6 w-6" /> MCP Servers
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          External Model Context Protocol servers registered for your organization. Auth tokens are
-          stored in Vault, never in the database.
-        </p>
-        <p className="mt-2 inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs text-amber-700 dark:text-amber-400">
-          <Eye className="h-3.5 w-3.5" /> Registration is live; connecting the agent to registered
-          servers (tool discovery) ships next.
+          Connect external Model Context Protocol servers to give Aurora&apos;s agents more tools.
+          Enabled servers&apos; tools become available automatically; mark a server read-only to block
+          any write tools it exposes. Auth tokens are stored in Vault, never in the database.
         </p>
       </div>
 

@@ -25,7 +25,8 @@ def dispatch_action(
         with conn.cursor() as cur:
             set_rls_context(cur, conn, user_id, log_prefix="[Actions:dispatch]")
             cur.execute(
-                "SELECT id, org_id, name, instructions, mode FROM actions WHERE id = %s",
+                "SELECT id, org_id, name, instructions, mode, "
+                "COALESCE(target_type,''), COALESCE(target_ref,'') FROM actions WHERE id = %s",
                 (action_id,),
             )
             row = cur.fetchone()
@@ -37,6 +38,8 @@ def dispatch_action(
                 "name": row[2],
                 "instructions": row[3],
                 "mode": row[4],
+                "target_type": row[5] or "",
+                "target_ref": row[6] or "",
             }
 
     org_id = action["org_id"]
@@ -56,6 +59,68 @@ def dispatch_action(
         trigger_context["incident"] = _load_incident_context(
             trigger_context["incident_id"], user_id
         )
+
+    # Targeted actions: run a specific workflow or typed agent instead of the
+    # general natural-language agent.
+    target_type = action.get("target_type") or ""
+    target_ref = action.get("target_ref") or ""
+    incident_id = trigger_context.get("incident_id")
+
+    if target_type == "workflow" and target_ref:
+        run_id = _create_run(action_id, org_id, user_id, incident_id=incident_id,
+                             trigger_context=trigger_context, status="running")
+        try:
+            from services.workflows.workflow_executor import run_workflow
+            result = run_workflow(user_id, target_ref, incident_id=incident_id)
+            ok = result.status in ("completed", "paused")
+            _update_run(run_id, user_id,
+                        status="success" if ok else "error",
+                        error=None if ok else f"workflow status: {result.status}")
+        except Exception as e:
+            _update_run(run_id, user_id, status="error", error=f"workflow dispatch failed: {e}")
+            raise
+        logger.info("[Actions] Dispatched action via workflow %s", target_ref)
+        return run_id
+
+    if target_type == "agent" and target_ref:
+        from services.routing.events import LifecycleEvent
+        from services.routing.executor import build_dispatch_plan
+        ev = LifecycleEvent(event_type="manual_action", org_id=org_id, incident_id=incident_id)
+        plan = build_dispatch_plan([target_ref], ev)
+        if not plan:
+            _create_run(action_id, org_id, user_id, incident_id=incident_id,
+                        trigger_context=trigger_context, status="error",
+                        error=f"Unknown agent: {target_ref}")
+            raise ValueError(f"Unknown agent: {target_ref}")
+        spec = plan[0]
+        # Layer the action's own instructions on top of the agent's role prompt.
+        prompt = spec.prompt
+        if action.get("instructions"):
+            prompt = f"{prompt}\n\n---\nAdditional instructions for this run:\n{action['instructions']}"
+        run_id = _create_run(action_id, org_id, user_id, incident_id=incident_id,
+                             trigger_context=trigger_context, status="pending")
+        from chat.background.task import create_background_chat_session, run_background_chat
+        trigger_meta = {"source": "action", "action_id": action_id, "run_id": run_id, "agent": target_ref}
+        try:
+            session_id = create_background_chat_session(
+                user_id=user_id, title=f"Action: {action['name']} ({target_ref})",
+                trigger_metadata=trigger_meta,
+            )
+        except Exception:
+            _update_run(run_id, user_id, status="error", error="Failed to create chat session")
+            raise
+        _update_run(run_id, user_id, chat_session_id=session_id, status="running")
+        try:
+            run_background_chat.delay(
+                user_id=user_id, session_id=session_id, initial_message=prompt,
+                trigger_metadata=trigger_meta, mode=spec.mode, send_notifications=False,
+                incident_id=incident_id, tool_allowlist=spec.tool_allowlist,
+            )
+        except Exception as e:
+            _update_run(run_id, user_id, status="error", error=f"Failed to enqueue: {e}")
+            raise
+        logger.info("[Actions] Dispatched action via agent %s", target_ref)
+        return run_id
 
     full_prompt, rail_text = build_action_prompt(action, trigger_context)
 

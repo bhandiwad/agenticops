@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Play,
   Plus,
@@ -46,6 +46,8 @@ interface Action {
   last_run_status: 'success' | 'error' | 'running' | null;
   is_system?: boolean;
   is_modified?: boolean;
+  target_type?: '' | 'agent' | 'workflow';
+  target_ref?: string;
 }
 
 interface ActionRun {
@@ -466,7 +468,32 @@ function ActionFormView({ onBack, onSaved, action }: {
     return 'minutes';
   });
   const [submitting, setSubmitting] = useState(false);
+  const [targetType, setTargetType] = useState<'' | 'agent' | 'workflow'>(action?.target_type || '');
+  const [targetRef, setTargetRef] = useState(action?.target_ref || '');
+  const [agentOptions, setAgentOptions] = useState<string[]>([]);
+  const [workflowOptions, setWorkflowOptions] = useState<{ key: string; name: string }[]>([]);
   const { toast } = useToast();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [ag, wf] = await Promise.all([
+          fetchR('/api/registry/agents'),
+          fetchR('/api/registry/workflows'),
+        ]);
+        if (ag.ok) {
+          const d = await ag.json();
+          setAgentOptions((d.agents ?? []).map((a: { name: string }) => a.name));
+        }
+        if (wf.ok) {
+          const d = await wf.json();
+          setWorkflowOptions((d.workflows ?? []).map((w: { key: string; name: string }) => ({ key: w.key, name: w.name })));
+        }
+      } catch {
+        /* non-fatal — target dropdowns just stay empty */
+      }
+    })();
+  }, []);
 
   const getIntervalSeconds = () => {
     const multipliers = { minutes: 60, hours: 3600, days: 86400 };
@@ -480,6 +507,8 @@ function ActionFormView({ onBack, onSaved, action }: {
       const body: Record<string, unknown> = {
         name, description: description || undefined, instructions,
         trigger_type: triggerType, mode,
+        target_type: targetType,
+        target_ref: targetType ? targetRef : '',
       };
       if (triggerType === 'on_schedule') {
         body.trigger_config = { interval_seconds: getIntervalSeconds() };
@@ -541,17 +570,51 @@ function ActionFormView({ onBack, onSaved, action }: {
             </div>
           </Panel>
 
-          <Panel title="Agent Instructions" subtitle="What should Aurora do when this action runs?">
+          <Panel title="What runs" subtitle="A natural-language task, a specific agent, or a workflow.">
+            <div className="space-y-3">
+              <Select value={targetType || 'none'} onValueChange={(v) => { setTargetType(v === 'none' ? '' : v as 'agent' | 'workflow'); setTargetRef(''); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Natural-language task (general agent)</SelectItem>
+                  <SelectItem value="agent">Run a specific agent</SelectItem>
+                  <SelectItem value="workflow">Run a workflow</SelectItem>
+                </SelectContent>
+              </Select>
+              {targetType === 'agent' && (
+                <Select value={targetRef} onValueChange={setTargetRef}>
+                  <SelectTrigger><SelectValue placeholder="Select an agent" /></SelectTrigger>
+                  <SelectContent>
+                    {agentOptions.map((a) => (<SelectItem key={a} value={a}>{a}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              )}
+              {targetType === 'workflow' && (
+                <Select value={targetRef} onValueChange={setTargetRef}>
+                  <SelectTrigger><SelectValue placeholder="Select a workflow" /></SelectTrigger>
+                  <SelectContent>
+                    {workflowOptions.map((w) => (<SelectItem key={w.key} value={w.key}>{w.name}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </Panel>
+
+          <Panel
+            title={targetType ? 'Extra Instructions (optional)' : 'Agent Instructions'}
+            subtitle={targetType ? 'Optional context added to the selected agent/workflow run.' : 'What should Aurora do when this action runs?'}
+          >
             <div className="space-y-3">
               <Textarea
                 value={instructions}
                 onChange={e => setInstructions(e.target.value)}
                 placeholder={"Write natural language instructions for Aurora...\n\ne.g. Find the Terraform config that defines this Datadog monitor in our GitHub repo. Modify it to add a mute/downtime rule or adjust the threshold. Open a PR with the change and explain why the alert was noisy."}
-                rows={10}
+                rows={targetType ? 4 : 10}
                 className="bg-zinc-950/50 border-zinc-800/50 text-zinc-200 placeholder:text-zinc-600"
               />
               <p className="text-xs text-zinc-600">
-                Aurora receives these instructions along with context about the triggering event (incident details, alert data) and executes them using your connected tools.
+                {targetType === 'workflow'
+                  ? 'Workflows run their predefined steps; instructions here are stored for reference.'
+                  : 'Aurora receives these instructions along with context about the triggering event (incident details, alert data) and executes them using your connected tools.'}
               </p>
             </div>
           </Panel>
