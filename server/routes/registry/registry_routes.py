@@ -582,6 +582,22 @@ def list_run_evidence(user_id):
         return jsonify({"error": "Failed to load evidence"}), 500
 
 
+@registry_bp.route("/runs", methods=["GET"])
+@require_permission("incidents", "read")
+def list_runs(user_id):
+    """Cross-incident feed of recent agent/automation activity."""
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    try:
+        from services.observability.replay import list_recent_runs
+        data = list_recent_runs(user_id, org_id)
+        return jsonify(data)
+    except Exception:
+        logger.exception("registry: failed to list runs")
+        return jsonify({"error": "Failed to load runs"}), 500
+
+
 @registry_bp.route("/replay", methods=["GET"])
 @require_permission("incidents", "read")
 def replay_run(user_id):
