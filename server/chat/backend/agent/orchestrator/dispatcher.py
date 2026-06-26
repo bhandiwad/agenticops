@@ -70,7 +70,10 @@ def _filter_known_roles(raw_inputs: list) -> list:
     """Drop inputs whose role_name isn't in the registry (LLM may hallucinate)."""
     try:
         from chat.backend.agent.orchestrator.role_registry import RoleRegistry
-        valid = {r.name for r in RoleRegistry.get_instance().list_all()}
+        # Only investigator roles are valid RCA sub-agent dispatch targets;
+        # lifecycle/typed agents (summarizer, notification, ...) are dispatched
+        # by the trigger router, never by RCA triage.
+        valid = {r.name for r in RoleRegistry.get_instance().list_investigators()}
     except Exception:
         logger.exception("dispatcher: role registry lookup failed — failing closed")
         return []

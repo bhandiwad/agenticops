@@ -1140,6 +1140,23 @@ def update_incident(user_id, incident_id: str):
                             sanitize(incident_id),
                         )
 
+                    # Trigger router: route the incident_resolved lifecycle event
+                    # to typed agents (postmortem, ...). Flag-gated (off by
+                    # default) and fail-safe — never blocks the resolve path.
+                    try:
+                        from services.routing.events import INCIDENT_RESOLVED, LifecycleEvent
+                        from services.routing.executor import dispatch_lifecycle_event
+                        dispatch_lifecycle_event(
+                            user_id,
+                            LifecycleEvent(
+                                event_type=INCIDENT_RESOLVED,
+                                org_id=org_id or "",
+                                incident_id=incident_id,
+                            ),
+                        )
+                    except Exception:
+                        logger.debug("[INCIDENTS] trigger-router emit failed (fail-safe)")
+
                 logger.info(
                     "[INCIDENTS] Updated incident %s for user %s", sanitize(incident_id), sanitize(user_id)
                 )

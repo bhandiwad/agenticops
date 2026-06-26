@@ -172,7 +172,7 @@ export function useChatSendHandlers({
 
   // Ensure a chat session exists, creating one if needed
   const ensureSession = useCallback(async (title: string): Promise<string | undefined> => {
-    if (hasCreatedSession) return currentSessionId;
+    if (hasCreatedSession) return currentSessionId ?? undefined;
     try {
       const sessionTitle = title.length > 50 ? title.substring(0, 50).trimEnd() + '...' : title;
       const newSessionId = await createSession(sessionTitle);
@@ -189,7 +189,7 @@ export function useChatSendHandlers({
     } catch (error) {
       console.error('Error creating session:', error);
     }
-    return currentSessionId;
+    return currentSessionId ?? undefined;
   }, [createSession, currentSessionId, hasCreatedSession, justCreatedSessionRef, onSessionCreated, router, setCurrentSessionId, setHasCreatedSession]);
 
   const sendMessage = useCallback(async (

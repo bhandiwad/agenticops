@@ -43,6 +43,10 @@ class State(BaseModel):
     )
     guardrail_blocked: bool = False  # Set by workflow when input rail blocks the message
     permitted_tools: Optional[set] = None
+    # Restrictive tool-surface allowlist (catalog tool names). When set, the
+    # agent only sees these tools. Used by trigger-routed lifecycle agents to
+    # scope tools to their capability tags. None = no restriction (default).
+    tool_allowlist: Optional[set] = None
 
     # --- Multi-agent orchestrator fields (defaults preserve single-agent behavior) ---
     triage_decision: Optional[Dict[str, Any]] = None

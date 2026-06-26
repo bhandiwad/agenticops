@@ -10,6 +10,8 @@ export interface EnvVar {
   value: string;
 }
 
+export type DeploymentStep = Record<string, unknown>;
+
 export interface CompleteUiState {
   // Chat and UI state
   input?: string;

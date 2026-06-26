@@ -33,37 +33,16 @@ REAL_MCP_SERVER_PATHS = {
 }
 
 # --------------------------------------------------------------------------------------
-# Destructive MCP tool detection - tools that create, modify, or delete resources
+# Destructive MCP tool detection - now unified with the native tool catalog in
+# mcp_risk (catalog-first, then the name heuristic). Re-exported here so existing
+# callers of mcp_tools.is_destructive_mcp_tool keep working.
 # --------------------------------------------------------------------------------------
-_DESTRUCTIVE_MCP_PREFIXES = {
-    "create_", "delete_", "update_", "push_", "merge_", "close_",
-    "add_", "remove_", "cancel_", "rerun_", "fork_", "assign_",
-    "request_", "submit_", "approve_", "dismiss_", "resolve_",
-}
-
-_DESTRUCTIVE_MCP_TOOLS = {
-    # GitHub destructive operations
-    "create_or_update_file", "push_files", "create_branch", "create_repository",
-    "create_issue", "create_pull_request", "create_pull_request_review",
-    "merge_pull_request", "update_pull_request_branch", "fork_repository",
-    "add_issue_comment", "add_comment_to_pending_review", "add_project_item",
-    "delete_file", "delete_pending_review", "cancel_workflow_run",
-    "rerun_workflow_run", "rerun_failed_jobs", "assign_copilot_to_issue",
-    "request_copilot_review", "update_issue", "update_project_item_field_value",
-    "close_pull_request_review", "manage_pull_request_review",
-}
-
-
-def is_destructive_mcp_tool(tool_name: str) -> bool:
-    """Check if an MCP tool is destructive (creates, modifies, or deletes resources)."""
-    # Check exact match first
-    if tool_name in _DESTRUCTIVE_MCP_TOOLS:
-        return True
-    # Check prefix patterns
-    for prefix in _DESTRUCTIVE_MCP_PREFIXES:
-        if tool_name.startswith(prefix):
-            return True
-    return False
+from chat.backend.agent.tools.mcp_risk import (  # noqa: E402
+    is_destructive_mcp_tool,
+    mcp_tool_risk,
+    _DESTRUCTIVE_MCP_TOOLS,
+    _DESTRUCTIVE_MCP_PREFIXES,
+)
 
 
 def summarize_mcp_tool_action(tool_name: str, kwargs: dict) -> str:
@@ -1096,16 +1075,86 @@ async def get_real_mcp_tools_for_user(user_id: str) -> List:
             elif isinstance(result, Exception):
                 logging.error(f" MCP server initialization exception: {str(result)}")
         
+        # Registered external MCP servers (per-org registry). Flag-gated (off by
+        # default) and fail-safe so it can never break native tool loading.
+        try:
+            registered = await _load_registered_mcp_tools(user_id)
+            if registered:
+                all_tools.extend(registered)
+                logging.info(f" Added {len(registered)} tools from registered MCP servers")
+        except Exception as e:
+            logging.warning(f" Registered MCP server loading failed (non-fatal): {e}")
+
         # Cache the result
         _mcp_tools_cache[user_id] = all_tools
         _mcp_tools_cache_expiry[user_id] = current_time + MCP_TOOLS_CACHE_DURATION
         logging.info(f"Cached {len(all_tools)} MCP tools for user {user_id} (expires in {MCP_TOOLS_CACHE_DURATION}s)")
-        
+
         return all_tools
         
     except Exception as e:
         logging.error(f" Error getting real MCP tools for user {user_id}: {str(e)}")
         return []
+
+async def _load_registered_mcp_tools(user_id: str) -> List:
+    """Connect to the org's registered (enabled) MCP servers over streamable
+    HTTP, list their tools, tag them, and enforce per-server read-only.
+
+    Flag-gated by AURORA_REGISTERED_MCP_ENABLED (default off) and entirely
+    best-effort: any failure for a server is logged and skipped. Each returned
+    tool dict carries ``server_type = "mcp:<name>"`` so create_mcp_langchain_tools
+    treats it as a generic (non-GitHub) MCP tool.
+
+    NOTE: the HTTP connection path requires validation against a live MCP server
+    (it cannot be exercised in the unit-test environment); hence the flag.
+    """
+    import os
+    if os.getenv("AURORA_REGISTERED_MCP_ENABLED", "").strip().lower() not in ("1", "true", "yes"):
+        return []
+
+    from services.registry.mcp_servers import get_enabled_mcp_servers_safe, get_server_auth_token
+    from chat.backend.agent.tools.mcp_risk import enforce_read_only
+
+    servers = get_enabled_mcp_servers_safe(user_id)
+    if not servers:
+        return []
+
+    out: List = []
+    for srv in servers:
+        if (srv.get("transport") or "http") != "http" or not srv.get("url"):
+            # Only HTTP transport is supported for registered servers for now.
+            continue
+        name = srv["name"]
+        try:
+            from mcp import ClientSession
+            from mcp.client.streamable_http import streamablehttp_client
+
+            headers = {}
+            token = get_server_auth_token(user_id, name)
+            if token:
+                headers["Authorization"] = f"Bearer {token}"
+
+            async with streamablehttp_client(srv["url"], headers=headers) as (read, write, _):
+                async with ClientSession(read, write) as session:
+                    await session.initialize()
+                    listed = await session.list_tools()
+                    server_tools = [
+                        {
+                            "name": t.name,
+                            "description": getattr(t, "description", "") or "",
+                            "inputSchema": getattr(t, "inputSchema", None),
+                            "server_type": f"mcp:{name}",
+                        }
+                        for t in getattr(listed, "tools", [])
+                    ]
+            # Enforce the server's read/write boundary before exposing tools.
+            server_tools = enforce_read_only(server_tools, bool(srv.get("read_only", True)))
+            out.extend(server_tools)
+            logging.info(f" Registered MCP server {name}: {len(server_tools)} tools (read_only={srv.get('read_only')})")
+        except Exception as e:
+            logging.warning(f" Failed to load registered MCP server {name}: {e}")
+    return out
+
 
 def create_mcp_langchain_tools(real_mcp_tools: List, tool_capture=None, send_tool_start=None, send_tool_completion=None, send_tool_error=None, run_async_in_thread=None) -> List:
     """Convert MCP tool definitions to LangChain tools."""

@@ -14,6 +14,13 @@ interface RenderOutputProps {
   output: any
   toolName: string
   theme: string
+  allowEditing?: boolean
+  editedContent?: string | null
+  lastSavedContent?: string | null
+  handleEditorChange?: () => void
+  handleSave?: () => void
+  handlePlan?: () => void
+  hasSavedEdit?: boolean
 }
 
 // Helper to detect tool type for appropriate rendering

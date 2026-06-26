@@ -54,8 +54,8 @@ export const datadogService = {
       });
       return {
         connected: Boolean(data?.connected),
-        site: data?.site,
-        baseUrl: data?.baseUrl ?? data?.base_url,
+        site: data?.site as string | undefined,
+        baseUrl: (data?.baseUrl ?? data?.base_url) as string | undefined,
         org: (data?.org as UnknownRecord | undefined) ?? null,
         serviceAccountName: ((data?.serviceAccountName ?? data?.service_account_name) as string | undefined | null) ?? null,
         error: data?.error as string | undefined,
@@ -75,7 +75,7 @@ export const datadogService = {
     });
     return {
       connected: Boolean(data?.success ?? true),
-      site: data?.site ?? payload.site,
+      site: (data?.site as string | undefined) ?? payload.site,
       baseUrl: data?.baseUrl as string | undefined,
       org: (data?.org as UnknownRecord | undefined) ?? null,
       serviceAccountName: ((data?.serviceAccountName as string | undefined) ?? payload.serviceAccountName) ?? null,

@@ -109,6 +109,49 @@ def _get_context() -> tuple[bool, Optional[str]]:
         return False, None
 
 
+def _resume_incident_id() -> Optional[str]:
+    """Best-effort incident id from the current run state (for approval rows)."""
+    try:
+        from utils.cloud.cloud_utils import get_state_context
+        state = get_state_context()
+        inc = getattr(state, "incident_id", None) if state else None
+        return str(inc) if inc else None
+    except Exception:
+        return None
+
+
+def _resume_payload(summary: str) -> Optional[dict]:
+    """Capture enough of the current run to re-dispatch it after approval.
+
+    Pulls the originating prompt (first human message) + mode + tool allowlist
+    from the run state. Returns None if unavailable (then approval is recorded
+    but auto-resume is skipped; the consumable approval still lets a manual
+    re-run proceed)."""
+    try:
+        from utils.cloud.cloud_utils import get_state_context
+        state = get_state_context()
+        if not state:
+            return None
+        prompt = None
+        for m in (getattr(state, "messages", None) or []):
+            content = getattr(m, "content", None)
+            mtype = getattr(m, "type", None)
+            if content and (mtype == "human" or m.__class__.__name__ == "HumanMessage"):
+                prompt = content if isinstance(content, str) else str(content)
+                break
+        if not prompt:
+            return None
+        allowlist = getattr(state, "tool_allowlist", None)
+        return {
+            "prompt": prompt,
+            "mode": getattr(state, "mode", "agent") or "agent",
+            "incident_id": _resume_incident_id(),
+            "tool_allowlist": sorted(allowlist) if allowlist else None,
+        }
+    except Exception:
+        return None
+
+
 def gate_command(
     *,
     user_id: Optional[str],
@@ -231,6 +274,34 @@ def gate_action(
 
     foreground, session_id = _get_context()
     if not foreground:
+        # Background/autonomous run. Fully fail-safe: on any error, preserve the
+        # original BACKGROUND_DENIED (never loosens by accident).
+        try:
+            # Resume: if a human already approved this action, consume the
+            # single-use approval and allow this one execution.
+            from services.policy.approvals import consume_if_approved_safe
+            if consume_if_approved_safe(user_id, tool_name, summary):
+                logger.info("gate_action: consumed approval for %s — allowing", tool_name)
+                return _ALLOWED
+
+            from services.policy.policy_engine import decide as _policy_decide, PolicyAction
+            pd = _policy_decide(tool_name, is_background=True)
+            if pd.action is PolicyAction.ALLOW:
+                return _ALLOWED
+            if pd.action is PolicyAction.REQUIRE_APPROVAL:
+                # Queue a HITL approval (action still does NOT execute now),
+                # capturing enough context to re-run the blocked run on approval.
+                try:
+                    from services.policy.approvals import create_approval_safe
+                    create_approval_safe(
+                        user_id, tool_name=tool_name, summary=summary, session_id=session_id,
+                        incident_id=_resume_incident_id(), resume_payload=_resume_payload(summary),
+                    )
+                except Exception:
+                    logger.debug("gate_action: failed to queue approval (non-fatal)")
+                return _block("APPROVAL_REQUIRED", f"{summary} requires human approval (queued)")
+        except Exception:
+            logger.debug("gate_action: policy engine unavailable; failing closed")
         return _block("BACKGROUND_DENIED", "Tool call not allowed in background context")
 
     decision = _prompt_user(

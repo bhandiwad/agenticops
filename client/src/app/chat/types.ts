@@ -21,7 +21,7 @@ export interface ToolCall {
   input: string;
   output?: any;
   error?: string | null;
-  status: "pending" | "running" | "completed" | "error" | "awaiting_confirmation" | "cancelled";
+  status: "pending" | "running" | "completed" | "error" | "awaiting_confirmation" | "cancelled" | "setting_up_environment";
   timestamp: string;
   confirmation_id?: string;
   confirmation_message?: string;

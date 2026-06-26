@@ -584,6 +584,28 @@ def generate_incident_summary(
         f"{_LOG_PREFIX} Generating summary for incident {incident_id} (user={user_id}, source={source_type})"
     )
 
+    # Trigger router: a new incident now exists — emit incident_created so
+    # opted-in lifecycle agents can act. Flag-gated (off by default) and
+    # fail-safe; never affects summary generation. (This runs once per new
+    # incident — generate_incident_summary is the universal post-creation call.)
+    try:
+        from utils.auth.stateless_auth import get_org_id_for_user as _get_org
+        from services.routing.events import INCIDENT_CREATED, LifecycleEvent
+        from services.routing.executor import dispatch_lifecycle_event
+        dispatch_lifecycle_event(
+            user_id,
+            LifecycleEvent(
+                event_type=INCIDENT_CREATED,
+                org_id=_get_org(user_id) or "",
+                incident_id=str(incident_id),
+                source=source_type,
+                severity=severity,
+                service=service,
+            ),
+        )
+    except Exception:
+        logger.debug(f"{_LOG_PREFIX} trigger-router emit failed (fail-safe)")
+
     # Hook: check if LLM call is allowed
     from utils.hooks import get_hook
     from utils.auth.stateless_auth import get_org_id_for_user

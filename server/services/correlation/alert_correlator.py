@@ -486,3 +486,23 @@ def handle_correlated_alert(
         correlation_result.score,
         correlation_result.strategy,
     )
+
+    # Trigger router: a repeat/correlated alert hit an existing incident — emit
+    # alert_created so opted-in dedup/correlation agents can act. Flag-gated
+    # (off by default) and fail-safe; never affects correlation handling.
+    try:
+        from services.routing.events import ALERT_CREATED, LifecycleEvent
+        from services.routing.executor import dispatch_lifecycle_event
+        dispatch_lifecycle_event(
+            user_id,
+            LifecycleEvent(
+                event_type=ALERT_CREATED,
+                org_id=org_id or "",
+                incident_id=str(incident_id),
+                source=source_type,
+                severity=alert_severity,
+                service=alert_service,
+            ),
+        )
+    except Exception:
+        logger.debug("[CORRELATION] trigger-router emit failed (fail-safe)")

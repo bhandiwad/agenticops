@@ -33,7 +33,7 @@ export function DatadogWebhookStep({ status, webhookUrl, copied, onCopy, onDisco
           </div>
           <div className="p-4 border rounded-lg">
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Org</p>
-            <p className="text-base font-semibold">{status.org?.name || 'Datadog'}</p>
+            <p className="text-base font-semibold">{(status.org?.name as string | undefined) || 'Datadog'}</p>
           </div>
         </div>
 

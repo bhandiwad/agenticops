@@ -12,6 +12,7 @@ import { canWrite } from '@/lib/roles';
 
 import IncidentCard from '../components/IncidentCard';
 import ThoughtsPanel, { PANEL_WIDTH_DEFAULT } from '../components/ThoughtsPanel';
+import IncidentEvidencePanel from '../components/IncidentEvidencePanel';
 
 const STALE_POLL_MS = 5 * 60 * 1000;
 
@@ -68,7 +69,7 @@ export default function IncidentDetailPage() {
         if (!needsPoll || !active) { pollStartRef.current = 0; return; }
 
         if (data.updatedAt !== lastUpdatedAtRef.current) {
-          lastUpdatedAtRef.current = data.updatedAt;
+          lastUpdatedAtRef.current = data.updatedAt ?? '';
           pollStartRef.current = Date.now();
         }
         if (!pollStartRef.current) pollStartRef.current = Date.now();
@@ -212,6 +213,7 @@ export default function IncidentDetailPage() {
               citations={incident.citations}
               onRefresh={refreshIncident}
             />
+            <IncidentEvidencePanel incidentId={params.id as string} />
           </div>
         </div>
 

@@ -562,7 +562,7 @@ function ActionFormView({ onBack, onSaved, action }: {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-xs text-zinc-400">Trigger</Label>
-                <Select value={triggerType} onValueChange={setTriggerType} disabled={isSystemAction}>
+                <Select value={triggerType} onValueChange={(v) => setTriggerType(v as 'manual' | 'on_incident' | 'on_schedule')} disabled={isSystemAction}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="manual">Manual only</SelectItem>
@@ -617,7 +617,7 @@ function ActionFormView({ onBack, onSaved, action }: {
 
               <div className="space-y-2">
                 <Label className="text-xs text-zinc-400">Execution Mode</Label>
-                <Select value={mode} onValueChange={setMode}>
+                <Select value={mode} onValueChange={(v) => setMode(v as 'ask' | 'agent')}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="agent">Agent (read-write)</SelectItem>

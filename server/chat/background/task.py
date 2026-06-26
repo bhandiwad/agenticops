@@ -415,6 +415,7 @@ def run_background_chat(
     send_notifications: bool = True,
     mode: str = "ask",
     rail_text: Optional[str] = None,
+    tool_allowlist: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Run a chat session in the background without WebSocket.
 
@@ -659,6 +660,7 @@ def run_background_chat(
                 mode=mode,
                 rail_text=rail_text,
                 send_notifications=send_notifications,
+                tool_allowlist=tool_allowlist,
             ))
         except Exception as e:
             logger.error(f"[BackgroundChat] Exception in asyncio.run(_execute_background_chat): {e}", exc_info=True)
@@ -806,6 +808,24 @@ def run_background_chat(
                 dispatch_on_incident_actions(user_id, str(incident_id), timing='after_rca')
             except Exception:
                 logger.debug("[BackgroundChat] Failed to dispatch after_rca actions")
+
+            # Trigger router: route the rca_completed lifecycle event to typed
+            # agents (summarizer -> notification -> postmortem). Flag-gated (off
+            # by default) and fail-safe — never affects RCA completion.
+            try:
+                from utils.auth.stateless_auth import get_org_id_for_user
+                from services.routing.events import RCA_COMPLETED, LifecycleEvent
+                from services.routing.executor import dispatch_lifecycle_event
+                dispatch_lifecycle_event(
+                    user_id,
+                    LifecycleEvent(
+                        event_type=RCA_COMPLETED,
+                        org_id=get_org_id_for_user(user_id) or "",
+                        incident_id=str(incident_id),
+                    ),
+                )
+            except Exception:
+                logger.debug("[BackgroundChat] trigger-router emit failed (fail-safe)")
 
         logger.info(f"[BackgroundChat] Completed for session {session_id}")
         return result
@@ -1239,6 +1259,7 @@ async def _execute_background_chat(
     mode: str = "ask",
     rail_text: Optional[str] = None,
     send_notifications: bool = True,
+    tool_allowlist: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Execute the background chat workflow asynchronously.
 
@@ -1373,6 +1394,7 @@ async def _execute_background_chat(
             is_pr_review=_is_pr_review,
             rca_context=rca_context,
             permitted_tools=_resolve_permitted_tools(user_id),
+            tool_allowlist=set(tool_allowlist) if tool_allowlist else None,
         )
         logger.info(
             f"[BackgroundChat] Created state with is_background=True, is_postmortem_action={_is_postmortem_action}, "

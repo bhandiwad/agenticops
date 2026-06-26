@@ -2603,7 +2603,25 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
     ))
     
     tools = ModeAccessController.filter_tools(mode, tools)
-    
+
+    # Per-org tool availability: drop catalog tools the org has explicitly
+    # disabled via the Tools UI (org_tool_availability). Fail-open — never block
+    # tool loading on this lookup, and tools default to enabled when no row.
+    try:
+        from services.registry.overrides import get_disabled_tools_safe
+        _disabled_tools = get_disabled_tools_safe(user_id)
+        if _disabled_tools:
+            tools = [t for t in tools if getattr(t, "name", "") not in _disabled_tools]
+    except Exception as _avail_err:
+        logging.debug("Tool availability filter skipped (fail-open): %s", _avail_err)
+
+    # Restrictive per-agent tool allowlist (set by trigger-routed lifecycle
+    # agents to scope tools to their capability tags). Purely subtractive; only
+    # applies when state.tool_allowlist is set, so default behavior is unchanged.
+    _tool_allowlist = getattr(state_context, "tool_allowlist", None) if state_context else None
+    if _tool_allowlist:
+        tools = [t for t in tools if getattr(t, "name", "") in _tool_allowlist]
+
     # Deduplicate tools by name to prevent "Tool names must be unique" errors with Claude
     seen_tool_names = set()
     deduplicated_tools = []
@@ -2622,7 +2640,60 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
     tools = deduplicated_tools
     
     logging.info(f"Total tools available: {len(tools)}")
-    
+
+    # Optional drift validator: check the imperative inclusion logic above
+    # against the declarative resolver (tool_resolver.resolve_native_tool_names),
+    # which is the intended future single source of truth for tool inclusion.
+    # Flag-gated (default off) and fully fail-safe so it can never affect tool
+    # loading — enable AURORA_TOOL_REGISTRY_DRIFT_CHECK in staging to validate
+    # the resolver against the live tool surface before promoting it to drive
+    # inclusion. Zero extra DB/connectivity calls: connectivity is inferred from
+    # the tools that were actually constructed.
+    import os as _os
+    if _os.getenv("AURORA_TOOL_REGISTRY_DRIFT_CHECK", "").strip().lower() in ("1", "true", "yes"):
+        try:
+            from chat.backend.agent.tools.tool_registry import get_tool_spec
+            from chat.backend.agent.tools.tool_resolver import (
+                ToolContext,
+                reconcile_tool_lists,
+                resolve_native_tool_names,
+            )
+
+            # Native tools = those classified in the catalog (excludes dynamic
+            # MCP tools, which the resolver does not cover).
+            native_names = [
+                getattr(t, "name", "") for t in tools
+                if get_tool_spec(getattr(t, "name", ""))
+            ]
+            connected = {
+                spec.connector_id
+                for n in native_names
+                if (spec := get_tool_spec(n)) and spec.connector_id
+            }
+            drift_ctx = ToolContext(
+                mode=mode_suffix,
+                is_pr_review=is_pr_review,
+                is_background=is_background,
+                is_rca_context=is_rca_context,
+                is_postmortem_action=is_postmortem_action,
+                trigger_rca_requested=bool(rca_flag),
+                has_action_id=bool(_action_id),
+                has_incident=bool(getattr(state_context, "incident_id", None)),
+                jira_comment_only=("jira_create_issue" not in native_names),
+                connected=frozenset(connected),
+            )
+            drift = reconcile_tool_lists(resolve_native_tool_names(drift_ctx), native_names)
+            if drift["missing"] or drift["unexpected"] or not drift["order_ok"]:
+                logging.warning(
+                    "[ToolRegistryDrift] resolver vs get_cloud_tools mismatch "
+                    "(user=%s, mode=%s): missing=%s unexpected=%s order_ok=%s",
+                    user_id, mode_suffix, drift["missing"], drift["unexpected"], drift["order_ok"],
+                )
+            else:
+                logging.info("[ToolRegistryDrift] resolver matches get_cloud_tools (user=%s)", user_id)
+        except Exception as _drift_err:  # never let the validator affect tool loading
+            logging.debug("[ToolRegistryDrift] drift check skipped: %s", _drift_err)
+
     # Cache the fully processed LangChain tools
     _langchain_tools_cache[cache_key] = tools
     _langchain_tools_cache_expiry[cache_key] = time.time() + LANGCHAIN_TOOLS_CACHE_DURATION

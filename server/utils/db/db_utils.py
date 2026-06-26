@@ -1165,6 +1165,149 @@ def initialize_tables():
                     CREATE INDEX IF NOT EXISTS idx_otp_org
                         ON org_tool_permissions(org_id);
                 """,
+                "org_tool_availability": """
+                    CREATE TABLE IF NOT EXISTS org_tool_availability (
+                        id SERIAL PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        tool_name VARCHAR(100) NOT NULL,
+                        enabled BOOLEAN NOT NULL DEFAULT true,
+                        updated_by VARCHAR(255),
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(org_id, tool_name)
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_ota_org
+                        ON org_tool_availability(org_id);
+                """,
+                "agent_overrides": """
+                    CREATE TABLE IF NOT EXISTS agent_overrides (
+                        id SERIAL PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        agent_name VARCHAR(100) NOT NULL,
+                        enabled BOOLEAN NOT NULL DEFAULT true,
+                        max_turns INTEGER,
+                        max_seconds INTEGER,
+                        model VARCHAR(100),
+                        updated_by VARCHAR(255),
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(org_id, agent_name)
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_agent_overrides_org
+                        ON agent_overrides(org_id);
+                """,
+                "trigger_rules": """
+                    CREATE TABLE IF NOT EXISTS trigger_rules (
+                        id SERIAL PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        event_type VARCHAR(64) NOT NULL,
+                        enabled BOOLEAN NOT NULL DEFAULT true,
+                        updated_by VARCHAR(255),
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(org_id, event_type)
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_trigger_rules_org
+                        ON trigger_rules(org_id);
+                """,
+                "approvals": """
+                    CREATE TABLE IF NOT EXISTS approvals (
+                        id UUID PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        tool_name VARCHAR(255) NOT NULL,
+                        summary TEXT,
+                        status VARCHAR(20) NOT NULL DEFAULT 'pending',
+                        session_id VARCHAR(255),
+                        incident_id UUID,
+                        requested_by VARCHAR(255),
+                        decided_by VARCHAR(255),
+                        decided_at TIMESTAMP,
+                        reason TEXT,
+                        consumed_at TIMESTAMP,
+                        resume_payload JSONB,
+                        action_hash VARCHAR(64),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_approvals_org_status
+                        ON approvals(org_id, status, created_at DESC);
+                """,
+                "mcp_servers": """
+                    CREATE TABLE IF NOT EXISTS mcp_servers (
+                        id UUID PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        name VARCHAR(128) NOT NULL,
+                        transport VARCHAR(32) NOT NULL DEFAULT 'http',
+                        url TEXT,
+                        enabled BOOLEAN NOT NULL DEFAULT true,
+                        read_only BOOLEAN NOT NULL DEFAULT true,
+                        has_auth BOOLEAN NOT NULL DEFAULT false,
+                        created_by VARCHAR(255),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(org_id, name)
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_mcp_servers_org
+                        ON mcp_servers(org_id);
+                """,
+                "workflow_rules": """
+                    CREATE TABLE IF NOT EXISTS workflow_rules (
+                        id SERIAL PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        workflow_key VARCHAR(64) NOT NULL,
+                        enabled BOOLEAN NOT NULL DEFAULT true,
+                        updated_by VARCHAR(255),
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(org_id, workflow_key)
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_workflow_rules_org
+                        ON workflow_rules(org_id);
+                """,
+                "custom_workflows": """
+                    CREATE TABLE IF NOT EXISTS custom_workflows (
+                        id UUID PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        key VARCHAR(64) NOT NULL,
+                        name VARCHAR(128) NOT NULL,
+                        kind VARCHAR(16) NOT NULL DEFAULT 'llm',
+                        description TEXT,
+                        steps JSONB NOT NULL DEFAULT '[]'::jsonb,
+                        enabled BOOLEAN NOT NULL DEFAULT true,
+                        created_by VARCHAR(255),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(org_id, key)
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_custom_workflows_org
+                        ON custom_workflows(org_id);
+                """,
+                "run_evidence": """
+                    CREATE TABLE IF NOT EXISTS run_evidence (
+                        id UUID PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        incident_id UUID,
+                        session_id VARCHAR(255),
+                        source VARCHAR(64),
+                        kind VARCHAR(64),
+                        title TEXT,
+                        content TEXT,
+                        ref TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_run_evidence_incident
+                        ON run_evidence(org_id, incident_id, created_at DESC);
+                """,
+                "prompt_versions": """
+                    CREATE TABLE IF NOT EXISTS prompt_versions (
+                        id UUID PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        prompt_key VARCHAR(128) NOT NULL,
+                        version INTEGER NOT NULL,
+                        content TEXT NOT NULL,
+                        is_active BOOLEAN NOT NULL DEFAULT false,
+                        created_by VARCHAR(255),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(org_id, prompt_key, version)
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_prompt_versions_key
+                        ON prompt_versions(org_id, prompt_key, version DESC);
+                """,
                 "org_invitations": """
                     CREATE TABLE IF NOT EXISTS org_invitations (
                         id VARCHAR(255) PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
@@ -1461,6 +1604,15 @@ def initialize_tables():
             rls_tables.append("execution_steps")
             rls_tables.append("org_command_policies")
             rls_tables.append("org_tool_permissions")
+            rls_tables.append("org_tool_availability")
+            rls_tables.append("agent_overrides")
+            rls_tables.append("trigger_rules")
+            rls_tables.append("approvals")
+            rls_tables.append("mcp_servers")
+            rls_tables.append("workflow_rules")
+            rls_tables.append("custom_workflows")
+            rls_tables.append("run_evidence")
+            rls_tables.append("prompt_versions")
             rls_tables.append("rca_findings")
             rls_tables.append("actions")
             rls_tables.append("action_runs")

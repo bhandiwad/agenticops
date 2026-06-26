@@ -30,6 +30,7 @@ import {
   parseGitLabToolCommand,
 } from "./tool-command-parser"
 import { RenderOutput } from "./tool-output-renderer"
+import type { ToolCall } from "@/app/chat/types"
 
 interface ToolExecutionWidgetProps {
   tool: ToolCall
@@ -409,7 +410,7 @@ const ToolExecutionWidget = ({ tool, className, sendMessage, sendRaw, onToolUpda
             )}
 
             {/* Show shimmer effect while tool is running and no output yet */}
-            {tool.status === "running" && !tool.output && !tool.error && tool.status !== "setting_up_environment" && (
+            {tool.status === "running" && !tool.output && !tool.error && (tool.status as string) !== "setting_up_environment" && (
               <div className="px-4 py-3 space-y-2">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />

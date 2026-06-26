@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import type { UserRole } from "@/types/next-auth"
 
 const ROLE_REVALIDATE_SECONDS = 60 // re-check role/org every 60 seconds
 
@@ -165,7 +166,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           session.user.id = token.id as string
           session.user.email = token.email as string
           session.user.name = token.name as string
-          session.user.role = token.role as string
+          session.user.role = token.role as UserRole
           session.user.orgId = (token.orgId as string) ?? undefined
           session.user.orgName = (token.orgName as string) ?? undefined
           session.user.mustChangePassword = token.mustChangePassword as boolean

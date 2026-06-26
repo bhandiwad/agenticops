@@ -230,7 +230,7 @@ export default function ThoughtsPanel({ thoughts, incident, isVisible, canIntera
         
         return {
           id: `${session.id}-${idx}`,
-          role: isUser ? 'user' : 'assistant',
+          role: (isUser ? 'user' : 'assistant') as 'user' | 'assistant',
           content,
         };
       }).filter((m: ChatMessage) => m.content.trim() !== '');

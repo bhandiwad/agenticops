@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ChevronLeft, Settings, LogOut, User, Zap, Plug, Gauge, SquarePen, Workflow } from "lucide-react"
+import { ChevronLeft, Settings, LogOut, User, Zap, Plug, Gauge, SquarePen, Workflow, Wrench, Bot, Route, ShieldCheck, Server, Waypoints } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import ChatHistory from "@/components/ChatHistory"
@@ -224,6 +224,114 @@ export default function Navigation({
             </Link>
           </li>
 
+          {/* Tools Navigation Item */}
+          <li>
+            <Link
+              href="/tools"
+              className={cn(
+                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
+                pathname?.startsWith("/tools")
+                  ? "bg-card rounded-lg border border-border shadow-sm"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div className="flex items-center">
+                <Wrench size={16} />
+                <span className="ml-2">Tools</span>
+              </div>
+            </Link>
+          </li>
+
+          {/* Agents Navigation Item */}
+          <li>
+            <Link
+              href="/agents"
+              className={cn(
+                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
+                pathname?.startsWith("/agents")
+                  ? "bg-card rounded-lg border border-border shadow-sm"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div className="flex items-center">
+                <Bot size={16} />
+                <span className="ml-2">Agents</span>
+              </div>
+            </Link>
+          </li>
+
+          {/* Workflows Navigation Item */}
+          <li>
+            <Link
+              href="/workflows"
+              className={cn(
+                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
+                pathname?.startsWith("/workflows")
+                  ? "bg-card rounded-lg border border-border shadow-sm"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div className="flex items-center">
+                <Waypoints size={16} />
+                <span className="ml-2">Workflows</span>
+              </div>
+            </Link>
+          </li>
+
+          {/* Triggers Navigation Item */}
+          <li>
+            <Link
+              href="/triggers"
+              className={cn(
+                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
+                pathname?.startsWith("/triggers")
+                  ? "bg-card rounded-lg border border-border shadow-sm"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div className="flex items-center">
+                <Route size={16} />
+                <span className="ml-2">Triggers</span>
+              </div>
+            </Link>
+          </li>
+
+          {/* Approvals Navigation Item */}
+          <li>
+            <Link
+              href="/approvals"
+              className={cn(
+                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
+                pathname?.startsWith("/approvals")
+                  ? "bg-card rounded-lg border border-border shadow-sm"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div className="flex items-center">
+                <ShieldCheck size={16} />
+                <span className="ml-2">Approvals</span>
+              </div>
+            </Link>
+          </li>
+
+          {/* MCP Servers Navigation Item */}
+          <li>
+            <Link
+              href="/mcp"
+              className={cn(
+                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
+                pathname?.startsWith("/mcp")
+                  ? "bg-card rounded-lg border border-border shadow-sm"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div className="flex items-center">
+                <Server size={16} />
+                <span className="ml-2">MCP</span>
+              </div>
+            </Link>
+          </li>
+
           {/* Connectors Navigation Item */}
           <li>
             <Link
@@ -272,7 +380,7 @@ export default function Navigation({
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     >
                     <Avatar className="w-8 h-8">
-                      <AvatarImage src={user.imageUrl} alt={user.fullName || "User"} />
+                      <AvatarImage src={user.imageUrl ?? undefined} alt={user.fullName || "User"} />
                       <AvatarFallback className="bg-primary text-primary-foreground font-medium">
                         {(user.fullName || user.firstName || user.emailAddresses[0]?.emailAddress || "U")
                           .split(" ")

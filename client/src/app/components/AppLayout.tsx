@@ -109,9 +109,9 @@ const SidebarStrip = ({
                   className="h-10 w-10 rounded-full p-0 shadow-md border border-border bg-card flex items-center justify-center overflow-hidden"
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 >
-                  <img 
-                    src={user.imageUrl} 
-                    alt={user.fullName || "User"} 
+                  <img
+                    src={user.imageUrl ?? undefined}
+                    alt={user.fullName || "User"}
                     className="w-full h-full object-cover"
                   />
                 </Button>
