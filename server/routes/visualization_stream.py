@@ -44,8 +44,14 @@ def stream_visualization_updates(user_id, incident_id: str):
             
             yield f"data: {json.dumps({'type': 'connected', 'incident_id': incident_id})}\n\n"
             
-            # Use get_message with timeout instead of listen() to avoid blocking forever
-            while True:
+            # Use get_message with timeout instead of listen() to avoid blocking forever.
+            # Bound the connection lifetime so each stream periodically releases its
+            # worker thread (the sync worker pins one thread per open stream); the
+            # browser EventSource reconnects automatically when we close.
+            import time as _time
+            max_seconds = int(os.getenv("SSE_MAX_CONNECTION_SECONDS", "300"))
+            deadline = _time.monotonic() + max_seconds
+            while _time.monotonic() < deadline:
                 message = pubsub.get_message(timeout=30.0)
                 if message and message['type'] == 'message':
                     data = message['data']
@@ -55,6 +61,8 @@ def stream_visualization_updates(user_id, incident_id: str):
                 elif message is None:
                     # Timeout - send heartbeat to detect disconnects
                     yield f": heartbeat\n\n"
+            # Lifetime reached: end the stream so the worker thread is released.
+            yield "event: reconnect\ndata: {}\n\n"
         finally:
             if pubsub:
                 pubsub.unsubscribe(channel)
