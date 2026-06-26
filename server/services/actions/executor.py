@@ -86,7 +86,13 @@ def dispatch_action(
         from services.routing.events import LifecycleEvent
         from services.routing.executor import build_dispatch_plan
         ev = LifecycleEvent(event_type="manual_action", org_id=org_id, incident_id=incident_id)
-        plan = build_dispatch_plan([target_ref], ev)
+        custom_roles = {}
+        try:
+            from services.registry.custom_agents import get_custom_agents_map_safe
+            custom_roles = get_custom_agents_map_safe(user_id)
+        except Exception:
+            pass
+        plan = build_dispatch_plan([target_ref], ev, custom_roles=custom_roles)
         if not plan:
             _create_run(action_id, org_id, user_id, incident_id=incident_id,
                         trigger_context=trigger_context, status="error",

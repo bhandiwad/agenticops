@@ -77,6 +77,20 @@ def test_plan_skips_unknown_agents():
     assert [p.agent_name for p in plan] == ["summarizer_agent"]
 
 
+def test_plan_resolves_custom_roles():
+    from chat.backend.agent.orchestrator.role_registry import RoleMeta
+    custom = {
+        "my_custom_agent": RoleMeta(
+            name="my_custom_agent", description="", tools=["chat"], max_turns=5,
+            max_seconds=60, rca_priority=200, model=None, body="Custom agent body", kind="notification",
+        )
+    }
+    plan = build_dispatch_plan(["my_custom_agent"], _ev(), custom_roles=custom)
+    assert plan and plan[0].agent_name == "my_custom_agent"
+    assert "Custom agent body" in plan[0].prompt
+    assert plan[0].max_turns == 5
+
+
 def test_dispatch_is_noop_when_flag_disabled(monkeypatch):
     # Flag unset/off -> returns [] without touching DB or Celery.
     monkeypatch.delenv("AURORA_TRIGGER_ROUTER_ENABLED", raising=False)

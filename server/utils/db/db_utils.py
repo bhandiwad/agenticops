@@ -1259,6 +1259,42 @@ def initialize_tables():
                     CREATE INDEX IF NOT EXISTS idx_workflow_rules_org
                         ON workflow_rules(org_id);
                 """,
+                "custom_agents": """
+                    CREATE TABLE IF NOT EXISTS custom_agents (
+                        id UUID PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        name VARCHAR(128) NOT NULL,
+                        kind VARCHAR(32) NOT NULL DEFAULT 'investigator',
+                        description TEXT,
+                        capability_tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+                        max_turns INTEGER NOT NULL DEFAULT 16,
+                        max_seconds INTEGER NOT NULL DEFAULT 360,
+                        model VARCHAR(100),
+                        prompt TEXT NOT NULL,
+                        enabled BOOLEAN NOT NULL DEFAULT true,
+                        created_by VARCHAR(255),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(org_id, name)
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_custom_agents_org
+                        ON custom_agents(org_id);
+                """,
+                "custom_trigger_routes": """
+                    CREATE TABLE IF NOT EXISTS custom_trigger_routes (
+                        id UUID PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        event_type VARCHAR(64) NOT NULL,
+                        target_type VARCHAR(20) NOT NULL DEFAULT 'agent',
+                        target_ref VARCHAR(128) NOT NULL,
+                        match JSONB,
+                        enabled BOOLEAN NOT NULL DEFAULT true,
+                        created_by VARCHAR(255),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_custom_trigger_routes_org
+                        ON custom_trigger_routes(org_id, event_type);
+                """,
                 "custom_workflows": """
                     CREATE TABLE IF NOT EXISTS custom_workflows (
                         id UUID PRIMARY KEY,
@@ -1613,6 +1649,8 @@ def initialize_tables():
             rls_tables.append("mcp_servers")
             rls_tables.append("workflow_rules")
             rls_tables.append("custom_workflows")
+            rls_tables.append("custom_trigger_routes")
+            rls_tables.append("custom_agents")
             rls_tables.append("run_evidence")
             rls_tables.append("prompt_versions")
             rls_tables.append("rca_findings")

@@ -67,6 +67,7 @@ def build_dispatch_plan(
     *,
     overrides: Optional[Dict[str, dict]] = None,
     prompt_overrides: Optional[Dict[str, str]] = None,
+    custom_roles: Optional[Dict[str, object]] = None,
 ) -> List[AgentDispatch]:
     """Build an ordered dispatch plan for the routed agents. Pure.
 
@@ -83,10 +84,11 @@ def build_dispatch_plan(
 
     overrides = overrides or {}
     prompt_overrides = prompt_overrides or {}
+    custom_roles = custom_roles or {}
     reg = RoleRegistry.get_instance()
     plan: List[AgentDispatch] = []
     for name in agent_names:
-        role = reg.get(name)
+        role = reg.get(name) or custom_roles.get(name)
         if role is None:
             logger.warning("trigger executor: routed agent %r not in registry — skipping", name)
             continue
@@ -125,12 +127,21 @@ def dispatch_lifecycle_event(user_id: str, event: LifecycleEvent) -> List[str]:
         from services.registry.overrides import get_agent_overrides, get_disabled_agents_safe
         from services.routing.rules import get_disabled_event_types_safe
 
+        # Org-defined custom routes (extra agent/workflow steps), fail-open.
+        extra_routes = {}
+        try:
+            from services.routing.custom_routes import get_custom_routes_safe
+            extra_routes = get_custom_routes_safe(user_id)
+        except Exception:
+            logger.debug("trigger executor: custom-route lookup failed; using defaults")
+
         decision = route_event(
             event,
             disabled_event_types=get_disabled_event_types_safe(user_id),
             disabled_agents=get_disabled_agents_safe(user_id),
+            extra_routes=extra_routes or None,
         )
-        if not decision.agents:
+        if not decision.targets:
             return []
 
         overrides = {}
@@ -150,8 +161,17 @@ def dispatch_lifecycle_event(user_id: str, event: LifecycleEvent) -> List[str]:
         except Exception:
             logger.debug("trigger executor: prompt-override lookup failed; using defaults")
 
+        # Resolve any org custom agents referenced by the routes.
+        custom_roles = {}
+        try:
+            from services.registry.custom_agents import get_custom_agents_map_safe
+            custom_roles = get_custom_agents_map_safe(user_id)
+        except Exception:
+            logger.debug("trigger executor: custom-agent lookup failed; using built-ins only")
+
         plan = build_dispatch_plan(
             decision.agents, event, overrides=overrides, prompt_overrides=prompt_overrides,
+            custom_roles=custom_roles,
         )
         from chat.background.task import create_background_chat_session, run_background_chat
 
@@ -192,6 +212,18 @@ def dispatch_lifecycle_event(user_id: str, event: LifecycleEvent) -> List[str]:
                     pass
             except Exception:
                 logger.exception("trigger executor: failed to dispatch %s", spec.agent_name)
+
+        # Workflow targets: run each routed workflow.
+        workflow_refs = [t["ref"] for t in decision.targets if t.get("target_type") == "workflow"]
+        if workflow_refs:
+            try:
+                from services.workflows.workflow_executor import run_workflow
+                for wf_key in workflow_refs:
+                    result = run_workflow(user_id, wf_key, incident_id=event.incident_id)
+                    dispatched.append(f"workflow:{wf_key}({result.status})")
+            except Exception:
+                logger.exception("trigger executor: failed to dispatch workflow(s) %s", workflow_refs)
+
         logger.info(
             "trigger executor: event=%s dispatched=%s", event.event_type, dispatched
         )

@@ -73,7 +73,27 @@ def test_default_routing_table_is_json_able():
     assert set(table) == set(DEFAULT_ROUTES)
     for steps in table.values():
         for s in steps:
-            assert set(s) == {"agent", "match"}
+            assert set(s) == {"target_type", "ref", "match"}
+
+
+def test_route_to_workflow_target():
+    extra = {INCIDENT_RESOLVED: [RouteStep(ref="remediation", target_type="workflow")]}
+    d = route_event(_ev(INCIDENT_RESOLVED), extra_routes=extra)
+    # workflow appears in targets but not in agents
+    assert {"target_type": "workflow", "ref": "remediation"} in d.targets
+    assert "remediation" not in d.agents
+    # default postmortem agent still routed
+    assert "postmortem_agent" in d.agents
+    assert {"target_type": "agent", "ref": "postmortem_agent"} in d.targets
+
+
+def test_targets_include_agents_in_order():
+    d = route_event(_ev(RCA_COMPLETED))
+    assert d.targets == [
+        {"target_type": "agent", "ref": "summarizer_agent"},
+        {"target_type": "agent", "ref": "notification_agent"},
+        {"target_type": "agent", "ref": "postmortem_agent"},
+    ]
 
 
 # --------------------------------------------------------------------------- #

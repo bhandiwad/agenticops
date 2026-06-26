@@ -1,13 +1,21 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Loader2, Bot, Search, ShieldAlert, ChevronDown, ChevronRight } from 'lucide-react';
+import { Loader2, Bot, Search, ShieldAlert, ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { useUser } from '@/hooks/useAuthHooks';
+
+const AGENT_KINDS = [
+  'investigator', 'correlation', 'dedup', 'summarizer', 'remediation',
+  'runbook_executor', 'notification', 'postmortem', 'custom',
+];
 
 interface PromptVersion {
   id: string;
@@ -130,6 +138,7 @@ interface AgentSpec {
   model: string | null;
   prompt: string;
   enabled?: boolean;
+  custom?: boolean;
 }
 
 interface AgentDraft {
@@ -163,6 +172,62 @@ export default function AgentsPage() {
   const [saving, setSaving] = useState<Record<string, boolean>>({});
   const { user } = useUser();
   const isAdmin = user?.role === 'admin';
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [capabilityOptions, setCapabilityOptions] = useState<string[]>([]);
+  const [newAgent, setNewAgent] = useState({
+    name: '', kind: 'investigator', description: '', tags: '',
+    max_turns: '16', max_seconds: '360', model: '', prompt: '',
+  });
+  const [creating, setCreating] = useState(false);
+
+  const loadAgents = async () => {
+    const res = await fetch('/api/registry/agents');
+    if (!res.ok) throw new Error(`Failed to load agents (${res.status})`);
+    const data = await res.json();
+    setAgents(data.agents ?? []);
+  };
+
+  const createAgent = async () => {
+    setCreating(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/registry/agents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newAgent.name,
+          kind: newAgent.kind,
+          description: newAgent.description,
+          capability_tags: newAgent.tags.split(',').map((t) => t.trim()).filter(Boolean),
+          max_turns: Number(newAgent.max_turns) || 16,
+          max_seconds: Number(newAgent.max_seconds) || 360,
+          model: newAgent.model || null,
+          prompt: newAgent.prompt,
+        }),
+      });
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}));
+        throw new Error(b.error || `Create failed (${res.status})`);
+      }
+      setShowBuilder(false);
+      setNewAgent({ name: '', kind: 'investigator', description: '', tags: '', max_turns: '16', max_seconds: '360', model: '', prompt: '' });
+      await loadAgents();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to create agent');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const deleteAgent = async (name: string) => {
+    try {
+      const res = await fetch(`/api/registry/agents/${encodeURIComponent(name)}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`);
+      setAgents((prev) => prev.filter((x) => x.name !== name));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to delete agent');
+    }
+  };
 
   const putAgent = async (a: AgentSpec, body: Record<string, unknown>) => {
     const res = await fetch(`/api/registry/agents/${encodeURIComponent(a.name)}`, {
@@ -227,10 +292,12 @@ export default function AgentsPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/registry/agents');
-        if (!res.ok) throw new Error(`Failed to load agents (${res.status})`);
-        const data = await res.json();
-        if (!cancelled) setAgents(data.agents ?? []);
+        await loadAgents();
+        // Capability tag options for the builder come from the tool catalog.
+        try {
+          const tr = await fetch('/api/registry/tools');
+          if (tr.ok && !cancelled) setCapabilityOptions((await tr.json()).capabilities ?? []);
+        } catch { /* non-fatal */ }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load agents');
       } finally {
@@ -274,17 +341,76 @@ export default function AgentsPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl p-6">
-      <div className="mb-6">
-        <h1 className="flex items-center gap-2 text-2xl font-semibold">
-          <Bot className="h-6 w-6" /> Agents
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Aurora&apos;s specialist agents. RCA investigators run during root-cause analysis; lifecycle
-          agents (correlation, summarizer, notification, postmortem, …) run automatically at incident
-          events. Admins can enable/disable each agent, adjust its limits and model, and version its
-          prompt below.
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-semibold">
+            <Bot className="h-6 w-6" /> Agents
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Aurora&apos;s specialist agents. RCA investigators run during root-cause analysis; lifecycle
+            agents (correlation, summarizer, notification, postmortem, …) run automatically at incident
+            events. Admins can create agents, enable/disable them, adjust limits and model, and version
+            prompts below.
+          </p>
+        </div>
+        {isAdmin && (
+          <Button size="sm" variant="outline" className="gap-1 shrink-0" onClick={() => setShowBuilder((s) => !s)}>
+            <Plus className="h-4 w-4" /> New agent
+          </Button>
+        )}
       </div>
+
+      {isAdmin && showBuilder && (
+        <div className="mb-6 rounded-lg border border-border bg-card p-4">
+          <h2 className="mb-3 text-sm font-semibold">New agent</h2>
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="text-xs text-muted-foreground">
+              Name (snake_case)
+              <Input className="mt-1 h-8 w-44" value={newAgent.name}
+                onChange={(e) => setNewAgent((a) => ({ ...a, name: e.target.value }))} placeholder="db_investigator" />
+            </label>
+            <label className="text-xs text-muted-foreground">
+              Kind
+              <Select value={newAgent.kind} onValueChange={(v) => setNewAgent((a) => ({ ...a, kind: v }))}>
+                <SelectTrigger className="mt-1 h-8 w-44"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {AGENT_KINDS.map((k) => (<SelectItem key={k} value={k}>{k}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </label>
+            <label className="text-xs text-muted-foreground">
+              Max turns
+              <Input type="number" className="mt-1 h-8 w-20" value={newAgent.max_turns}
+                onChange={(e) => setNewAgent((a) => ({ ...a, max_turns: e.target.value }))} />
+            </label>
+            <label className="text-xs text-muted-foreground">
+              Max seconds
+              <Input type="number" className="mt-1 h-8 w-24" value={newAgent.max_seconds}
+                onChange={(e) => setNewAgent((a) => ({ ...a, max_seconds: e.target.value }))} />
+            </label>
+            <label className="text-xs text-muted-foreground">
+              Model
+              <Input className="mt-1 h-8 w-40" placeholder="default" value={newAgent.model}
+                onChange={(e) => setNewAgent((a) => ({ ...a, model: e.target.value }))} />
+            </label>
+          </div>
+          <Input className="mt-3 h-8" placeholder="Description" value={newAgent.description}
+            onChange={(e) => setNewAgent((a) => ({ ...a, description: e.target.value }))} />
+          <Input className="mt-3 h-8" placeholder={`Capability tags, comma-separated (e.g. ${capabilityOptions.slice(0, 3).join(', ') || 'logs, metrics'})`}
+            value={newAgent.tags} onChange={(e) => setNewAgent((a) => ({ ...a, tags: e.target.value }))} />
+          <Textarea className="mt-3 min-h-[120px] text-xs" placeholder="System prompt for this agent..."
+            value={newAgent.prompt} onChange={(e) => setNewAgent((a) => ({ ...a, prompt: e.target.value }))} />
+          <div className="mt-3 flex items-center gap-2">
+            <Button size="sm" variant="outline" disabled={creating || !newAgent.name || !newAgent.prompt.trim()} onClick={createAgent}>
+              {creating ? 'Creating...' : 'Create agent'}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setShowBuilder(false)}>Cancel</Button>
+            {capabilityOptions.length > 0 && (
+              <span className="text-[11px] text-muted-foreground">Tags: {capabilityOptions.join(', ')}</span>
+            )}
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
@@ -322,9 +448,15 @@ export default function AgentsPage() {
                         {a.kind === 'investigator' && (
                           <Badge variant="secondary" className="text-[10px]">RCA</Badge>
                         )}
+                        {a.custom && <Badge variant="outline" className="text-[10px]">custom</Badge>}
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">{a.description}</p>
                     </div>
+                    {isAdmin && a.custom && (
+                      <Button size="sm" variant="ghost" className="shrink-0 text-destructive" onClick={() => deleteAgent(a.name)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-1">

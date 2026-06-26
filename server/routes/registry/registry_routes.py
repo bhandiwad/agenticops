@@ -95,6 +95,8 @@ def list_agents(user_id):
         from services.registry.overrides import get_agent_overrides
 
         agents = RoleRegistry.get_instance().serialize()
+        for a in agents:
+            a["custom"] = False
         org_id = get_org_id_from_request()
         overrides = {}
         if org_id:
@@ -102,12 +104,71 @@ def list_agents(user_id):
                 overrides = get_agent_overrides(user_id, org_id)
             except Exception:
                 logger.exception("registry: failed to load agent overrides; using defaults")
+            try:
+                from services.registry.custom_agents import list_custom_agents
+                for c in list_custom_agents(user_id, org_id):
+                    agents.append({
+                        "name": c["name"], "kind": c["kind"], "description": c["description"],
+                        "capability_tags": c["capability_tags"], "max_turns": c["max_turns"],
+                        "max_seconds": c["max_seconds"], "rca_priority": 200,
+                        "model": c["model"], "prompt": c["prompt"], "custom": True,
+                    })
+            except Exception:
+                logger.exception("registry: failed to load custom agents")
         agents = [apply_agent_override(a, overrides.get(a["name"])) for a in agents]
         kinds = sorted({a["kind"] for a in agents})
         return jsonify({"agents": agents, "count": len(agents), "kinds": kinds})
     except Exception:
         logger.exception("registry: failed to serialize agent registry")
         return jsonify({"error": "Failed to load agent registry"}), 500
+
+
+@registry_bp.route("/agents", methods=["POST"])
+@require_permission("admin", "access")
+def create_agent(user_id):
+    """Create (or upsert) a custom org agent."""
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    body = request.get_json(silent=True) or {}
+    try:
+        from services.registry.custom_agents import create_custom_agent
+        create_custom_agent(
+            user_id, org_id,
+            name=(body.get("name") or "").strip(),
+            kind=(body.get("kind") or "investigator").strip(),
+            description=body.get("description") or "",
+            capability_tags=body.get("capability_tags") or [],
+            prompt=body.get("prompt") or "",
+            max_turns=int(body.get("max_turns") or 16),
+            max_seconds=int(body.get("max_seconds") or 360),
+            model=body.get("model") or None,
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        logger.exception("registry: failed to create custom agent")
+        return jsonify({"error": "Failed to create agent"}), 500
+    return jsonify({"name": body.get("name")}), 201
+
+
+@registry_bp.route("/agents/<agent_name>", methods=["DELETE"])
+@require_permission("admin", "access")
+def delete_agent(user_id, agent_name):
+    from chat.backend.agent.orchestrator.role_registry import RoleRegistry
+    if RoleRegistry.get_instance().get(agent_name) is not None:
+        return jsonify({"error": "Cannot delete a built-in agent"}), 400
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    try:
+        from services.registry.custom_agents import delete_custom_agent
+        if not delete_custom_agent(user_id, org_id, agent_name):
+            return jsonify({"error": "Agent not found"}), 404
+    except Exception:
+        logger.exception("registry: failed to delete custom agent")
+        return jsonify({"error": "Failed to delete agent"}), 500
+    return jsonify({"name": agent_name, "deleted": True})
 
 
 @registry_bp.route("/agents/<agent_name>", methods=["PUT"])
@@ -162,25 +223,80 @@ def list_triggers(user_id):
         table = default_routing_table()
         org_id = get_org_id_from_request()
         rules = {}
+        custom_by_event = {}
         if org_id:
             try:
                 rules = get_trigger_rules(user_id, org_id)
             except Exception:
                 logger.exception("registry: failed to load trigger rules; defaulting to enabled")
+            try:
+                from services.routing.custom_routes import list_custom_routes
+                for r in list_custom_routes(user_id, org_id):
+                    custom_by_event.setdefault(r["event_type"], []).append(r)
+            except Exception:
+                logger.exception("registry: failed to load custom routes")
 
-        routes = [
-            {
+        routes = []
+        for et in EVENT_TYPES:
+            builtin = [
+                {"target_type": s["target_type"], "ref": s["ref"], "match": s.get("match"), "custom": False}
+                for s in table.get(et, [])
+            ]
+            custom = [
+                {"target_type": c["target_type"], "ref": c["target_ref"], "match": c.get("match"),
+                 "custom": True, "id": c["id"], "enabled": c["enabled"]}
+                for c in custom_by_event.get(et, [])
+            ]
+            routes.append({
                 "event_type": et,
-                "agents": [step["agent"] for step in table.get(et, [])],
-                "steps": table.get(et, []),
+                "steps": builtin + custom,
                 "enabled": rules.get(et, True),
-            }
-            for et in EVENT_TYPES
-        ]
+            })
         return jsonify({"routes": routes, "event_types": list(EVENT_TYPES)})
     except Exception:
         logger.exception("registry: failed to build trigger routing table")
         return jsonify({"error": "Failed to load triggers"}), 500
+
+
+@registry_bp.route("/trigger-routes", methods=["POST"])
+@require_permission("admin", "access")
+def create_trigger_route(user_id):
+    """Add a custom route step (agent/workflow) to a lifecycle event."""
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    body = request.get_json(silent=True) or {}
+    try:
+        from services.routing.custom_routes import create_custom_route
+        route_id = create_custom_route(
+            user_id, org_id,
+            event_type=(body.get("event_type") or "").strip(),
+            target_type=(body.get("target_type") or "agent").strip(),
+            target_ref=(body.get("target_ref") or "").strip(),
+            match=body.get("match") or None,
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        logger.exception("registry: failed to create custom route")
+        return jsonify({"error": "Failed to create route"}), 500
+    return jsonify({"id": route_id}), 201
+
+
+@registry_bp.route("/trigger-routes/<route_id>", methods=["DELETE"])
+@require_permission("admin", "access")
+def delete_trigger_route(user_id, route_id):
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    try:
+        from services.routing.custom_routes import delete_custom_route
+        if not delete_custom_route(user_id, org_id, route_id):
+            return jsonify({"error": "Route not found"}), 404
+    except Exception:
+        logger.exception("registry: failed to delete custom route")
+        return jsonify({"error": "Failed to delete route"}), 500
+    return jsonify({"id": route_id, "deleted": True})
 
 
 @registry_bp.route("/triggers/<event_type>", methods=["PUT"])

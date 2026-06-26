@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Loader2, Wrench, Search, ShieldAlert, Pencil } from 'lucide-react';
+import { Loader2, Wrench, Search, ShieldAlert, Pencil, ChevronDown, ChevronRight, ShieldQuestion } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import { useUser } from '@/hooks/useAuthHooks';
 import {
   Select,
@@ -13,6 +14,114 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
+interface PermTool {
+  tool_key: string;
+  label: string;
+  tier: string;
+  enabled: boolean;
+}
+
+// Consolidated fine-grained write-action permissions (formerly only in
+// Settings → Security). Admin-only; backed by /api/org/tool-permissions.
+function ActionPermissions() {
+  const [open, setOpen] = useState(false);
+  const [groups, setGroups] = useState<Record<string, PermTool[]>>({});
+  const [seeded, setSeeded] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = async () => {
+    try {
+      const res = await fetch('/api/org/tool-permissions');
+      if (!res.ok) throw new Error(`Failed to load permissions (${res.status})`);
+      const data = await res.json();
+      setGroups(data.tools_by_connector ?? {});
+      setSeeded(!!data.seeded);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Failed to load permissions');
+    } finally {
+      setLoaded(true);
+    }
+  };
+
+  const onOpen = () => {
+    const next = !open;
+    setOpen(next);
+    if (next && !loaded) load();
+  };
+
+  const toggle = async (key: string, connector: string, enabled: boolean) => {
+    setGroups((prev) => ({
+      ...prev,
+      [connector]: prev[connector].map((t) => (t.tool_key === key ? { ...t, enabled } : t)),
+    }));
+    try {
+      const res = await fetch(`/api/org/tool-permissions/${encodeURIComponent(key)}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled }),
+      });
+      if (!res.ok) throw new Error(`Update failed (${res.status})`);
+    } catch (e) {
+      setGroups((prev) => ({
+        ...prev,
+        [connector]: prev[connector].map((t) => (t.tool_key === key ? { ...t, enabled: !enabled } : t)),
+      }));
+      setErr(e instanceof Error ? e.message : 'Failed to update permission');
+    }
+  };
+
+  const seed = async () => {
+    try {
+      const res = await fetch('/api/org/tool-permissions/seed', { method: 'POST' });
+      if (!res.ok) throw new Error(`Seed failed (${res.status})`);
+      setLoaded(false);
+      await load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Failed to seed permissions');
+    }
+  };
+
+  return (
+    <div className="mt-6 rounded-lg border border-border bg-card">
+      <button type="button" onClick={onOpen} className="flex w-full items-center justify-between p-3 text-sm font-medium">
+        <span className="flex items-center gap-2"><ShieldQuestion className="h-4 w-4" /> Action permissions (write actions)</span>
+        {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+      </button>
+      {open && (
+        <div className="border-t border-border/60 p-3">
+          <p className="mb-3 text-xs text-muted-foreground">
+            Fine-grained approval for specific write/destructive actions (e.g. merge PR, apply infra) used by
+            autonomous runs. Disabled actions require explicit approval. This is the same control as
+            Settings → Security, surfaced here for one place to govern tools.
+          </p>
+          {err && <p className="mb-2 text-xs text-destructive">{err}</p>}
+          {!seeded && (
+            <Button size="sm" variant="outline" className="mb-3" onClick={seed}>Seed default permissions</Button>
+          )}
+          {Object.entries(groups).map(([connector, tools]) => (
+            <div key={connector} className="mb-3">
+              <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">{connector}</div>
+              <div className="space-y-1">
+                {tools.map((t) => (
+                  <div key={t.tool_key} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="flex items-center gap-2">
+                      {t.label}
+                      <Badge variant="outline" className="text-[10px] text-muted-foreground">{t.tier}</Badge>
+                    </span>
+                    <Switch checked={t.enabled} onCheckedChange={(v) => toggle(t.tool_key, connector, v)} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          {loaded && Object.keys(groups).length === 0 && (
+            <p className="text-xs text-muted-foreground">No governed actions found.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface ToolSpec {
   name: string;
@@ -255,9 +364,11 @@ export default function ToolsPage() {
       <p className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
         <Pencil className="h-3.5 w-3.5" />
         Which tools exist and their {RISK_LABEL.read}/{RISK_LABEL.write}/{RISK_LABEL.destructive} risk
-        are defined by Aurora. You control availability here; finer write-action approvals live in
-        Settings → Security.
+        are defined by Aurora. You control availability above; fine-grained write-action approvals are
+        below.
       </p>
+
+      {isAdmin && <ActionPermissions />}
     </div>
   );
 }

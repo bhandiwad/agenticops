@@ -29,14 +29,22 @@ from services.routing.events import (
 
 @dataclass(frozen=True)
 class RouteStep:
-    """One agent to dispatch for an event, optionally gated by ``match``.
+    """One dispatch target for an event, optionally gated by ``match``.
 
-    ``match`` is a dict of ``event field -> required value``; the step applies
-    only when every condition matches the event (top-level field or label).
+    ``ref`` is an agent name (``target_type='agent'``) or a workflow key
+    (``target_type='workflow'``). ``match`` is a dict of
+    ``event field -> required value``; the step applies only when every
+    condition matches the event (top-level field or label).
     """
 
-    agent: str
+    ref: str
+    target_type: str = "agent"
     match: Optional[Dict[str, str]] = None
+
+    @property
+    def agent(self) -> str:
+        """Backward-compatible alias for ``ref`` (agent targets)."""
+        return self.ref
 
 
 # Built-in routing. Order within a list is the dispatch order. Mirrors the
@@ -75,8 +83,9 @@ def _step_matches(step: RouteStep, event: LifecycleEvent) -> bool:
 @dataclass(frozen=True)
 class RoutingDecision:
     event_type: str
-    agents: List[str]            # ordered, de-duplicated, after all filtering
+    agents: List[str]            # agent refs only, ordered/de-duped (compat)
     suppressed: List[str]        # agents dropped because disabled (org/agent)
+    targets: List[dict]          # ordered [{target_type, ref}] — agents + workflows
 
 
 def route_event(
@@ -86,15 +95,15 @@ def route_event(
     disabled_agents: FrozenSet[str] = frozenset(),
     extra_routes: Optional[Dict[str, List[RouteStep]]] = None,
 ) -> RoutingDecision:
-    """Return the ordered agents to dispatch for ``event``.
+    """Return the ordered targets (agents and/or workflows) to dispatch for ``event``.
 
-    * ``disabled_event_types`` — event types the org has turned off (no agents).
-    * ``disabled_agents`` — agents disabled for the org (agent_overrides); these
-      are removed from the result and reported in ``suppressed``.
-    * ``extra_routes`` — optional org-defined routes merged after defaults.
+    * ``disabled_event_types`` — event types the org has turned off (no targets).
+    * ``disabled_agents`` — agents disabled for the org (agent_overrides); removed
+      from the result and reported in ``suppressed``.
+    * ``extra_routes`` — optional org-defined custom routes merged after defaults.
     """
     if event.event_type in disabled_event_types:
-        return RoutingDecision(event.event_type, [], [])
+        return RoutingDecision(event.event_type, [], [], [])
 
     steps: List[RouteStep] = list(DEFAULT_ROUTES.get(event.event_type, []))
     if extra_routes:
@@ -102,24 +111,28 @@ def route_event(
 
     agents: List[str] = []
     suppressed: List[str] = []
+    targets: List[dict] = []
     seen = set()
     for step in steps:
         if not _step_matches(step, event):
             continue
-        if step.agent in seen:
+        key = (step.target_type, step.ref)
+        if key in seen:
             continue
-        seen.add(step.agent)
-        if step.agent in disabled_agents:
-            suppressed.append(step.agent)
-            continue
-        agents.append(step.agent)
-    return RoutingDecision(event.event_type, agents, suppressed)
+        seen.add(key)
+        if step.target_type == "agent":
+            if step.ref in disabled_agents:
+                suppressed.append(step.ref)
+                continue
+            agents.append(step.ref)
+        targets.append({"target_type": step.target_type, "ref": step.ref})
+    return RoutingDecision(event.event_type, agents, suppressed, targets)
 
 
 def default_routing_table() -> Dict[str, List[dict]]:
     """JSON-able view of the built-in routes (for the API/UI)."""
     return {
-        et: [{"agent": s.agent, "match": s.match} for s in steps]
+        et: [{"target_type": s.target_type, "ref": s.ref, "match": s.match} for s in steps]
         for et, steps in DEFAULT_ROUTES.items()
     }
 
