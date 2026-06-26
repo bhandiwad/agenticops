@@ -504,6 +504,20 @@ async def _run(input_dict: dict) -> FindingRef:
         logger.exception("sub_agent: failed to resolve connected providers for %s", inp.agent_id)
 
     brief = render_brief(inp, role_meta, connected_providers=connected_providers)
+    # Role guidance: the role's prompt body (the markdown the Agents UI shows),
+    # overridden by the org's active prompt version when one is set (prompt
+    # versioning). Appended so the investigator actually follows its authored
+    # prompt; fail-open to the markdown body.
+    role_guidance = role_meta.body
+    try:
+        from services.prompts.versions import get_active_prompt_safe
+        _ov = get_active_prompt_safe(user_id, f"agent:{role_meta.name}")
+        if _ov:
+            role_guidance = _ov
+    except Exception:
+        logger.debug("sub_agent: prompt-version lookup failed; using role body")
+    if role_guidance:
+        brief = brief + "\n\n## Role Guidance\n\n" + role_guidance
     skill_content = load_skills_for_role(user_id, role_meta)
     if skill_content:
         brief = brief + "\n\n## Integration-Specific Guidance\n\n" + skill_content

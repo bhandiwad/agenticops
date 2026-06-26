@@ -121,6 +121,7 @@ def dispatch_action(
                 user_id=user_id, session_id=session_id, initial_message=prompt,
                 trigger_metadata=trigger_meta, mode=spec.mode, send_notifications=False,
                 incident_id=incident_id, tool_allowlist=spec.tool_allowlist,
+                is_postmortem=(spec.kind == "postmortem"),
             )
         except Exception as e:
             _update_run(run_id, user_id, status="error", error=f"Failed to enqueue: {e}")

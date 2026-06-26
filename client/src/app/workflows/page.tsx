@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import {
   Loader2, Waypoints, ShieldAlert, ArrowRight, Bot, Workflow as WorkflowIcon,
-  ShieldCheck, Eye, Plus, Trash2, X,
+  ShieldCheck, Eye, Plus, Trash2, X, Pencil,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -67,6 +67,7 @@ export default function WorkflowsPage() {
 
   // Builder state
   const [showBuilder, setShowBuilder] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<{ key: string; name: string; kind: string; description: string; steps: DraftStep[] }>(
     { key: '', name: '', kind: 'llm', description: '', steps: [] },
   );
@@ -111,6 +112,15 @@ export default function WorkflowsPage() {
     }
   };
 
+  const startEdit = (w: WorkflowDef) => {
+    setDraft({
+      key: w.key, name: w.name, kind: w.kind, description: w.description,
+      steps: w.steps.map((s) => ({ type: s.type, ref: s.ref })),
+    });
+    setEditing(true);
+    setShowBuilder(true);
+  };
+
   const removeWorkflow = async (key: string) => {
     try {
       const res = await fetch(`/api/registry/workflows/${encodeURIComponent(key)}`, { method: 'DELETE' });
@@ -141,6 +151,7 @@ export default function WorkflowsPage() {
         throw new Error(body.error || `Create failed (${res.status})`);
       }
       setShowBuilder(false);
+      setEditing(false);
       setDraft({ key: '', name: '', kind: 'llm', description: '', steps: [] });
       await load();
     } catch (e) {
@@ -172,7 +183,7 @@ export default function WorkflowsPage() {
           </p>
         </div>
         {isAdmin && (
-          <Button size="sm" variant="outline" className="gap-1" onClick={() => setShowBuilder((s) => !s)}>
+          <Button size="sm" variant="outline" className="gap-1" onClick={() => { setEditing(false); setDraft({ key: '', name: '', kind: 'llm', description: '', steps: [] }); setShowBuilder((s) => !s); }}>
             <Plus className="h-4 w-4" /> New workflow
           </Button>
         )}
@@ -186,11 +197,12 @@ export default function WorkflowsPage() {
 
       {isAdmin && showBuilder && (
         <div className="mb-6 rounded-lg border border-border bg-card p-4">
-          <h2 className="mb-3 text-sm font-semibold">New workflow</h2>
+          <h2 className="mb-3 text-sm font-semibold">{editing ? `Edit workflow: ${draft.key}` : 'New workflow'}</h2>
           <div className="flex flex-wrap items-end gap-3">
             <label className="text-xs text-muted-foreground">
               Key (snake_case)
               <Input className="mt-1 h-8 w-40" value={draft.key}
+                disabled={editing}
                 onChange={(e) => setDraft((d) => ({ ...d, key: e.target.value }))} placeholder="my_workflow" />
             </label>
             <label className="text-xs text-muted-foreground">
@@ -254,9 +266,9 @@ export default function WorkflowsPage() {
 
           <div className="mt-4 flex gap-2">
             <Button size="sm" variant="outline" disabled={saving || !draft.key || draft.steps.length === 0} onClick={createWorkflow}>
-              {saving ? 'Creating...' : 'Create workflow'}
+              {saving ? 'Saving...' : (editing ? 'Save changes' : 'Create workflow')}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setShowBuilder(false)}>Cancel</Button>
+            <Button size="sm" variant="ghost" onClick={() => { setShowBuilder(false); setEditing(false); }}>Cancel</Button>
           </div>
         </div>
       )}
@@ -282,9 +294,14 @@ export default function WorkflowsPage() {
                   </Badge>
                 )}
                 {isAdmin && w.custom && (
-                  <Button size="sm" variant="ghost" className="text-destructive" onClick={() => removeWorkflow(w.key)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <>
+                    <Button size="sm" variant="ghost" onClick={() => startEdit(w)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="text-destructive" onClick={() => removeWorkflow(w.key)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </>
                 )}
               </div>
             </div>

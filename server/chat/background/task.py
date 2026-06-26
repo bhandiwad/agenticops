@@ -416,6 +416,7 @@ def run_background_chat(
     mode: str = "ask",
     rail_text: Optional[str] = None,
     tool_allowlist: Optional[List[str]] = None,
+    is_postmortem: bool = False,
 ) -> Dict[str, Any]:
     """Run a chat session in the background without WebSocket.
 
@@ -661,6 +662,7 @@ def run_background_chat(
                 rail_text=rail_text,
                 send_notifications=send_notifications,
                 tool_allowlist=tool_allowlist,
+                is_postmortem=is_postmortem,
             ))
         except Exception as e:
             logger.error(f"[BackgroundChat] Exception in asyncio.run(_execute_background_chat): {e}", exc_info=True)
@@ -1260,6 +1262,7 @@ async def _execute_background_chat(
     rail_text: Optional[str] = None,
     send_notifications: bool = True,
     tool_allowlist: Optional[List[str]] = None,
+    is_postmortem: bool = False,
 ) -> Dict[str, Any]:
     """Execute the background chat workflow asynchronously.
 
@@ -1369,7 +1372,7 @@ async def _execute_background_chat(
         # True when triggered by the "Generate Postmortem" action; gates save_postmortem.
         # source is "postmortem_generation" when no action_id exists, "action" otherwise.
         _tm_source = (trigger_metadata or {}).get("source", "")
-        _is_postmortem_action = _tm_source == "postmortem_generation" or (
+        _is_postmortem_action = is_postmortem or _tm_source == "postmortem_generation" or (
             _tm_source == "action"
             and _action_is_generate_postmortem((trigger_metadata or {}).get("action_id"), user_id)
         )

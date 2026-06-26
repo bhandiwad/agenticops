@@ -198,6 +198,7 @@ def dispatch_lifecycle_event(user_id: str, event: LifecycleEvent) -> List[str]:
                     send_notifications=False,
                     incident_id=event.incident_id,
                     tool_allowlist=spec.tool_allowlist,
+                    is_postmortem=(spec.kind == "postmortem"),
                 )
                 dispatched.append(spec.agent_name)
                 # Evidence: record that this agent was dispatched for the event.

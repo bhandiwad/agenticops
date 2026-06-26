@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Loader2, Bot, Search, ShieldAlert, ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Bot, Search, ShieldAlert, ChevronDown, ChevronRight, Plus, Trash2, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -173,12 +173,24 @@ export default function AgentsPage() {
   const { user } = useUser();
   const isAdmin = user?.role === 'admin';
   const [showBuilder, setShowBuilder] = useState(false);
+  const [editingAgent, setEditingAgent] = useState(false);
   const [capabilityOptions, setCapabilityOptions] = useState<string[]>([]);
   const [newAgent, setNewAgent] = useState({
     name: '', kind: 'investigator', description: '', tags: '',
     max_turns: '16', max_seconds: '360', model: '', prompt: '',
   });
   const [creating, setCreating] = useState(false);
+
+  const startEditAgent = (a: AgentSpec) => {
+    setNewAgent({
+      name: a.name, kind: a.kind, description: a.description,
+      tags: (a.capability_tags || []).join(', '),
+      max_turns: String(a.max_turns), max_seconds: String(a.max_seconds),
+      model: a.model ?? '', prompt: a.prompt,
+    });
+    setEditingAgent(true);
+    setShowBuilder(true);
+  };
 
   const loadAgents = async () => {
     const res = await fetch('/api/registry/agents');
@@ -210,6 +222,7 @@ export default function AgentsPage() {
         throw new Error(b.error || `Create failed (${res.status})`);
       }
       setShowBuilder(false);
+      setEditingAgent(false);
       setNewAgent({ name: '', kind: 'investigator', description: '', tags: '', max_turns: '16', max_seconds: '360', model: '', prompt: '' });
       await loadAgents();
     } catch (e) {
@@ -354,7 +367,7 @@ export default function AgentsPage() {
           </p>
         </div>
         {isAdmin && (
-          <Button size="sm" variant="outline" className="gap-1 shrink-0" onClick={() => setShowBuilder((s) => !s)}>
+          <Button size="sm" variant="outline" className="gap-1 shrink-0" onClick={() => { setEditingAgent(false); setNewAgent({ name: '', kind: 'investigator', description: '', tags: '', max_turns: '16', max_seconds: '360', model: '', prompt: '' }); setShowBuilder((s) => !s); }}>
             <Plus className="h-4 w-4" /> New agent
           </Button>
         )}
@@ -362,11 +375,12 @@ export default function AgentsPage() {
 
       {isAdmin && showBuilder && (
         <div className="mb-6 rounded-lg border border-border bg-card p-4">
-          <h2 className="mb-3 text-sm font-semibold">New agent</h2>
+          <h2 className="mb-3 text-sm font-semibold">{editingAgent ? `Edit agent: ${newAgent.name}` : 'New agent'}</h2>
           <div className="flex flex-wrap items-end gap-3">
             <label className="text-xs text-muted-foreground">
               Name (snake_case)
               <Input className="mt-1 h-8 w-44" value={newAgent.name}
+                disabled={editingAgent}
                 onChange={(e) => setNewAgent((a) => ({ ...a, name: e.target.value }))} placeholder="db_investigator" />
             </label>
             <label className="text-xs text-muted-foreground">
@@ -402,7 +416,7 @@ export default function AgentsPage() {
             value={newAgent.prompt} onChange={(e) => setNewAgent((a) => ({ ...a, prompt: e.target.value }))} />
           <div className="mt-3 flex items-center gap-2">
             <Button size="sm" variant="outline" disabled={creating || !newAgent.name || !newAgent.prompt.trim()} onClick={createAgent}>
-              {creating ? 'Creating...' : 'Create agent'}
+              {creating ? 'Saving...' : (editingAgent ? 'Save changes' : 'Create agent')}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setShowBuilder(false)}>Cancel</Button>
             {capabilityOptions.length > 0 && (
@@ -453,9 +467,14 @@ export default function AgentsPage() {
                       <p className="mt-1 text-sm text-muted-foreground">{a.description}</p>
                     </div>
                     {isAdmin && a.custom && (
-                      <Button size="sm" variant="ghost" className="shrink-0 text-destructive" onClick={() => deleteAgent(a.name)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex shrink-0 items-center">
+                        <Button size="sm" variant="ghost" onClick={() => startEditAgent(a)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => deleteAgent(a.name)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     )}
                   </div>
 

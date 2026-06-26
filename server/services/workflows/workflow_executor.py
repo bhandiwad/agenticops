@@ -141,6 +141,7 @@ def run_workflow(
                             user_id=user_id, session_id=session_id, initial_message=spec.prompt,
                             trigger_metadata=meta, mode=spec.mode, send_notifications=False,
                             incident_id=incident_id, tool_allowlist=spec.tool_allowlist,
+                            is_postmortem=(spec.kind == "postmortem"),
                         )
                         dispatched.append(spec.agent_name)
                 except Exception:
