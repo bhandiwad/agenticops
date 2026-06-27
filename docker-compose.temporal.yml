@@ -42,11 +42,6 @@ services:
       - POSTGRES_SEEDS=temporal-postgresql
     ports:
       - "7233:7233"
-    # Join the app network too so aurora-server can reach temporal:7233
-    # (start runs from the Flow Builder + signal HITL resumes).
-    networks:
-      - default
-      - agenticops_default
 
   temporal-ui:
     image: temporalio/ui:latest
@@ -75,14 +70,14 @@ services:
       - AURORA_WORKFLOWS_V2=true
     command: ["python", "-m", "workflows_v2.worker"]
     restart: unless-stopped
-    networks:
-      - default
-      - agenticops_default
 
 volumes:
   temporal-pgdata:
 
+# All overlay services share the app network so Temporal is single-homed
+# (multi-homing confuses Temporal's frontend/membership) and aurora-server +
+# worker reach temporal:7233 on the same network.
 networks:
-  default: {}
-  agenticops_default:
+  default:
     external: true
+    name: agenticops_default
