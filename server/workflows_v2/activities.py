@@ -49,6 +49,94 @@ async def run_action(payload: dict) -> dict:
 
 
 @activity.defn
+async def run_http(payload: dict) -> dict:
+    """HTTP Request node — call any API/runbook/automation endpoint. No implicit
+    server credentials (only the headers the node provides). Blocks the metadata
+    endpoint; caps response size."""
+    import asyncio as _asyncio
+    cfg = payload.get("config", {}) or {}
+
+    def _do() -> dict:
+        import json as _json
+        import socket
+        import ipaddress
+        from urllib.parse import urlparse
+        import requests
+
+        method = (cfg.get("method") or "GET").upper()
+        url = cfg.get("url") or ""
+        if not url:
+            return {"ok": False, "error": "url is required"}
+        headers = cfg.get("headers") or {}
+        if isinstance(headers, str):
+            try:
+                headers = _json.loads(headers)
+            except Exception:
+                headers = {}
+        # SSRF guard: refuse cloud-metadata / link-local targets.
+        try:
+            host = urlparse(url).hostname or ""
+            ip = socket.gethostbyname(host) if host else ""
+            if ip and (ipaddress.ip_address(ip).is_link_local or ip == "169.254.169.254"):
+                return {"ok": False, "error": "blocked host (metadata/link-local)"}
+        except Exception:
+            pass
+        kw: dict = {"headers": headers, "timeout": int(cfg.get("timeout_s", 30))}
+        body = cfg.get("body")
+        if isinstance(body, (dict, list)):
+            kw["json"] = body
+        elif body:
+            kw["data"] = str(body)
+        try:
+            resp = requests.request(method, url, **kw)
+            out: dict = {"ok": resp.ok, "status": resp.status_code, "body": resp.text[:8000]}
+            try:
+                out["json"] = resp.json()
+            except Exception:
+                pass
+            return out
+        except Exception as e:  # noqa: BLE001
+            return {"ok": False, "error": str(e)[:200]}
+
+    return await _asyncio.get_event_loop().run_in_executor(None, _do)
+
+
+@activity.defn
+async def load_def_graph(payload: dict) -> dict:
+    """Load a workflow def's graph by key (for the sub-workflow + error-handler nodes)."""
+    ctx = payload.get("context", {}) or {}
+    user_id, org_id, key = ctx.get("user_id"), ctx.get("org_id"), payload.get("key")
+    if not (user_id and org_id and key):
+        return {}
+    try:
+        from services.workflows.defs import get_def
+        d = get_def(user_id, org_id, key)
+        return (d or {}).get("graph", {}) or {}
+    except Exception:
+        activity.logger.warning("load_def_graph failed for %s", key)
+        return {}
+
+
+@activity.defn
+async def start_workflow_by_key(payload: dict) -> dict:
+    """Fire-and-forget start of another workflow by key (error-handler hook)."""
+    ctx = payload.get("context", {}) or {}
+    user_id, org_id, key = ctx.get("user_id"), ctx.get("org_id"), payload.get("key")
+    if not (user_id and org_id and key):
+        return {"ok": False}
+    try:
+        from services.workflows.defs import get_def
+        from workflows_v2.client import start_run
+        d = get_def(user_id, org_id, key)
+        if not d:
+            return {"ok": False, "error": "not found"}
+        return start_run(d["graph"], ctx)
+    except Exception:
+        activity.logger.warning("start_workflow_by_key failed for %s", key)
+        return {"ok": False}
+
+
+@activity.defn
 async def run_set(payload: dict) -> dict:
     """Data-shaping node. ``config`` arrives with expressions already resolved by
     the interpreter, so this simply returns it as the node output."""

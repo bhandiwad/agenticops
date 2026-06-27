@@ -27,6 +27,7 @@ _ACTIVITY_FOR = {
     "agent": "run_agent",
     "action": "run_action",
     "set": "run_set",
+    "http": "run_http",
 }
 # node types evaluated inline (pure, no activity)
 _INLINE = {"if", "switch", "merge", "foreach"}
@@ -168,7 +169,28 @@ class WorkflowRunner:
                 await self._persist(run_id, nid, ntype, "completed", cfg, out, context)
                 continue
 
-            # ---- activity-backed nodes (agent/action/set/...) ----
+            # ---- sub-workflow node: run another def as a Temporal child workflow ----
+            if ntype == "sub_workflow":
+                child_key = node.get("ref") or cfg.get("workflow_key") or ""
+                child_graph = await workflow.execute_activity(
+                    "load_def_graph", {"key": child_key, "context": context},
+                    start_to_close_timeout=timedelta(seconds=15),
+                )
+                if not child_graph:
+                    node_outputs[nid] = {"output": None, "status": "error",
+                                         "error": f"sub-workflow {child_key!r} not found"}
+                    await self._persist(run_id, nid, ntype, "error", cfg, None, context)
+                else:
+                    child_out = await workflow.execute_child_workflow(
+                        "WorkflowRunner", {"graph": child_graph, "context": context},
+                        id=f"{workflow.info().workflow_id}-sub-{nid}",
+                    )
+                    node_outputs[nid] = {"output": child_out, "status": "completed"}
+                    await self._persist(run_id, nid, ntype, "completed", cfg, child_out, context)
+                activate_outgoing(nid)
+                continue
+
+            # ---- activity-backed nodes (agent/action/set/http/...) ----
             activity_name = _ACTIVITY_FOR.get(ntype)
             if not activity_name:
                 node_outputs[nid] = {"output": None, "status": "skipped",
@@ -204,6 +226,17 @@ class WorkflowRunner:
                     continue
                 # otherwise fail the whole run
                 workflow.logger.error("node %s errored; failing run: %s", nid, err)
+                # Error-handler hook: start the graph's on_error workflow (fire-and-forget).
+                on_error = graph.get("on_error")
+                if on_error:
+                    try:
+                        await workflow.execute_activity(
+                            "start_workflow_by_key",
+                            {"key": on_error, "context": {**context, "error": err, "failed_node": nid}},
+                            start_to_close_timeout=timedelta(seconds=15),
+                        )
+                    except Exception:
+                        workflow.logger.warning("on_error handler %s failed to start", on_error)
                 try:
                     await workflow.execute_activity(
                         "finish_run", {"run_id": run_id, "status": "failed", "context": context},

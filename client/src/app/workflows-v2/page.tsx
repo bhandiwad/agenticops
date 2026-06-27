@@ -9,7 +9,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { useTheme } from 'next-themes';
 import { Loader2, Plus, Save, Trash2, FolderOpen, PlayCircle, X, Pause, Play, Pencil, ChevronLeft, Workflow, LayoutGrid,
-  Bot, Wrench, Braces, GitBranch, Split, Merge, Repeat, UserCheck, Clock } from 'lucide-react';
+  Bot, Wrench, Braces, GitBranch, Split, Merge, Repeat, UserCheck, Clock, Globe, Boxes } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -19,12 +19,14 @@ type WFNodeData = { nodeType: string; ref: string; config: string; label: string
 type WFNode = Node<WFNodeData>;
 type WFEdge = Edge<{ port?: string; [k: string]: unknown }>;
 
-const PALETTE = ['agent', 'action', 'set', 'if', 'switch', 'merge', 'foreach', 'approval', 'wait_timer'];
+const PALETTE = ['agent', 'action', 'http', 'set', 'if', 'switch', 'merge', 'foreach', 'approval', 'wait_timer', 'sub_workflow'];
+const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
 // Per-type accent colour + icon for the custom node.
 const NODE_META: Record<string, { color: string; Icon: typeof Bot }> = {
   agent: { color: '#3b82f6', Icon: Bot },
   action: { color: '#8b5cf6', Icon: Wrench },
+  http: { color: '#0ea5b7', Icon: Globe },
   set: { color: '#64748b', Icon: Braces },
   if: { color: '#f59e0b', Icon: GitBranch },
   switch: { color: '#f59e0b', Icon: Split },
@@ -33,6 +35,7 @@ const NODE_META: Record<string, { color: string; Icon: typeof Bot }> = {
   approval: { color: '#f43f5e', Icon: UserCheck },
   form: { color: '#f43f5e', Icon: UserCheck },
   wait_timer: { color: '#a855f7', Icon: Clock },
+  sub_workflow: { color: '#6366f1', Icon: Boxes },
 };
 const nodeMeta = (t: string) => NODE_META[t] || { color: '#64748b', Icon: Braces };
 
@@ -73,8 +76,8 @@ const SELECT_CLS = 'h-8 w-full rounded-md border border-border bg-background px-
 interface AgentOpt { name: string }
 interface ActionOpt { id: string; name?: string; title?: string }
 
-function NodeConfigPanel({ node, agents, actions, isAdmin, onPatch, onDelete }: {
-  node: WFNode; agents: AgentOpt[]; actions: ActionOpt[]; isAdmin: boolean;
+function NodeConfigPanel({ node, agents, actions, defs, isAdmin, onPatch, onDelete }: {
+  node: WFNode; agents: AgentOpt[]; actions: ActionOpt[]; defs: { key: string; name: string }[]; isAdmin: boolean;
   onPatch: (p: Partial<WFNodeData>) => void; onDelete: () => void;
 }) {
   const t = node.data.nodeType;
@@ -111,6 +114,32 @@ function NodeConfigPanel({ node, agents, actions, isAdmin, onPatch, onDelete }: 
           <option value="">Select action…</option>
           {actions.map((a) => <option key={a.id} value={a.id}>{a.name || a.title || a.id}</option>)}
         </select>
+      </>}
+
+      {t === 'http' && <>
+        <Label>Method</Label>
+        <select className={SELECT_CLS} value={s(cfg.method) || 'GET'} onChange={(e) => setCfg({ method: e.target.value })} disabled={!isAdmin}>
+          {HTTP_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+        </select>
+        <Label>URL (supports {'{{ expr }}'})</Label>
+        <Input className="h-8" value={s(cfg.url)} onChange={(e) => setCfg({ url: e.target.value })} disabled={!isAdmin} placeholder="https://api.example.com/..." />
+        <Label>Headers (JSON)</Label>
+        <textarea className="h-16 w-full rounded-md border border-border bg-background p-2 font-mono text-xs"
+          defaultValue={JSON.stringify(cfg.headers ?? {}, null, 2)}
+          onBlur={(e) => { try { setCfg({ headers: JSON.parse(e.target.value || '{}') }); } catch { /* keep */ } }} disabled={!isAdmin} />
+        <Label>Body (JSON or text)</Label>
+        <textarea className="h-20 w-full rounded-md border border-border bg-background p-2 font-mono text-xs"
+          value={s(cfg.body)} onChange={(e) => setCfg({ body: e.target.value })} disabled={!isAdmin} />
+        <p className="text-[10px] text-muted-foreground">No server credentials are sent — put any auth in Headers. Metadata/link-local hosts are blocked.</p>
+      </>}
+
+      {t === 'sub_workflow' && <>
+        <Label>Workflow to run (child)</Label>
+        <select className={SELECT_CLS} value={node.data.ref} onChange={(e) => onPatch({ ref: e.target.value })} disabled={!isAdmin}>
+          <option value="">Select workflow…</option>
+          {defs.map((d) => <option key={d.key} value={d.key}>{d.name}</option>)}
+        </select>
+        <p className="text-[10px] text-muted-foreground">Runs the selected workflow as a child and returns its output.</p>
       </>}
 
       {t === 'if' && <>
@@ -227,6 +256,7 @@ export default function WorkflowsV2Page() {
 
   const [cron, setCron] = useState('0 * * * *');
   const [webhookUrl, setWebhookUrl] = useState<string | null>(null);
+  const [onError, setOnError] = useState('');
 
   const loadDefs = useCallback(async () => {
     try {
@@ -294,7 +324,7 @@ export default function WorkflowsV2Page() {
   };
 
   const newGraph = () => {
-    setNodes([]); setEdges([]); setWfKey(''); setWfName(''); setSelNode(null); setSelEdge(null); setMsg(null);
+    setNodes([]); setEdges([]); setWfKey(''); setWfName(''); setOnError(''); setSelNode(null); setSelEdge(null); setMsg(null);
   };
 
   // ---- dashboard (list view) actions ----
@@ -329,7 +359,7 @@ export default function WorkflowsV2Page() {
       if (!r.ok) { setMsg('Failed to load'); return; }
       const d = await r.json();
       const g = d.graph ?? {};
-      setWfKey(d.key); setWfName(d.name ?? d.key);
+      setWfKey(d.key); setWfName(d.name ?? d.key); setOnError(g.on_error ?? '');
       setNodes((g.nodes ?? []).map((gn: Record<string, unknown>, i: number): WFNode => ({
         id: String(gn.id),
         type: 'flow',
@@ -364,7 +394,7 @@ export default function WorkflowsV2Page() {
       const graphEdges = edges.map((e) => ({ source: e.source, target: e.target, ...(e.data?.port ? { port: e.data.port } : {}) }));
       const r = await fetch(`/api/registry/wf2/defs/${encodeURIComponent(wfKey)}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: wfName || wfKey, graph: { key: wfKey, name: wfName || wfKey, nodes: graphNodes, edges: graphEdges } }),
+        body: JSON.stringify({ name: wfName || wfKey, graph: { key: wfKey, name: wfName || wfKey, nodes: graphNodes, edges: graphEdges, ...(onError ? { on_error: onError } : {}) } }),
       });
       setMsg(r.ok ? 'Saved' : `Save failed (${r.status})`);
       if (r.ok) await loadDefs();
@@ -525,6 +555,13 @@ export default function WorkflowsV2Page() {
           <span className="mx-1 text-border">|</span>
           <Button size="sm" variant="ghost" className="h-7" onClick={createWebhook} disabled={!wfKey}>Create webhook</Button>
           {webhookUrl && <code className="rounded bg-background px-1 py-0.5 text-[10px]">{webhookUrl}</code>}
+          <span className="mx-1 text-border">|</span>
+          <span className="text-muted-foreground">On error:</span>
+          <select className="h-7 rounded-md border border-border bg-background px-2 text-xs" value={onError} onChange={(e) => setOnError(e.target.value)} title="Run this workflow if a node fails">
+            <option value="">none</option>
+            {defs.filter((d) => d.key !== wfKey).map((d) => <option key={d.key} value={d.key}>{d.name}</option>)}
+          </select>
+          <span className="text-[10px] text-muted-foreground">(Save to apply)</span>
         </div>
       )}
 
@@ -571,7 +608,7 @@ export default function WorkflowsV2Page() {
         <div className="w-72 shrink-0 overflow-y-auto border-l border-border p-3 text-sm">
           {sel ? (
             <NodeConfigPanel
-              node={sel} agents={agents} actions={actions} isAdmin={isAdmin}
+              node={sel} agents={agents} actions={actions} defs={defs} isAdmin={isAdmin}
               onPatch={(p) => patchNode(sel.id, p)}
               onDelete={() => { setNodes((nds) => nds.filter((n) => n.id !== sel.id)); setSelNode(null); }}
             />
