@@ -9,6 +9,11 @@ x-common-env: &common-env
   # Global
   AURORA_ENV: ${AURORA_ENV}
 
+  # Workflow V2 (Temporal) — shared across services
+  TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:-}
+  TEMPORAL_NAMESPACE: ${TEMPORAL_NAMESPACE:-default}
+  TEMPORAL_TASK_QUEUE: ${TEMPORAL_TASK_QUEUE:-aurora-workflows-v2}
+
   # Database - unified credentials
   POSTGRES_USER: ${POSTGRES_USER}
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -211,12 +216,6 @@ services:
       <<: *common-env
       FLASK_PORT: ${FLASK_PORT:-5080}
       INTERNAL_API_SECRET: ${INTERNAL_API_SECRET}
-
-      # Workflow V2 (Temporal): lets aurora-server start runs from the Flow
-      # Builder and signal HITL resumes. Unset = feature simply unavailable.
-      TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:-}
-      TEMPORAL_NAMESPACE: ${TEMPORAL_NAMESPACE:-default}
-      TEMPORAL_TASK_QUEUE: ${TEMPORAL_TASK_QUEUE:-aurora-workflows-v2}
 
       # Frontend/Backend URLs
       FRONTEND_URL: ${FRONTEND_URL}

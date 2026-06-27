@@ -214,16 +214,30 @@ def dispatch_lifecycle_event(user_id: str, event: LifecycleEvent) -> List[str]:
             except Exception:
                 logger.exception("trigger executor: failed to dispatch %s", spec.agent_name)
 
-        # Workflow targets: run each routed workflow.
+        # Workflow targets: prefer a V2 node-graph def (Temporal); fall back to V1.
         workflow_refs = [t["ref"] for t in decision.targets if t.get("target_type") == "workflow"]
-        if workflow_refs:
+        for wf_key in workflow_refs:
+            d = None
             try:
-                from services.workflows.workflow_executor import run_workflow
-                for wf_key in workflow_refs:
+                from services.workflows.defs import get_def
+                d = get_def(user_id, event.org_id, wf_key)
+            except Exception:
+                d = None
+            if d:
+                try:
+                    from workflows_v2.client import start_run
+                    res = start_run(d["graph"], {"user_id": user_id, "org_id": event.org_id,
+                                                 "incident_id": event.incident_id})
+                    dispatched.append(f"workflow:{wf_key}({'started' if res.get('ok') else 'error'})")
+                except Exception:
+                    logger.exception("trigger executor: V2 workflow start failed for %s", wf_key)
+            else:
+                try:
+                    from services.workflows.workflow_executor import run_workflow
                     result = run_workflow(user_id, wf_key, incident_id=event.incident_id)
                     dispatched.append(f"workflow:{wf_key}({result.status})")
-            except Exception:
-                logger.exception("trigger executor: failed to dispatch workflow(s) %s", workflow_refs)
+                except Exception:
+                    logger.exception("trigger executor: V1 workflow dispatch failed for %s", wf_key)
 
         logger.info(
             "trigger executor: event=%s dispatched=%s", event.event_type, dispatched

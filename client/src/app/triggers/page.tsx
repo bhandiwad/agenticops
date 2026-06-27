@@ -67,9 +67,9 @@ export default function TriggersPage() {
     (async () => {
       try {
         await loadRoutes();
-        const [ag, wf] = await Promise.all([fetch('/api/registry/agents'), fetch('/api/registry/workflows')]);
+        const [ag, wf] = await Promise.all([fetch('/api/registry/agents'), fetch('/api/registry/wf2/defs')]);
         if (ag.ok && !cancelled) setAgents(((await ag.json()).agents ?? []).map((a: { name: string }) => a.name));
-        if (wf.ok && !cancelled) setWorkflows(((await wf.json()).workflows ?? []).map((w: { key: string; name: string }) => ({ key: w.key, name: w.name })));
+        if (wf.ok && !cancelled) setWorkflows(((await wf.json()).defs ?? []).map((w: { key: string; name: string }) => ({ key: w.key, name: w.name })));
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load triggers');
       } finally {
