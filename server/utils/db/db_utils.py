@@ -1377,6 +1377,17 @@ def initialize_tables():
                     CREATE INDEX IF NOT EXISTS idx_workflow_node_runs_run
                         ON workflow_node_runs(run_id, created_at);
                 """,
+                "wf2_webhook_triggers": """
+                    CREATE TABLE IF NOT EXISTS wf2_webhook_triggers (
+                        token VARCHAR(64) PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        key VARCHAR(64) NOT NULL,
+                        user_id VARCHAR(255),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_wf2_webhook_org
+                        ON wf2_webhook_triggers(org_id, key);
+                """,
                 "prompt_versions": """
                     CREATE TABLE IF NOT EXISTS prompt_versions (
                         id UUID PRIMARY KEY,

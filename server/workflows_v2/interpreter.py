@@ -17,6 +17,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 from temporalio import workflow
+from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
     from workflows_v2.expressions import resolve, topo_order, eval_condition
@@ -177,16 +178,41 @@ class WorkflowRunner:
 
             workflow.logger.info("WorkflowRunner: node %s (%s)", nid, ntype)
             default_timeout = 600 if ntype == "agent" else 120
-            out = await workflow.execute_activity(
-                activity_name,
-                {"node_id": nid, "type": ntype, "ref": node.get("ref", ""),
-                 "config": cfg, "context": context},
-                start_to_close_timeout=timedelta(seconds=int(node.get("timeout_s", default_timeout))),
-            )
-            node_outputs[nid] = {"output": out, "status": "completed"}
-            activate_outgoing(nid)
-            await self._persist(run_id, nid, ntype, "completed",
-                                {"ref": node.get("ref", ""), "config": cfg}, out, context)
+            retry = RetryPolicy(maximum_attempts=int(node.get("retries", 3)))
+            try:
+                out = await workflow.execute_activity(
+                    activity_name,
+                    {"node_id": nid, "type": ntype, "ref": node.get("ref", ""),
+                     "config": cfg, "context": context},
+                    start_to_close_timeout=timedelta(seconds=int(node.get("timeout_s", default_timeout))),
+                    retry_policy=retry,
+                )
+                node_outputs[nid] = {"output": out, "status": "completed"}
+                activate_outgoing(nid)
+                await self._persist(run_id, nid, ntype, "completed",
+                                    {"ref": node.get("ref", ""), "config": cfg}, out, context)
+            except Exception as e:  # node failed after retries
+                err = str(e)[:300]
+                node_outputs[nid] = {"output": None, "status": "error", "error": err}
+                await self._persist(run_id, nid, ntype, "error",
+                                    {"ref": node.get("ref", ""), "config": cfg}, {"error": err}, context)
+                if node.get("continue_on_error"):
+                    # route via the 'error' port if wired, and continue the flow
+                    activate_outgoing(nid, port="error")
+                    activate_outgoing(nid)
+                    workflow.logger.warning("node %s errored; continuing (continue_on_error)", nid)
+                    continue
+                # otherwise fail the whole run
+                workflow.logger.error("node %s errored; failing run: %s", nid, err)
+                try:
+                    await workflow.execute_activity(
+                        "finish_run", {"run_id": run_id, "status": "failed", "context": context},
+                        start_to_close_timeout=timedelta(seconds=15),
+                    )
+                except Exception:
+                    pass
+                return {"status": "failed", "run_id": run_id, "failed_node": nid,
+                        "error": err, "node_outputs": node_outputs}
 
         try:
             await workflow.execute_activity(

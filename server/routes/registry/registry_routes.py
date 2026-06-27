@@ -633,6 +633,108 @@ def wf2_run_nodes(user_id, run_id):
         return jsonify({"error": "Failed to load run nodes"}), 500
 
 
+# ---- Phase B: schedule (cron) triggers ----
+
+@registry_bp.route("/wf2/defs/<key>/schedule", methods=["PUT"])
+@require_permission("admin", "access")
+def wf2_set_schedule(user_id, key):
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    cron = (request.get_json(silent=True) or {}).get("cron")
+    if not cron:
+        return jsonify({"error": "`cron` is required"}), 400
+    try:
+        from services.workflows.defs import get_def
+        d = get_def(user_id, org_id, key)
+        if not d:
+            return jsonify({"error": "Not found"}), 404
+        from workflows_v2.schedules import upsert_schedule
+        res = upsert_schedule(key, d["graph"], {"user_id": user_id, "org_id": org_id}, cron)
+        return jsonify(res), (200 if res.get("ok") else 502)
+    except Exception:
+        logger.exception("registry: wf2 set_schedule failed")
+        return jsonify({"error": "Failed to set schedule"}), 500
+
+
+@registry_bp.route("/wf2/defs/<key>/schedule", methods=["DELETE"])
+@require_permission("admin", "access")
+def wf2_delete_schedule(user_id, key):
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    from workflows_v2.schedules import delete_schedule
+    res = delete_schedule(key, org_id)
+    return jsonify(res), (200 if res.get("ok") else 502)
+
+
+@registry_bp.route("/wf2/defs/<key>/schedule/trigger", methods=["POST"])
+@require_permission("admin", "access")
+def wf2_trigger_schedule(user_id, key):
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    from workflows_v2.schedules import trigger_now
+    res = trigger_now(key, org_id)
+    return jsonify(res), (202 if res.get("ok") else 502)
+
+
+# ---- Phase B: webhook triggers ----
+
+@registry_bp.route("/wf2/defs/<key>/webhook", methods=["POST"])
+@require_permission("admin", "access")
+def wf2_create_webhook(user_id, key):
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    try:
+        from workflows_v2.webhooks import create_webhook
+        token = create_webhook(user_id, org_id, key)
+        return jsonify({"token": token, "url": f"/api/registry/wf2/hook/{token}"}), 201
+    except Exception:
+        logger.exception("registry: wf2 create_webhook failed")
+        return jsonify({"error": "Failed to create webhook"}), 500
+
+
+@registry_bp.route("/wf2/hook/<token>", methods=["POST"])
+def wf2_hook(token):
+    """Public, token-authenticated webhook that starts a run. No RBAC: the token
+    is the secret (resolved before any org context exists)."""
+    try:
+        from workflows_v2.webhooks import resolve_webhook
+        wh = resolve_webhook(token)
+        if not wh:
+            return jsonify({"error": "invalid token"}), 404
+        from services.workflows.defs import get_def
+        d = get_def(wh["user_id"], wh["org_id"], wh["key"])
+        if not d:
+            return jsonify({"error": "workflow not found"}), 404
+        from workflows_v2.client import start_run
+        ctx = {"user_id": wh["user_id"], "org_id": wh["org_id"],
+               "webhook_payload": request.get_json(silent=True) or {}}
+        res = start_run(d["graph"], ctx)
+        return jsonify(res), (202 if res.get("ok") else 502)
+    except Exception:
+        logger.exception("registry: wf2 hook failed")
+        return jsonify({"error": "Failed to trigger workflow"}), 500
+
+
+# ---- Phase B: non-destructive V1 -> V2 migration ----
+
+@registry_bp.route("/wf2/migrate-v1", methods=["POST"])
+@require_permission("admin", "access")
+def wf2_migrate_v1(user_id):
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    try:
+        from services.workflows.migrate import migrate_v1_to_v2
+        return jsonify(migrate_v1_to_v2(user_id, org_id))
+    except Exception:
+        logger.exception("registry: wf2 migrate failed")
+        return jsonify({"error": "Migration failed"}), 500
+
+
 # --------------------------------------------------------------------------- #
 # Prompt versioning
 # --------------------------------------------------------------------------- #

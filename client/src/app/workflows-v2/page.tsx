@@ -46,6 +46,9 @@ export default function WorkflowsV2Page() {
   const [runNodes, setRunNodes] = useState<RunNode[]>([]);
   const [showRuns, setShowRuns] = useState(false);
 
+  const [cron, setCron] = useState('0 * * * *');
+  const [webhookUrl, setWebhookUrl] = useState<string | null>(null);
+
   const loadDefs = useCallback(async () => {
     try {
       const r = await fetch('/api/registry/wf2/defs');
@@ -148,6 +151,32 @@ export default function WorkflowsV2Page() {
     } catch { setMsg('Run failed'); }
   };
 
+  const saveSchedule = async () => {
+    if (!wfKey) { setMsg('Save the workflow first'); return; }
+    const r = await fetch(`/api/registry/wf2/defs/${encodeURIComponent(wfKey)}/schedule`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cron }),
+    });
+    const d = await r.json().catch(() => ({}));
+    setMsg(r.ok && d.ok ? `Scheduled (${cron})` : `Schedule failed: ${d.error || r.status}`);
+  };
+  const triggerSchedule = async () => {
+    if (!wfKey) return;
+    const r = await fetch(`/api/registry/wf2/defs/${encodeURIComponent(wfKey)}/schedule/trigger`, { method: 'POST' });
+    setMsg(r.ok ? 'Schedule fired' : 'Trigger failed'); if (r.ok) { setShowRuns(true); setTimeout(openRuns, 1500); }
+  };
+  const createWebhook = async () => {
+    if (!wfKey) { setMsg('Save the workflow first'); return; }
+    const r = await fetch(`/api/registry/wf2/defs/${encodeURIComponent(wfKey)}/webhook`, { method: 'POST' });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.url) { setWebhookUrl(d.url); setMsg('Webhook created'); } else setMsg('Webhook failed');
+  };
+  const migrateV1 = async () => {
+    const r = await fetch('/api/registry/wf2/migrate-v1', { method: 'POST' });
+    const d = await r.json().catch(() => ({}));
+    setMsg(r.ok ? `Migrated ${d.count ?? 0} V1 workflow(s)` : 'Migration failed');
+    if (r.ok) await loadDefs();
+  };
+
   const openRuns = async () => {
     setShowRuns(true); setRunNodes([]);
     try {
@@ -185,6 +214,21 @@ export default function WorkflowsV2Page() {
         <Button size="sm" variant="outline" className="gap-1" onClick={openRuns}><FolderOpen className="h-4 w-4" /> Runs</Button>
         {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
       </div>
+
+      {/* triggers + migration row */}
+      {isAdmin && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/30 px-3 py-1.5 text-xs">
+          <span className="text-muted-foreground">Triggers:</span>
+          <Input className="h-7 w-36 font-mono" placeholder="cron e.g. 0 * * * *" value={cron} onChange={(e) => setCron(e.target.value)} />
+          <Button size="sm" variant="ghost" className="h-7" onClick={saveSchedule} disabled={!wfKey}>Schedule</Button>
+          <Button size="sm" variant="ghost" className="h-7" onClick={triggerSchedule} disabled={!wfKey}>Fire now</Button>
+          <span className="mx-1 text-border">|</span>
+          <Button size="sm" variant="ghost" className="h-7" onClick={createWebhook} disabled={!wfKey}>Create webhook</Button>
+          {webhookUrl && <code className="rounded bg-background px-1 py-0.5 text-[10px]">{webhookUrl}</code>}
+          <span className="mx-1 text-border">|</span>
+          <Button size="sm" variant="ghost" className="h-7" onClick={migrateV1}>Migrate V1→V2</Button>
+        </div>
+      )}
 
       <div className="flex min-h-0 flex-1">
         {/* palette */}
