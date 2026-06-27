@@ -257,6 +257,7 @@ export default function WorkflowsV2Page() {
   const [cron, setCron] = useState('0 * * * *');
   const [webhookUrl, setWebhookUrl] = useState<string | null>(null);
   const [onError, setOnError] = useState('');
+  const [rcaEnrich, setRcaEnrich] = useState(false);
 
   const loadDefs = useCallback(async () => {
     try {
@@ -324,7 +325,7 @@ export default function WorkflowsV2Page() {
   };
 
   const newGraph = () => {
-    setNodes([]); setEdges([]); setWfKey(''); setWfName(''); setOnError(''); setSelNode(null); setSelEdge(null); setMsg(null);
+    setNodes([]); setEdges([]); setWfKey(''); setWfName(''); setOnError(''); setRcaEnrich(false); setSelNode(null); setSelEdge(null); setMsg(null);
   };
 
   // ---- dashboard (list view) actions ----
@@ -359,7 +360,7 @@ export default function WorkflowsV2Page() {
       if (!r.ok) { setMsg('Failed to load'); return; }
       const d = await r.json();
       const g = d.graph ?? {};
-      setWfKey(d.key); setWfName(d.name ?? d.key); setOnError(g.on_error ?? '');
+      setWfKey(d.key); setWfName(d.name ?? d.key); setOnError(g.on_error ?? ''); setRcaEnrich(!!g.rca_enrichment);
       setNodes((g.nodes ?? []).map((gn: Record<string, unknown>, i: number): WFNode => ({
         id: String(gn.id),
         type: 'flow',
@@ -394,7 +395,7 @@ export default function WorkflowsV2Page() {
       const graphEdges = edges.map((e) => ({ source: e.source, target: e.target, ...(e.data?.port ? { port: e.data.port } : {}) }));
       const r = await fetch(`/api/registry/wf2/defs/${encodeURIComponent(wfKey)}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: wfName || wfKey, graph: { key: wfKey, name: wfName || wfKey, nodes: graphNodes, edges: graphEdges, ...(onError ? { on_error: onError } : {}) } }),
+        body: JSON.stringify({ name: wfName || wfKey, graph: { key: wfKey, name: wfName || wfKey, nodes: graphNodes, edges: graphEdges, ...(onError ? { on_error: onError } : {}), ...(rcaEnrich ? { rca_enrichment: true } : {}) } }),
       });
       setMsg(r.ok ? 'Saved' : `Save failed (${r.status})`);
       if (r.ok) await loadDefs();
@@ -561,6 +562,11 @@ export default function WorkflowsV2Page() {
             <option value="">none</option>
             {defs.filter((d) => d.key !== wfKey).map((d) => <option key={d.key} value={d.key}>{d.name}</option>)}
           </select>
+          <span className="mx-1 text-border">|</span>
+          <label className="flex items-center gap-1" title="Mark this workflow as read-only enrichment so the RCA agent may run it during investigation">
+            <input type="checkbox" checked={rcaEnrich} onChange={(e) => setRcaEnrich(e.target.checked)} />
+            <span>RCA enrichment</span>
+          </label>
           <span className="text-[10px] text-muted-foreground">(Save to apply)</span>
         </div>
       )}

@@ -2694,6 +2694,106 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
         except Exception as _drift_err:  # never let the validator affect tool loading
             logging.debug("[ToolRegistryDrift] drift check skipped: %s", _drift_err)
 
+    # ---- Workflow V2 + Quick Action tools ----
+    # Let the agent list/run automation workflows and quick actions. During RCA the
+    # agent can run an RCA-safe *enrichment* workflow alongside its investigators;
+    # remediation workflows self-govern via their internal HITL approval gates.
+    try:
+        from langchain_core.tools import StructuredTool as _ST
+
+        def _wf_ids():
+            ctx = get_user_context()
+            _uid = ctx.get("user_id") if isinstance(ctx, dict) else None
+            org = None
+            if _uid:
+                try:
+                    from utils.auth.stateless_auth import resolve_org_id
+                    org = resolve_org_id(_uid)
+                except Exception:
+                    org = None
+            inc = None
+            try:
+                st = get_state_context()
+                inc = st.get("incident_id") if isinstance(st, dict) else getattr(st, "incident_id", None)
+            except Exception:
+                inc = None
+            return _uid, org, inc
+
+        def list_workflows() -> str:
+            """List automation workflows available to run (key, name, node count, whether RCA-safe enrichment)."""
+            import json
+            _uid, org, _ = _wf_ids()
+            if not (_uid and org):
+                return "[]"
+            from services.workflows.defs import list_defs
+            return json.dumps([
+                {"key": d["key"], "name": d["name"], "nodes": d["node_count"],
+                 "enabled": d["enabled"], "rca_enrichment": bool((d.get("graph") or {}).get("rca_enrichment"))}
+                for d in list_defs(_uid, org)
+            ])
+
+        def run_workflow(workflow_key: str, incident_id: str = "") -> str:
+            """Start an automation workflow by key (optionally for an incident). Destructive steps inside the workflow pause for human approval. Returns the run id."""
+            import json
+            _uid, org, inc = _wf_ids()
+            if not (_uid and org):
+                return "error: no user context"
+            from services.workflows.defs import get_def
+            d = get_def(_uid, org, workflow_key)
+            if not d:
+                return f"error: workflow '{workflow_key}' not found"
+            from workflows_v2.client import start_run
+            return json.dumps(start_run(d["graph"], {"user_id": _uid, "org_id": org,
+                                                     "incident_id": incident_id or inc}))
+
+        def list_quick_actions() -> str:
+            """List one-click Quick Actions (id, name)."""
+            import json
+            _uid, org, _ = _wf_ids()
+            if not (_uid and org):
+                return "[]"
+            from utils.db.connection_pool import db_pool
+            from utils.auth.stateless_auth import set_rls_context
+            with db_pool.get_connection() as cc:
+                with cc.cursor() as cur:
+                    set_rls_context(cur, cc, _uid)
+                    cur.execute("SELECT id, name FROM actions WHERE org_id=%s ORDER BY name", (org,))
+                    return json.dumps([{"id": str(r[0]), "name": r[1]} for r in cur.fetchall()])
+
+        def run_quick_action(action: str, incident_id: str = "") -> str:
+            """Run a Quick Action by id or name (e.g. 'Generate Incident Summary'), optionally for an incident."""
+            import json
+            _uid, org, inc = _wf_ids()
+            if not (_uid and org):
+                return "error: no user context"
+            from utils.db.connection_pool import db_pool
+            from utils.auth.stateless_auth import set_rls_context
+            aid = action
+            with db_pool.get_connection() as cc:
+                with cc.cursor() as cur:
+                    set_rls_context(cur, cc, _uid)
+                    cur.execute("SELECT id FROM actions WHERE org_id=%s AND (id::text=%s OR name=%s) LIMIT 1",
+                                (org, action, action))
+                    row = cur.fetchone()
+                    if row:
+                        aid = str(row[0])
+            try:
+                from services.actions.executor import dispatch_action
+                return json.dumps({"ok": True, "run_id": dispatch_action(aid, _uid, {"incident_id": incident_id or inc})})
+            except Exception as e:  # noqa: BLE001
+                return json.dumps({"ok": False, "error": str(e)[:200]})
+
+        tools.append(_ST.from_function(func=list_workflows, name="list_workflows",
+            description="List automation workflows available to run (with whether each is RCA-safe enrichment)."))
+        tools.append(_ST.from_function(func=run_workflow, name="run_workflow",
+            description="Start an automation workflow by key. During investigation, run an RCA-enrichment workflow to gather more evidence; remediation workflows pause their destructive steps for human approval."))
+        tools.append(_ST.from_function(func=list_quick_actions, name="list_quick_actions",
+            description="List one-click Quick Actions (id, name)."))
+        tools.append(_ST.from_function(func=run_quick_action, name="run_quick_action",
+            description="Run a Quick Action by id or name, e.g. 'Generate Incident Summary'."))
+    except Exception:
+        logging.warning("failed to register workflow/quick-action tools", exc_info=True)
+
     # Cache the fully processed LangChain tools
     _langchain_tools_cache[cache_key] = tools
     _langchain_tools_cache_expiry[cache_key] = time.time() + LANGCHAIN_TOOLS_CACHE_DURATION
