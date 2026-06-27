@@ -236,6 +236,9 @@ _OPEN_PREFIXES = (
     "/aws/setup-script-ps1",
     "/aws/setup-role-ps1",
     "/aws/cloudwatch/webhook/",
+    # Workflow V2 webhook trigger — authenticated by the high-entropy token in the
+    # URL (resolved server-side), like the connector webhooks above.
+    "/api/registry/wf2/hook",
 )
 
 @app.before_request
