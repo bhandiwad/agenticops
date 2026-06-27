@@ -748,8 +748,8 @@ export function ActionsContent() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold">Actions</h2>
-          <p className="text-sm text-zinc-500 mt-1">Background agent tasks that follow your instructions</p>
+          <h2 className="text-2xl font-bold">Quick Actions</h2>
+          <p className="text-sm text-zinc-500 mt-1">One-click, governed operations — run a specialist agent on an incident. Reusable from incidents and workflow action nodes.</p>
         </div>
         {!createOpen && !selectedActionId && !editingActionId && (
           <button

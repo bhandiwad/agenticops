@@ -203,7 +203,7 @@ export default function Navigation({
             >
               <div className="flex items-center">
                 <Workflow size={16} />
-                <span className="ml-2">Actions</span>
+                <span className="ml-2">Quick Actions</span>
               </div>
             </Link>
           </li>
