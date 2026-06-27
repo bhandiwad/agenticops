@@ -1,0 +1,71 @@
+# Workflow V2 PoC overlay (Temporal). Additive + opt-in — does NOT auto-start
+# with the app and does not touch aurora-server/celery/frontend.
+#
+# Bring up (own project, own network):
+#   docker compose -p agenticops-temporal -f docker-compose.temporal.yml up -d
+# Validate the Epic #1 vertical slice:
+#   docker exec aurora-temporal-worker python -m workflows_v2.poc_run
+# Tear down:
+#   docker compose -p agenticops-temporal -f docker-compose.temporal.yml down
+#
+# Requires the aurora_server:latest image to already include temporalio +
+# the workflows_v2 package (rebuild server image after pulling these changes).
+# Productionizing into the main compose with shared network is Epic #1.1 / #8.
+
+services:
+  temporal-postgresql:
+    image: postgres:16-alpine
+    container_name: temporal-postgresql
+    environment:
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: temporal
+      POSTGRES_DB: temporal
+    volumes:
+      - temporal-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  temporal:
+    image: temporalio/auto-setup:latest
+    container_name: temporal
+    depends_on:
+      temporal-postgresql:
+        condition: service_healthy
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=temporal-postgresql
+    ports:
+      - "7233:7233"
+
+  temporal-ui:
+    image: temporalio/ui:latest
+    container_name: temporal-ui
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:8233
+    ports:
+      - "8233:8080"
+
+  aurora-temporal-worker:
+    image: aurora_server:latest
+    container_name: aurora-temporal-worker
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_NAMESPACE=default
+      - TEMPORAL_TASK_QUEUE=aurora-workflows-v2
+      - AURORA_WORKFLOWS_V2=true
+    command: ["python", "-m", "workflows_v2.worker"]
+    restart: unless-stopped
+
+volumes:
+  temporal-pgdata:
