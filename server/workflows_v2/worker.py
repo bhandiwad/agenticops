@@ -50,6 +50,7 @@ async def main() -> None:
             activities.run_set,
             activities.create_run,
             activities.finish_run,
+            activities.create_hitl,
             activities.persist_node_run,
         ],
     )

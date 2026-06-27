@@ -47,3 +47,18 @@ SAMPLE_BRANCHING = {
         {"source": "s_false", "target": "m1"},
     ],
 }
+
+
+# approval (HITL) -> set. The run pauses at ap1 until a resume_node signal arrives
+# (from the approvals API or a direct client signal); the signal data flows into s1.
+SAMPLE_HITL = {
+    "key": "poc_hitl",
+    "name": "PoC: approval (HITL signal)",
+    "nodes": [
+        {"id": "ap1", "type": "approval", "config": {"summary": "Approve to continue the PoC"}},
+        {"id": "s1", "type": "set",
+         "config": {"decision": "{{ $node.ap1.output.decision }}",
+                    "note": "{{ $node.ap1.output.note }}"}},
+    ],
+    "edges": [{"source": "ap1", "target": "s1"}],
+}

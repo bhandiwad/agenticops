@@ -16,7 +16,7 @@ import uuid
 from temporalio.client import Client
 
 from workflows_v2.interpreter import WorkflowRunner
-from workflows_v2.sample_graphs import SAMPLE_AGENT_TO_SET, SAMPLE_BRANCHING
+from workflows_v2.sample_graphs import SAMPLE_AGENT_TO_SET, SAMPLE_BRANCHING, SAMPLE_HITL
 
 
 async def main() -> int:
@@ -46,7 +46,7 @@ async def main() -> int:
         print(f"(no DB context: {e}); persistence will be log-only")
 
     graph_name = os.getenv("POC_GRAPH", "agent_to_set").strip().lower()
-    graph = SAMPLE_BRANCHING if graph_name == "branching" else SAMPLE_AGENT_TO_SET
+    graph = {"branching": SAMPLE_BRANCHING, "hitl": SAMPLE_HITL}.get(graph_name, SAMPLE_AGENT_TO_SET)
 
     client = await Client.connect(addr, namespace=namespace)
     handle = await client.start_workflow(
@@ -56,6 +56,14 @@ async def main() -> int:
         task_queue=task_queue,
     )
     print(f"started workflow id={handle.id}")
+
+    if graph_name == "hitl":
+        # The run pauses at the approval node; signal it to resume (proves the
+        # pause→signal→resume mechanism + human data flowing downstream).
+        await asyncio.sleep(2)
+        await handle.signal("resume_node", args=["ap1", {"decision": "approved", "note": "looks good"}])
+        print("signaled resume_node ap1 (decision=approved)")
+
     result = await handle.result()
     print("RESULT:")
     print(json.dumps(result, indent=2))
@@ -63,6 +71,14 @@ async def main() -> int:
     node_outputs = result.get("node_outputs", {})
     a1 = (node_outputs.get("a1", {}) or {}).get("output", {}) or {}
     s1 = (node_outputs.get("s1", {}) or {}).get("output", {}) or {}
+
+    if graph_name == "hitl":
+        s1 = (node_outputs.get("s1", {}) or {}).get("output", {}) or {}
+        ap1_status = (node_outputs.get("ap1", {}) or {}).get("status")
+        print(f"ap1.status={ap1_status} s1.decision={s1.get('decision')} s1.note={s1.get('note')}")
+        ok = ap1_status == "completed" and s1.get("decision") == "approved" and s1.get("note") == "looks good"
+        print("HITL_OK" if ok else "HITL_FAILED")
+        return 0 if ok else 1
 
     if graph_name == "branching":
         st = node_outputs.get("s_true", {}) or {}

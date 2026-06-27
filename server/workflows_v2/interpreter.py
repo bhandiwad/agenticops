@@ -29,10 +29,21 @@ _ACTIVITY_FOR = {
 }
 # node types evaluated inline (pure, no activity)
 _INLINE = {"if", "switch", "merge", "foreach"}
+# human-in-the-loop / wait nodes that pause until a signal (or timer)
+_HITL = {"approval", "form", "wait_webhook"}
 
 
 @workflow.defn(name="WorkflowRunner")
 class WorkflowRunner:
+    def __init__(self) -> None:
+        # node_id -> resume payload, set by the resume_node signal.
+        self._signals: dict = {}
+
+    @workflow.signal
+    def resume_node(self, node_id: str, data: dict) -> None:
+        """Resume a waiting HITL node (approval decision / form inputs / webhook)."""
+        self._signals[node_id] = data or {}
+
     @workflow.run
     async def run(self, payload: dict) -> dict:
         graph = payload.get("graph", {}) or {}
@@ -123,6 +134,37 @@ class WorkflowRunner:
                 node_outputs[nid] = {"output": out, "status": "completed"}
                 activate_outgoing(nid)
                 await self._persist(run_id, nid, ntype, "completed", {"count": len(results)}, out, context)
+                continue
+
+            # ---- HITL nodes: pause until a resume_node signal ----
+            if ntype in _HITL:
+                await self._persist(run_id, nid, ntype, "waiting", cfg, None, context)
+                try:
+                    await workflow.execute_activity(
+                        "create_hitl",
+                        {"node_id": nid, "node_type": ntype, "config": cfg, "context": context,
+                         "temporal_workflow_id": workflow.info().workflow_id},
+                        start_to_close_timeout=timedelta(seconds=15),
+                    )
+                except Exception:
+                    workflow.logger.warning("create_hitl failed (non-fatal); awaiting direct signal")
+                workflow.logger.info("WorkflowRunner: node %s (%s) waiting for signal", nid, ntype)
+                await workflow.wait_condition(lambda n=nid: n in self._signals)
+                data = self._signals.get(nid, {})
+                node_outputs[nid] = {"output": data, "status": "completed"}
+                activate_outgoing(nid)
+                await self._persist(run_id, nid, ntype, "completed", cfg, data, context)
+                continue
+
+            # ---- wait_timer: durable sleep ----
+            if ntype == "wait_timer":
+                secs = int(cfg.get("seconds", 0) or 0)
+                if secs > 0:
+                    await workflow.sleep(timedelta(seconds=secs))
+                out = {"waited": secs}
+                node_outputs[nid] = {"output": out, "status": "completed"}
+                activate_outgoing(nid)
+                await self._persist(run_id, nid, ntype, "completed", cfg, out, context)
                 continue
 
             # ---- activity-backed nodes (agent/action/set/...) ----

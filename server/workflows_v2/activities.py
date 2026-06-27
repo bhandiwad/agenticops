@@ -86,6 +86,37 @@ async def finish_run(payload: dict) -> None:
 
 
 @activity.defn
+async def create_hitl(payload: dict) -> dict:
+    """Register a pending HITL record so the approvals API can resume the run via a
+    Temporal signal (resume_payload carries the workflow id + node id). Best-effort:
+    needs user/org context; otherwise the node is resumable only by direct signal."""
+    ctx = payload.get("context", {}) or {}
+    user_id, org_id = ctx.get("user_id"), ctx.get("org_id")
+    if not (user_id and org_id):
+        activity.logger.info("[create_hitl] node=%s has no DB context; direct-signal only",
+                             payload.get("node_id"))
+        return {}
+    try:
+        from services.policy.approvals import create_approval_safe
+        cfg = payload.get("config", {}) or {}
+        approval_id = create_approval_safe(
+            user_id,
+            tool_name=f"wf_v2:{payload.get('node_type')}",
+            summary=cfg.get("summary") or f"Workflow waiting at node {payload.get('node_id')}",
+            incident_id=ctx.get("incident_id"),
+            resume_payload={
+                "kind": "wf_v2_signal",
+                "temporal_workflow_id": payload.get("temporal_workflow_id"),
+                "node_id": payload.get("node_id"),
+            },
+        )
+        return {"approval_id": approval_id}
+    except Exception:
+        activity.logger.warning("[create_hitl] failed (non-fatal)")
+        return {}
+
+
+@activity.defn
 async def persist_node_run(payload: dict) -> None:
     """Mirror a node's input/output/status to workflow_node_runs (RLS-scoped).
     Non-fatal: logs only if user/org context is absent (e.g. the bare PoC run)."""

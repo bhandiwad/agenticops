@@ -152,6 +152,19 @@ def resume_from_payload(user_id: str, resume_payload: Optional[dict]) -> bool:
     """
     if not resume_payload:
         return False
+    # Workflow V2 (Temporal): signal the running run to resume the HITL node.
+    # Guarded + best-effort — a no-op if Temporal isn't reachable from this process.
+    if resume_payload.get("kind") == "wf_v2_signal":
+        try:
+            from workflows_v2.signal import signal_resume
+            return signal_resume(
+                resume_payload.get("temporal_workflow_id"),
+                resume_payload.get("node_id"),
+                {"decision": "approved"},
+            )
+        except Exception as exc:  # pragma: no cover — defensive
+            logger.warning("resume_from_payload (wf_v2_signal) failed: %s", exc)
+            return False
     # Workflow-continuation payload: resume the workflow past its approval gate.
     if resume_payload.get("kind") == "workflow":
         try:
