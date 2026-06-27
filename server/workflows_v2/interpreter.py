@@ -62,11 +62,13 @@ class WorkflowRunner:
                 continue
 
             workflow.logger.info("WorkflowRunner: node %s (%s)", nid, ntype)
+            # Agent nodes can run for minutes (LLM + tools); give them headroom.
+            default_timeout = 600 if ntype == "agent" else 120
             out = await workflow.execute_activity(
                 activity_name,
                 {"node_id": nid, "type": ntype, "ref": node.get("ref", ""),
                  "config": cfg, "context": context},
-                start_to_close_timeout=timedelta(seconds=int(node.get("timeout_s", 120))),
+                start_to_close_timeout=timedelta(seconds=int(node.get("timeout_s", default_timeout))),
             )
             node_outputs[nid] = {"output": out, "status": "completed"}
 

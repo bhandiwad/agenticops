@@ -14,13 +14,25 @@ from temporalio import activity
 
 @activity.defn
 async def run_agent(payload: dict) -> dict:
-    """PoC STUB. Real synchronous agent execution is Epic #3.
+    """Run an agent node.
 
-    Returns a structured output so downstream nodes can consume it via
-    expressions (this is what proves the data plane end-to-end).
+    When the run context opts in (``context.real_agent`` truthy + a ``user_id``),
+    invoke the real agent synchronously (Epic #3) in a worker thread and return
+    its findings. Otherwise return the lightweight stub (fast default for demos).
     """
     ref = payload.get("ref") or "agent"
-    activity.logger.info("[PoC run_agent] %s", ref)
+    ctx = payload.get("context", {}) or {}
+
+    if ctx.get("real_agent") and ctx.get("user_id"):
+        import asyncio
+        from workflows_v2.agent_runner import run_agent_node
+        activity.logger.info("[run_agent REAL] %s", ref)
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, run_agent_node, ctx["user_id"], ref, ctx.get("incident_id"), ctx, None,
+        )
+
+    activity.logger.info("[run_agent stub] %s", ref)
     return {
         "agent": ref,
         "summary": f"[PoC] {ref} executed",

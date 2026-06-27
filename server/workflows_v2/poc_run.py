@@ -30,7 +30,9 @@ async def main() -> int:
 
     # Resolve a real org/user so persistence (RLS) is exercised. Best-effort:
     # falls back to no DB context (log-only persistence) if the DB isn't reachable.
-    ctx = {"incident_id": str(uuid.uuid4())}
+    real_agent = os.getenv("POC_REAL_AGENT", "").strip().lower() in ("1", "true", "yes")
+    incident_id = os.getenv("POC_INCIDENT_ID") or str(uuid.uuid4())
+    ctx = {"incident_id": incident_id, "real_agent": real_agent}
     try:
         from utils.db.connection_pool import db_pool
         with db_pool.get_connection() as conn:
@@ -55,10 +57,20 @@ async def main() -> int:
     print("RESULT:")
     print(json.dumps(result, indent=2))
 
-    # Assert the data plane worked: s1 consumed a1's output.
-    s1 = (result.get("node_outputs", {}).get("s1", {}) or {}).get("output", {}) or {}
-    ok = s1.get("headline") == "Summary: [PoC] summarizer_agent executed" and s1.get("agent_ran") == "summarizer_agent"
-    print("DATA_PASSING_OK" if ok else "DATA_PASSING_FAILED")
+    node_outputs = result.get("node_outputs", {})
+    a1 = (node_outputs.get("a1", {}) or {}).get("output", {}) or {}
+    s1 = (node_outputs.get("s1", {}) or {}).get("output", {}) or {}
+
+    if real_agent:
+        # Real agent ran: output must be non-empty, completed, and NOT the stub.
+        summary = a1.get("summary") or ""
+        ok = bool(summary) and "[PoC]" not in summary and a1.get("status") == "completed"
+        print(f"a1.status={a1.get('status')} summary_len={len(summary)}")
+        print("REAL_AGENT_OK" if ok else "REAL_AGENT_FAILED")
+    else:
+        # Stub path: s1 consumed a1's stub output via expression.
+        ok = s1.get("headline") == "Summary: [PoC] summarizer_agent executed" and s1.get("agent_ran") == "summarizer_agent"
+        print("DATA_PASSING_OK" if ok else "DATA_PASSING_FAILED")
     return 0 if ok else 1
 
 
