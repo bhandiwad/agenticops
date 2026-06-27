@@ -1,215 +1,125 @@
 <div align="center">
 
-<img src=".github/assets/aurora-banner.gif" alt="Aurora — The open-source AI agent that investigates your incidents for you" width="100%" />
+# AgenticOps Platform
 
-<a href="https://github.com/Arvo-AI/aurora/stargazers"><img src="https://img.shields.io/github/stars/Arvo-AI/aurora?style=for-the-badge&logo=github&color=181717" alt="Stars" /></a>&nbsp;
-<a href="https://github.com/Arvo-AI/aurora/releases/latest"><img src="https://img.shields.io/github/v/release/Arvo-AI/aurora?style=for-the-badge&label=version&color=2ea44f" alt="Version" /></a>&nbsp;
-<a href="https://github.com/Arvo-AI/aurora/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-blue?style=for-the-badge" alt="License" /></a>&nbsp;
-<a href="https://discord.com/invite/ccbN4FwHxM"><img src="https://img.shields.io/badge/Discord-Join_us-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord" /></a>&nbsp;
-<a href="https://cal.com/arvo-ai"><img src="https://img.shields.io/badge/Book_a_Demo-FF6B4A?style=for-the-badge&logo=googlecalendar&logoColor=white" alt="Book a Demo" /></a>&nbsp;
-<a href="https://aurora-ai.net"><img src="https://img.shields.io/badge/Try_it_Live-aurora--ai.net-8B5CF6?style=for-the-badge&logo=rocket&logoColor=white" alt="Try Aurora Live" /></a>
+**An agentic incident-operations platform** — AI agents that investigate incidents, propose root cause, and execute governed remediation through no-code workflows, with humans in the loop.
 
-<br />
-
-<a href="https://aurora-ai.net">Try Aurora Live</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="#quick-start">Quick Start</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="https://arvo-ai.github.io/aurora/">Documentation</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="#integrations">Integrations</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="https://www.arvoai.ca">Website</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="CHANGELOG.md">Changelog</a>
+<a href="#quick-start">Quick Start</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="#user-guide">User Guide</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="#deploy">Deploy</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="#integrations">Integrations</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="#architecture">Architecture</a>
 
 </div>
 
 ---
 
-## What's New
+## What it is
 
-- **AgenticOps Platform** — Configure and supervise Aurora as an operations teammate: a typed **agent registry**, a risk-classified **tool registry**, **trigger routing** (events → agents), human **approval gates** with auto-resume, an **MCP server registry**, and composable **workflows** — all UI-controlled per organization. See [AgenticOps Platform](#agenticops-platform).
-- **Artifacts** — Persistent agent-maintained documents in Monitor, continuously updated as investigations progress
-- **Actions** — Automated post-RCA workflows (generate postmortems, open fix PRs, notify Slack) triggered on investigation completion
-- **AWS Bedrock Support** — Use Claude, Titan, and other Bedrock models via IAM auth
-- **Fly.io Connector** — Investigate incidents on Fly.io infrastructure
-- **CloudBees Enterprise** — Operations Center + Feature Management connector
-- **Kubeconfig Upload** — Connect on-prem Kubernetes clusters without a cloud provider
-- **CloudWatch Alarm Webhooks** — Ingest AWS CloudWatch alarms directly as incidents
-- **Extensibility Hooks** — Gate LLM calls, enforce seat limits, and customize behavior with lifecycle hooks
+AgenticOps turns alerts into resolved incidents with AI doing the heavy lifting and humans approving anything risky:
 
-See the full [CHANGELOG](CHANGELOG.md) for all releases.
+- **Investigates autonomously** — on an alert, specialist agents fan out across your logs, metrics, traces, cloud, and recent changes and return a structured root-cause analysis with evidence.
+- **Acts safely** — build **no-code agentic workflows** (a node-graph builder) that branch, call tools/APIs, run agents, and **pause for human approval** before anything changes your systems.
+- **Learns** — every postmortem and discovery finding flows into a searchable **Knowledge Base / Org Brain** that future investigations reuse.
+- **Governed & multi-tenant** — per-org RBAC, policy gates, audit trails, secrets in Vault, row-level data isolation.
 
----
-
-## Why Aurora?
-
-When an alert fires at 3 AM, your on-call engineer spends 30-60 minutes doing the same thing every time: checking dashboards, running kubectl commands, reading logs, correlating deployments, and searching Slack history.
-
-**Aurora does all of that autonomously.** It receives the alert, spins up AI agents that investigate across your entire stack, and delivers a structured RCA by the time you open your laptop.
-
-| Without Aurora | With Aurora |
-|:---|:---|
-| Engineer paged, context-switches | Alert auto-triaged in background |
-| 30-60 min manual investigation | AI agents investigate in parallel |
-| Knowledge siloed in individuals | Investigation reasoning captured |
-| Postmortem written days later | Postmortem auto-generated |
-| Same failure, different engineer | Knowledge base grows over time |
-
-<div align="center">
-
-<a href="https://www.loom.com/share/8082df350ea64a928f7fadbf811c5138">
-  <img src=".github/assets/aurora-demo.gif" alt="Aurora Demo — AI agent investigating a cloud incident" width="100%" />
-</a>
-
-<sub>Click to watch the full demo</sub>
-
-</div>
-
----
-
-## Features
-
-<table>
-<tr>
-<td width="50%" valign="top">
-
-### Agentic Investigation
-
-AI agents dynamically select from 30+ tools. They run `kubectl`, `aws`, `az`, and `gcloud` in **sandboxed Kubernetes pods**, query logs, check deployments, and correlate data — all autonomously.
-
-</td>
-<td width="50%">
-
-<img src=".github/assets/ai-investigation.png" alt="AI agent investigating" width="100%" />
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-### AI Code Fixes
-
-Aurora doesn't just find root cause — it suggests fixes and can generate pull requests with the remediation.
-
-</td>
-<td width="50%">
-
-<img src=".github/assets/pr-suggestion.png" alt="PR suggestion" width="100%" />
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-### Incident Dashboard
-
-Ingest alerts from PagerDuty, Datadog, Grafana, New Relic, OpsGenie, incident.io and more. Every alert auto-triggers a background investigation.
-
-</td>
-<td width="50%">
-
-<img src=".github/assets/incidents-dashboard.png" alt="Incidents dashboard" width="100%" />
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-### Auto-Generated Postmortems
-
-Detailed reports with timeline, root cause, impact assessment, and remediation steps. Export directly to Confluence, Notion, or SharePoint.
-
-</td>
-<td width="50%">
-
-<img src=".github/assets/postmortem-report.png" alt="Postmortem report" width="100%" />
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-### Infrastructure Knowledge Graph
-
-Visualize your entire infrastructure as a dependency graph. When an incident occurs, Aurora traces blast radius across services and providers.
-
-</td>
-<td width="50%">
-
-<img src=".github/assets/infrastructure-graph.png" alt="Infrastructure graph" width="100%" />
-
-</td>
-</tr>
-</table>
-
-**More capabilities:** Knowledge Base RAG &bull; Multi-Cloud (AWS, Azure, GCP, OVH, Scaleway, Cloudflare) &bull; Any LLM (OpenAI, Anthropic, Gemini, Vertex AI, OpenRouter, Ollama) &bull; Terraform/IaC Analysis &bull; MCP Server (Cursor, Claude Desktop, Windsurf) &bull; Org-level Command Policies &bull; SigmaHQ Guardrails &bull; NeMo Input Rail
-
----
-
-## AgenticOps Platform
-
-Beyond one-shot investigation, Aurora can run as a configurable, supervised operations teammate. Each capability is a dedicated page in the UI and is scoped, audited, and governed **per organization** — with one hard rule: **Aurora investigates and proposes autonomously, but anything that changes your systems requires human approval first.**
-
-| Page | What it does |
-|:---|:---|
-| **Tools** | Every tool the agents can use (130+), each labeled **read / write / destructive**, with a per-org on/off switch and capability/connector filters. |
-| **Agents** | The typed agents — RCA investigators (triage, correlation, dedup, runtime, change, runbook) plus lifecycle agents (Summarizer, Correlation, Dedup, Remediation Planner, Runbook Executor, Notification, Postmortem). Enable/disable, tune limits, and **version each agent's prompt**. |
-| **Triggers** | Map lifecycle events to agents — *alert created → dedup + correlate*, *incident created → summarize*, *RCA completed → summarize → notify → postmortem*, *resolved → postmortem*. Toggle any route. |
-| **Workflows** | Built-in playbooks (e.g. **Plan fix → approval → execute runbook**) plus a **step builder** to compose your own from agents, actions, and approval gates. |
-| **Approvals** | When an autonomous run wants to do something write/destructive, it pauses and queues a request here. Approve/reject with a reason — approving **auto-resumes** the run (single-use, time-bounded). |
-| **MCP** | Register external [Model Context Protocol](https://modelcontextprotocol.io) servers (auth tokens stored in Vault), mark them **read-only**, and expose their tools to the agents. |
-
-Each incident also gets an **Evidence & Replay** panel — the artifacts a run relied on, and a step-by-step timeline of every tool call for audit and debugging.
-
-**How it's governed:** a risk-aware policy engine classifies every tool (read/write/destructive); write/destructive actions in autonomous runs are gated through the approval queue; tool surfaces are scoped to each agent's capabilities; and every decision is recorded. The autonomous planes are controlled by feature flags (`AURORA_TRIGGER_ROUTER_ENABLED`, `AURORA_WORKFLOWS_ENABLED`, `AURORA_REGISTERED_MCP_ENABLED`) — on by default in the bundled Compose files.
+> One hard rule: **agents investigate and propose autonomously, but anything that changes your systems requires human approval first.**
 
 ---
 
 ## Quick Start
 
-Get Aurora running locally in under 5 minutes:
+Run locally in a few minutes:
 
 ```bash
-git clone https://github.com/arvo-ai/aurora.git && cd aurora
+git clone <your-repo-url> && cd aurora
 
 make init                # Generate secure secrets
-nano .env                # Add your LLM API key (OpenRouter, OpenAI, etc.)
-make prod-prebuilt       # Pull prebuilt images and start
+nano .env                # Add your LLM API key (OpenAI, Anthropic, OpenRouter, …) + set MAIN_MODEL/RCA_MODEL
+make prod-prebuilt       # Pull prebuilt images and start  (or: make prod-local to build from source)
 ```
 
-Open **http://localhost:3000**. The first user to register becomes admin.
-
-> [!TIP]
-> Aurora works without any cloud provider accounts. The LLM API key is the only external requirement. Connectors are optional.
+Open **http://localhost:3000** — the first user to register becomes admin. Only an LLM API key is required; connectors are optional.
 
 <details>
 <summary><strong>Vault setup (required after first start)</strong></summary>
-<br />
 
 ```bash
-# Get the auto-generated root token
-docker logs vault-init 2>&1 | grep "Root Token:"
-
-# Add it to .env
-echo "VAULT_TOKEN=hvs.your-token-here" >> .env
-
-# Restart to connect services to Vault
-make down && make prod-prebuilt
+docker logs vault-init 2>&1 | grep "Root Token:"   # get the auto-generated root token
+echo "VAULT_TOKEN=hvs.your-token-here" >> .env       # add it to .env
+make down && make prod-prebuilt                       # restart to connect services to Vault
 ```
-
 </details>
 
 <details>
-<summary><strong>Pin a specific version</strong></summary>
-<br />
+<summary><strong>Workflows engine (Temporal) — optional</strong></summary>
+
+The node-graph Workflows run on Temporal via an opt-in overlay:
 
 ```bash
-make prod-prebuilt VERSION=v1.2.3
+docker compose -p agenticops-temporal -f docker-compose.temporal.yml up -d
+# set TEMPORAL_ADDRESS=temporal:7233 in .env so the app can start/route workflow runs
 ```
-
 </details>
 
-<details>
-<summary><strong>Build from source</strong></summary>
-<br />
+---
 
-```bash
-make prod-local
-```
+## User Guide
 
-</details>
+Everything below is a page in the left navigation. Agents investigate and propose; humans approve changes.
+
+### 🗨️ New Chat
+The conversational ops agent. Ask it to investigate an incident, query your stack, or run automation. It uses your connected tools and, during root-cause analysis, dispatches specialist **investigator sub-agents**. It can also **launch workflows and quick actions** on request (e.g. *"run the DB triage workflow for incident 123"*).
+
+### 🚨 Incidents
+The incident dashboard. Each incident has the AI **root-cause analysis**, an **Evidence & Replay** panel (every tool call and finding, replayable), the **infrastructure blast-radius** view, and an **auto-generated postmortem**. Incidents arrive from connected monitors/webhooks or can be created manually.
+
+### 🤖 Agents
+The specialist agent registry:
+- **RCA investigators** (`general_investigator`, `runtime_state_investigator`, `recent_change_investigator`, `error_signal_investigator`, `ticket_history`, `runbook_lookup`) — dispatched during RCA.
+- **Lifecycle agents** (`summarizer`, `correlation`, `dedup`, `remediation_planner`, `runbook_executor`, `notification`, `postmortem`) — fired by the trigger router on incident events.
+
+Built-ins are code-defined (view-only prompts) but you can **enable/disable** them per org, set **prompt versions** (investigators), and **create your own custom agents** with capability tags.
+
+### ⚡ Quick Actions
+One-click, governed operations — run a single specialist agent on an incident (e.g. *Generate Incident Summary, Investigate Root Cause, Runtime Health Check, Recommend Remediation*). Reusable from incidents, from chat, and as **action nodes** inside workflows.
+
+### 🧩 Workflows (Flow Builder)
+A visual **node-graph builder** for agentic automations. Open **Workflows** for the dashboard (every workflow with status, last-run, run count, and Run / Pause / Edit / Delete), then **New workflow** to author on the canvas.
+
+**Node types:**
+| Node | What it does |
+|---|---|
+| **agent** | Runs a specialist agent; the **Purpose** field steers which tools/focus it uses |
+| **action** | Runs an Aurora Quick Action (deterministic) |
+| **http** | Calls any API / runbook / automation endpoint |
+| **set** | Builds/reshapes data (key→value, expressions) |
+| **if / switch / merge** | Branching and joining |
+| **foreach** | Iterates over a list |
+| **approval / form / wait** | Human-in-the-loop pauses (approve, collect input, timer, webhook) |
+| **sub_workflow** | Runs another workflow as a child and returns its output |
+
+**Authoring:** drag from a node's right handle to the next node's left handle to connect; click a node for typed config; click an edge to set a branch port (`true`/`false`/case); **Tidy** auto-lays-out the graph. Use **expressions** like `{{ $node.X.output.summary }}` and `{{ $context.incident_id }}` to pass data between nodes.
+
+**Per-workflow:** schedule (cron) + webhook triggers, an **On error → workflow** handler, and an **RCA enrichment** flag (read-only workflows the RCA agent may auto-run during investigation). **Run** executes it; watch progress in **Runs**.
+
+### 🔀 Triggers
+Route incident **lifecycle events** (alert created, incident created, RCA completed, resolved) to **agents** or **workflows** automatically — optionally filtered by severity.
+
+### 🕘 Runs
+Execution history across all workflows — status, last-run time, and a per-node **replay** timeline (input/output/status) for debugging.
+
+### ✅ Approvals
+The human-in-the-loop inbox. When a workflow or an agent hits a risk gate, it pauses here; approving **resumes the exact run** (single-use, time-bounded).
+
+### 🧠 Knowledge Base · Org Brain
+Everything the platform has learned, searchable and reused by agents during RCA:
+- **Org memory** — free-text context about your org/systems.
+- **Documents** — upload runbooks, architecture docs, SOPs.
+- **Discovery findings** — auto-captured during investigations.
+- **Postmortems** — every solved incident's postmortem is auto-ingested, so future RCAs reuse past learnings.
+
+### 🔌 MCP
+Register external **MCP tool servers** (e.g. read-only docs/knowledge servers); their tools are discovered and made available, with read-only enforcement.
+
+### Connectors & Settings
+Connect cloud (AWS/Azure/GCP), monitoring (Datadog/Grafana/New Relic/…), ITSM/on-call (PagerDuty/OpsGenie/ServiceNow), source control, and chat (Slack/Google Chat). Credentials are stored per-user in Vault. A light/dark theme toggle lives in the nav footer.
 
 ---
 
@@ -218,20 +128,16 @@ make prod-local
 | Method | Best for |
 |--------|----------|
 | `make prod-prebuilt` | Local evaluation, single-node |
-| [Helm chart](https://arvo-ai.github.io/aurora/docs/deployment/kubernetes) | Production Kubernetes (GKE, EKS, AKS) |
-| [Air-tight bundle](https://arvo-ai.github.io/aurora/docs/deployment/vm-deployment#secure-deployment-air-tight) | Air-gapped / restricted networks |
-
-### Kubernetes (Helm)
+| `make prod-local` | Build from source (feature branches, custom builds) |
+| Helm chart | Production Kubernetes (GKE, EKS, AKS) |
 
 ```bash
 helm repo add aurora https://raw.githubusercontent.com/Arvo-AI/aurora/gh-pages
-helm repo update
-helm show values aurora/aurora-oss > my-values.yaml
-# Edit my-values.yaml, then:
+helm repo update && helm show values aurora/aurora-oss > my-values.yaml
 helm install aurora-oss aurora/aurora-oss -n aurora --create-namespace -f my-values.yaml
 ```
 
-Also available via OCI: `oci://ghcr.io/arvo-ai/charts/aurora-oss`
+Keep environment variables in sync across `docker-compose.yaml`, `docker-compose.prod-local.yml`, and `.env.example`.
 
 ---
 
@@ -245,29 +151,16 @@ Also available via OCI: `oci://ghcr.io/arvo-ai/charts/aurora-oss`
 ![New Relic](https://img.shields.io/badge/New_Relic-1CE783?style=flat-square&logo=newrelic&logoColor=white)
 ![OpsGenie](https://img.shields.io/badge/OpsGenie-0052CC?style=flat-square&logo=opsgenie&logoColor=white)
 ![Dynatrace](https://img.shields.io/badge/Dynatrace-1496FF?style=flat-square&logo=dynatrace&logoColor=white)
-![incident.io](https://img.shields.io/badge/incident.io-FF4785?style=flat-square&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white)
 ![Azure](https://img.shields.io/badge/Azure-0078D4?style=flat-square&logo=microsoftazure&logoColor=white)
 ![GCP](https://img.shields.io/badge/GCP-4285F4?style=flat-square&logo=googlecloud&logoColor=white)
-![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=flat-square&logo=cloudflare&logoColor=white)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white)
-![Terraform](https://img.shields.io/badge/Terraform-844FBA?style=flat-square&logo=terraform&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)
-![Jenkins](https://img.shields.io/badge/Jenkins-D24939?style=flat-square&logo=jenkins&logoColor=white)
 ![Slack](https://img.shields.io/badge/Slack-4A154B?style=flat-square&logo=slack&logoColor=white)
-![Google Chat](https://img.shields.io/badge/Google_Chat-34A853?style=flat-square&logo=googlechat&logoColor=white)
 ![Jira](https://img.shields.io/badge/Jira-0052CC?style=flat-square&logo=jira&logoColor=white)
-![Confluence](https://img.shields.io/badge/Confluence-172B4D?style=flat-square&logo=confluence&logoColor=white)
-![Notion](https://img.shields.io/badge/Notion-000000?style=flat-square&logo=notion&logoColor=white)
-![SharePoint](https://img.shields.io/badge/SharePoint-0078D4?style=flat-square&logo=microsoftsharepoint&logoColor=white)
-![Bitbucket](https://img.shields.io/badge/Bitbucket-0052CC?style=flat-square&logo=bitbucket&logoColor=white)
 ![Splunk](https://img.shields.io/badge/Splunk-000000?style=flat-square&logo=splunk&logoColor=white)
-![Fly.io](https://img.shields.io/badge/Fly.io-7B36ED?style=flat-square&logo=flydotio&logoColor=white)
-![CloudBees](https://img.shields.io/badge/CloudBees-1997B5?style=flat-square&logoColor=white)
-![Tailscale](https://img.shields.io/badge/Tailscale-242424?style=flat-square&logo=tailscale&logoColor=white)
 
-**LLMs:** OpenAI &bull; Anthropic &bull; Google Gemini &bull; Vertex AI &bull; AWS Bedrock &bull; OpenRouter &bull; Ollama (air-gapped)
+**LLMs:** OpenAI · Anthropic · Google Gemini · Vertex AI · AWS Bedrock · OpenRouter · Ollama (air-gapped) &nbsp;|&nbsp; **MCP** tool servers
 
 </div>
 
@@ -275,80 +168,22 @@ Also available via OCI: `oci://ghcr.io/arvo-ai/charts/aurora-oss`
 
 ## Architecture
 
-```
-aurora/
-├── server/      # Python API (Flask), Celery workers, LangGraph agents
-├── client/      # Next.js frontend
-├── deploy/      # Helm chart, Docker Compose, deployment scripts
-├── config/      # Default configuration
-├── scripts/     # CLI utilities
-└── website/     # Documentation (Docusaurus)
-```
-
-| Layer | Stack |
-|-------|-------|
-| AI Orchestration | LangGraph; typed agent + tool registries; trigger router; policy/approval gate; workflow engine |
-| Backend | Python, Flask, Celery |
-| Frontend | Next.js, TypeScript |
-| Graph DB | Memgraph |
-| Vector Store | Weaviate |
-| Secrets | HashiCorp Vault, AWS Secrets Manager |
-| Storage | PostgreSQL, Redis, S3-compatible |
+- **Backend** (`server/`) — Flask API (`main_compute.py`), Celery workers, WebSocket chatbot (`main_chatbot.py`), LangGraph agent + RCA orchestrator, connectors.
+- **Workflows V2** (`server/workflows_v2/`) — a generic interpreter that executes node-graph workflows on **Temporal** (durable runs, timers, signals for HITL, retries, child workflows).
+- **Frontend** (`client/`) — Next.js 15 + TypeScript + Tailwind + shadcn/ui; the Flow Builder uses React Flow.
+- **Data** — PostgreSQL (with row-level security), Weaviate (Knowledge Base vectors), Redis (queue), Memgraph (infra graph), SeaweedFS (object storage), HashiCorp Vault (secrets).
 
 ---
 
-## Security
+## Security & Privacy
 
-- **Sandboxed execution** — Agent commands run in isolated Kubernetes pods with NetworkPolicy, not on your control plane
-- **RBAC** — Three roles (Admin, Editor, Viewer) enforced at API and UI layers via Casbin
-- **Closed registration** — First user is admin; all others are invited
-- **SigmaHQ guardrails** — 37 threat detection signatures on agent command execution
-- **NeMo input rail** — Prompt injection detection on every turn
-- **No telemetry** — Zero data sent to Arvo AI. Fully self-hosted.
+- **Self-hosted** — your incident data stays in your infrastructure; no telemetry.
+- **Per-org isolation** — PostgreSQL `FORCE ROW LEVEL SECURITY` scopes every tenant's data.
+- **Secrets in Vault** — credentials are never stored in the database.
+- **Governed actions** — RBAC on every route; risk-classified tools; human approval gates for anything that changes systems; full audit trail.
 
 ---
 
-## Data Privacy
+## Credits & License
 
-Aurora is **100% self-hosted**. Your incident data never leaves your infrastructure.
-
-- All data on your infrastructure (Docker or Kubernetes)
-- No telemetry or tracking to Arvo AI
-- Secrets encrypted at rest in Vault or AWS Secrets Manager
-- LLM calls go directly from your infra to your chosen provider
-- Use Ollama for fully air-gapped operation
-
----
-
-## Community
-
-<div align="center">
-
-<a href="https://discord.com/invite/ccbN4FwHxM"><img src="https://img.shields.io/badge/Discord-Join_the_community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord" /></a>&nbsp;&nbsp;
-<a href="https://cal.com/arvo-ai"><img src="https://img.shields.io/badge/Book_a_Demo-FF6B4A?style=for-the-badge&logo=googlecalendar&logoColor=white" alt="Book a Demo" /></a>
-
-</div>
-
-<br />
-
-- **[GitHub Issues](https://github.com/Arvo-AI/aurora/issues)** — Bug reports and feature requests
-- **[GitHub Discussions](https://github.com/Arvo-AI/aurora/discussions)** — Ideas and Q&A
-- **[Documentation](https://arvo-ai.github.io/aurora/)** — Full deployment and configuration guides
-- **[Blog](https://www.arvoai.ca/blog)** — SRE best practices, incident management guides
-- **[Contributing](CONTRIBUTING.md)** — We welcome PRs! Read the guide first.
-
----
-
-## License
-
-[Apache License 2.0](LICENSE) — free forever, no per-seat or per-incident pricing.
-
----
-
-<div align="center">
-<br />
-<strong>If Aurora helps your team, <a href="https://github.com/Arvo-AI/aurora">star us on GitHub</a></strong>
-<br /><br />
-<a href="https://github.com/Arvo-AI/aurora/stargazers"><img src="https://img.shields.io/github/stars/Arvo-AI/aurora?style=for-the-badge&logo=github&color=181717" alt="Stars" /></a>
-<br /><br />
-</div>
+Built on **[Aurora](https://github.com/Arvo-AI/aurora)** by Arvo AI (Apache-2.0); the AgenticOps platform, node-graph Workflows, and Knowledge Base extensions build on that foundation. Licensed under **Apache 2.0** — see [LICENSE](LICENSE).

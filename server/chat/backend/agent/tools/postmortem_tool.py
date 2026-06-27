@@ -15,6 +15,32 @@ from pydantic import BaseModel, Field
 logger = logging.getLogger(__name__)
 
 
+def _ingest_postmortem_to_kb(user_id: str, incident_id: str, content: str) -> None:
+    """Index a saved postmortem into the Knowledge Base (org brain) so its learnings
+    are searchable for future incidents. Idempotent per incident (stable doc id /
+    chunk uuids → re-saving overwrites). Best-effort; never raises."""
+    try:
+        from routes.knowledge_base.weaviate_client import insert_chunks
+        text = content or ""
+        chunks, buf = [], ""
+        for para in text.split("\n\n"):
+            if buf and len(buf) + len(para) > 1200:
+                chunks.append(buf.strip()); buf = ""
+            buf += para + "\n\n"
+        if buf.strip():
+            chunks.append(buf.strip())
+        if not chunks:
+            return
+        payload = [{"content": c, "chunk_index": i,
+                    "heading_context": f"Postmortem · incident {incident_id}"}
+                   for i, c in enumerate(chunks)]
+        insert_chunks(user_id, f"postmortem-{incident_id}",
+                      f"Postmortem — incident {incident_id}", payload)
+        logger.info("[PostmortemTool] ingested postmortem %s into KB (%d chunks)", incident_id, len(payload))
+    except Exception:
+        logger.warning("[PostmortemTool] KB ingestion failed for %s", incident_id, exc_info=True)
+
+
 def _is_valid_uuid(value: str) -> bool:
     """Return True only if value is a well-formed UUID string."""
     try:
@@ -182,6 +208,10 @@ def save_postmortem(
                 )
 
                 conn.commit()
+
+        # Feed the postmortem into the Knowledge Base (org brain) so its learnings
+        # become searchable for future incidents. Best-effort; never blocks the save.
+        _ingest_postmortem_to_kb(user_id, incident_id, content)
 
         return json.dumps({
             "status": "ok",
