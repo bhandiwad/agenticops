@@ -111,7 +111,7 @@ export default function McpPage() {
           <Server className="h-6 w-6" /> MCP Servers
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Connect external Model Context Protocol servers to give Aurora&apos;s agents more tools.
+          Connect external Model Context Protocol servers to give InfinitAizen&apos;s agents more tools.
           Enabled servers&apos; tools become available automatically; mark a server read-only to block
           any write tools it exposes. Auth tokens are stored in Vault, never in the database.
         </p>

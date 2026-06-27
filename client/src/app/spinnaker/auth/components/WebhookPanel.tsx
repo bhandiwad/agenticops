@@ -31,10 +31,10 @@ export function WebhookPanel({ webhookInfo }: WebhookPanelProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Webhook className="h-5 w-5 text-teal-600" />
-          <CardTitle className="text-lg">Send Deployment Events to Aurora</CardTitle>
+          <CardTitle className="text-lg">Send Deployment Events to InfinitAizen</CardTitle>
         </div>
         <CardDescription>
-          Configure Spinnaker Echo to send pipeline events to Aurora for deployment tracking
+          Configure Spinnaker Echo to send pipeline events to InfinitAizen for deployment tracking
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

@@ -72,7 +72,7 @@ export function MessageList({ messages, sendRaw, onUpdateMessage, sessionId, use
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-medium mb-2">Welcome to Aurora</h2>
+          <h2 className="text-xl font-medium mb-2">Welcome to InfinitAizen</h2>
           <p className="text-muted-foreground">Start a conversation to get started</p>
         </div>
       </div>

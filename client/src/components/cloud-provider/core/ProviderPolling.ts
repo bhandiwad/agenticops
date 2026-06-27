@@ -502,7 +502,7 @@ export class ProviderPolling {
     } else if (redirectParams.includes('login=gcp_failed_billing')) {
       console.log(`GCP setup failed: No billing enabled`);
       if (this.config.onError) {
-        this.config.onError({ message: "None of your GCP projects have billing enabled. Please enable billing to use Aurora.", action: 'open_console' }, 10000);
+        this.config.onError({ message: "None of your GCP projects have billing enabled. Please enable billing to use InfinitAizen.", action: 'open_console' }, 10000);
       }
     } else if (status === 'FAILED') {
       console.log(`GCP setup failed with generic error`);

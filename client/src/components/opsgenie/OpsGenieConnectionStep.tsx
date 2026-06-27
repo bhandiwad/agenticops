@@ -61,8 +61,8 @@ export function OpsGenieConnectionStep({
         </CardTitle>
         <CardDescription>
           {isJSM
-            ? "Use your Atlassian email and API token to connect Aurora"
-            : "Use an OpsGenie API key to authorise Aurora"}
+            ? "Use your Atlassian email and API token to connect InfinitAizen"
+            : "Use an OpsGenie API key to authorise InfinitAizen"}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -126,7 +126,7 @@ export function OpsGenieConnectionStep({
               </div>
               <div className="p-4 pt-0 space-y-4 text-sm border-t">
                 <p className="text-muted-foreground">
-                  Aurora stores your credentials securely using Vault. Only encrypted references are persisted in the database.
+                  InfinitAizen stores your credentials securely using Vault. Only encrypted references are persisted in the database.
                 </p>
                 <form className="space-y-4" onSubmit={onConnect}>
                   <div className="space-y-2">
@@ -217,7 +217,7 @@ export function OpsGenieConnectionStep({
               </div>
               <div className="p-4 pt-0 space-y-4 text-sm border-t">
                 <p className="text-muted-foreground">
-                  Aurora stores your key securely using Vault. Only encrypted references are persisted in the database.
+                  InfinitAizen stores your key securely using Vault. Only encrypted references are persisted in the database.
                 </p>
                 <form className="space-y-4" onSubmit={onConnect}>
                   <div className="grid md:grid-cols-2 gap-4">

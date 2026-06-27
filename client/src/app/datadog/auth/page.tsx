@@ -230,7 +230,7 @@ export default function DatadogAuthPage() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Datadog Integration</h1>
           <p className="text-muted-foreground mt-1">
-            Securely connect Datadog to ingest logs, metrics, monitors, and alerts inside Aurora.
+            Securely connect Datadog to ingest logs, metrics, monitors, and alerts inside InfinitAizen.
           </p>
         </div>
 

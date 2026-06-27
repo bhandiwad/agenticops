@@ -122,7 +122,7 @@ export default function ScalewayOnboardingPage() {
       <Card>
         <CardHeader>
           <CardTitle>Connect Your Scaleway Account</CardTitle>
-          <CardDescription>Create an API key in Scaleway Console and connect it to Aurora</CardDescription>
+          <CardDescription>Create an API key in Scaleway Console and connect it to InfinitAizen</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3 text-sm">

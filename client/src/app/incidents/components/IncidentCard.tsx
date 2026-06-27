@@ -64,7 +64,7 @@ function StatusPill({ status }: { readonly status: AuroraStatus }) {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
           </span>
-          <span className="text-xs font-semibold text-orange-400">Aurora Investigating...</span>
+          <span className="text-xs font-semibold text-orange-400">InfinitAizen Investigating...</span>
         </div>
       );
     case 'summarizing':

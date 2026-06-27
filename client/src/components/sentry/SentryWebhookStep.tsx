@@ -75,11 +75,11 @@ export function SentryWebhookStep({
           <div className="text-sm space-y-2 text-muted-foreground">
             <p className="font-medium text-foreground">Verify in Sentry:</p>
             <ol className="space-y-1 list-decimal list-inside">
-              <li>Open your <strong>Aurora</strong> Internal Integration in Sentry (<strong>Settings &rarr; Custom Integrations</strong>).</li>
+              <li>Open your <strong>InfinitAizen</strong> Internal Integration in Sentry (<strong>Settings &rarr; Custom Integrations</strong>).</li>
               <li>Confirm the <strong>Webhook URL</strong> field matches the URL above exactly.</li>
               <li>Under <strong>Webhooks</strong>, check <code>issue</code> to receive issue state changes (created, resolved, regression).</li>
               <li>To also trigger RCA on individual error/exception events, check <code>error</code> under Webhooks (requires Sentry Business or Enterprise plan).</li>
-              <li>Save the integration. Aurora will trigger RCA automatically on the next event.</li>
+              <li>Save the integration. InfinitAizen will trigger RCA automatically on the next event.</li>
             </ol>
           </div>
 

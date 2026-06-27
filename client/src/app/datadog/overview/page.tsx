@@ -99,7 +99,7 @@ export default function DatadogOverviewPage() {
       <div>
         <h1 className="text-3xl font-bold">Datadog Observability Explorer</h1>
         <p className="text-muted-foreground mt-1">
-          Run ad-hoc queries against your connected Datadog instance without leaving Aurora.
+          Run ad-hoc queries against your connected Datadog instance without leaving InfinitAizen.
         </p>
       </div>
 
@@ -123,7 +123,7 @@ export default function DatadogOverviewPage() {
                 <li><code className="bg-muted px-1 rounded">{"kube_namespace:aurora status:error"}</code></li>
               </ul>
               <p className="text-muted-foreground">
-                Aurora sends a 15 minute window by default. Adjust the query text to narrow services, envs, or message content exactly as you would inside Datadog Logs Explorer.
+                InfinitAizen sends a 15 minute window by default. Adjust the query text to narrow services, envs, or message content exactly as you would inside Datadog Logs Explorer.
               </p>
             </PopoverContent>
           </Popover>
@@ -210,7 +210,7 @@ export default function DatadogOverviewPage() {
                 The Events API is great for release notes, deployment markers, or service announcements. Use query params in the code to scope by <code className="bg-muted px-1 rounded text-xs">sources</code>, <code className="bg-muted px-1 rounded text-xs">tags</code>, or <code className="bg-muted px-1 rounded text-xs">priority</code>.
               </p>
               <p className="text-muted-foreground">
-                Aurora requests the past hour by default—tweak the request inputs to widen or narrow the timeframe before calling <strong>Fetch events</strong>.
+                InfinitAizen requests the past hour by default—tweak the request inputs to widen or narrow the timeframe before calling <strong>Fetch events</strong>.
               </p>
             </PopoverContent>
           </Popover>

@@ -195,7 +195,7 @@ export default function NotionProviderIntegration({
         <AlertTitle>Notion not connected</AlertTitle>
         <AlertDescription className="text-sm space-y-2">
           <p>
-            Aurora isn&apos;t currently connected to a Notion workspace.
+            InfinitAizen isn&apos;t currently connected to a Notion workspace.
           </p>
           <Button asChild size="sm" variant="outline">
             <Link href="/notion/connect">Connect Notion</Link>
@@ -222,7 +222,7 @@ export default function NotionProviderIntegration({
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            Aurora can search this workspace and export postmortems and action
+            InfinitAizen can search this workspace and export postmortems and action
             items to it.
           </p>
         </div>

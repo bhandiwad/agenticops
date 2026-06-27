@@ -71,7 +71,7 @@ export function NetdataWebhookStep({
       <Card>
         <CardHeader>
           <CardTitle>Configure Alert Webhook</CardTitle>
-          <CardDescription>Add Aurora as a webhook destination in Netdata Cloud</CardDescription>
+          <CardDescription>Add InfinitAizen as a webhook destination in Netdata Cloud</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Webhook URL */}
@@ -136,7 +136,7 @@ export function NetdataWebhookStep({
 
           <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded">
             <p className="text-xs text-green-800 dark:text-green-400">
-              Aurora will receive alerts from Netdata once the webhook is configured.
+              InfinitAizen will receive alerts from Netdata once the webhook is configured.
             </p>
           </div>
 

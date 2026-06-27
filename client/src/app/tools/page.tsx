@@ -243,7 +243,7 @@ export default function ToolsPage() {
             <Wrench className="h-6 w-6" /> Tools
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Every tool Aurora&apos;s agents can use, labeled by risk. Admins can turn any tool on or
+            Every tool InfinitAizen&apos;s agents can use, labeled by risk. Admins can turn any tool on or
             off for the organization with the switch on the right; disabled tools are removed from
             every agent. For finer control over individual write actions (e.g. merge PR, apply
             infra), use Settings → Security → Action Tool Permissions.
@@ -364,7 +364,7 @@ export default function ToolsPage() {
       <p className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
         <Pencil className="h-3.5 w-3.5" />
         Which tools exist and their {RISK_LABEL.read}/{RISK_LABEL.write}/{RISK_LABEL.destructive} risk
-        are defined by Aurora. You control availability above; fine-grained write-action approvals are
+        are defined by InfinitAizen. You control availability above; fine-grained write-action approvals are
         below.
       </p>
 

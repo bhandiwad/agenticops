@@ -240,7 +240,7 @@ function IncidentRow({ incident }: { incident: Incident }) {
                     {Date.now() - new Date(incident.startedAt).getTime() > 30 * 60 * 1000 ? (
                       <><AlertTriangle className="h-3 w-3 text-red-400" /> Investigation stalled</>
                     ) : (
-                      <><Loader2 className="h-3 w-3 animate-spin" /> Aurora investigating</>
+                      <><Loader2 className="h-3 w-3 animate-spin" /> InfinitAizen investigating</>
                     )}
                   </span>
                 )}

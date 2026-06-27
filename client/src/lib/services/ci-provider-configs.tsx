@@ -31,7 +31,7 @@ export const jenkinsConfig: CIProviderConfig = {
         Configure &rarr; API Token &rarr; Add new Token
       </code>
     </>,
-    <>Give the token a name (e.g. <strong>Aurora</strong>) and click <strong>Generate</strong></>,
+    <>Give the token a name (e.g. <strong>InfinitAizen</strong>) and click <strong>Generate</strong></>,
     <span className="text-orange-700 dark:text-orange-400 font-medium">
       Copy the token immediately &mdash; it won&apos;t be shown again
     </span>,
@@ -67,7 +67,7 @@ export const cloudbeesConfig: CIProviderConfig = {
         Security &rarr; API Token &rarr; Add new Token
       </code>
     </>,
-    <>Give the token a name (e.g. <strong>Aurora</strong>) and click <strong>Generate</strong></>,
+    <>Give the token a name (e.g. <strong>InfinitAizen</strong>) and click <strong>Generate</strong></>,
     <span className="text-violet-700 dark:text-violet-400 font-medium">
       Copy the token immediately &mdash; it won&apos;t be shown again
     </span>,

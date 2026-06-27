@@ -131,7 +131,7 @@ export default function SetupOrgPage() {
       <div className="max-w-lg w-full space-y-8">
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
-            Get started with Aurora
+            Get started with InfinitAizen
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
             Welcome{userName ? `, ${userName}` : ""}! Create a new organization or join an existing one.

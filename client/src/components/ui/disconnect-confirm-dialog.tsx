@@ -33,7 +33,7 @@ export function DisconnectConfirmDialog({
           <AlertDialogTitle>Disconnect {connectorName}?</AlertDialogTitle>
           <AlertDialogDescription>
             {description ??
-              `This will remove your ${connectorName} credentials from Aurora. You can reconnect at any time.`}
+              `This will remove your ${connectorName} credentials from InfinitAizen. You can reconnect at any time.`}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

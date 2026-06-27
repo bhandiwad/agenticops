@@ -68,7 +68,7 @@ export function SplunkWebhookStep({ status, onDisconnect, loading }: SplunkWebho
       toast({
         title: enabled ? "Alert RCA Enabled" : "Alert RCA Disabled",
         description: enabled
-          ? "Aurora will automatically investigate Splunk alerts"
+          ? "InfinitAizen will automatically investigate Splunk alerts"
           : "Splunk alerts will not trigger automatic investigation",
       });
     } catch (error) {
@@ -158,7 +158,7 @@ export function SplunkWebhookStep({ status, onDisconnect, loading }: SplunkWebho
                 Enable Alert RCA
               </Label>
               <p className="text-sm text-muted-foreground">
-                Automatically investigate Splunk alerts with Aurora
+                Automatically investigate Splunk alerts with InfinitAizen
               </p>
             </div>
             {loadingRcaSettings ? (

@@ -90,7 +90,7 @@ export default function GoogleChatSetupPage() {
     if (success === "true") {
       toast({
         title: "Google Chat Connected",
-        description: "Incidents space is ready. Notifications will appear as Aurora.",
+        description: "Incidents space is ready. Notifications will appear as InfinitAizen.",
       });
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("providerStateChanged"));
@@ -106,12 +106,12 @@ export default function GoogleChatSetupPage() {
         space_creation_failed: "Failed to create the incidents space.",
         space_not_resolved: "Could not find or create the incidents space.",
         setup_failed: "Google Chat setup failed unexpectedly.",
-        insufficient_permissions: "You don't have permission to create Google Chat spaces. Ask your Workspace admin to allow space creation or to connect Aurora.",
+        insufficient_permissions: "You don't have permission to create Google Chat spaces. Ask your Workspace admin to allow space creation or to connect InfinitAizen.",
         callback_failed: "OAuth callback failed unexpectedly.",
         access_denied: "You denied access. Please try again.",
         invalid_state: "OAuth session expired or was tampered with. Please try again.",
         oauth_error: "Google returned an error during authorization. Please try again.",
-        app_install_failed: "Failed to add the Aurora bot to the space. Check that the Chat app is properly configured in your Google Cloud project.",
+        app_install_failed: "Failed to add the InfinitAizen bot to the space. Check that the Chat app is properly configured in your Google Cloud project.",
       };
       toast({
         title: "Connection Failed",
@@ -202,7 +202,7 @@ GOOGLE_CHAT_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}'`;
               Google Chat Setup
             </h1>
             <p className="text-white/50 max-w-xl mx-auto">
-              Connect Aurora to Google Chat to receive incident notifications
+              Connect InfinitAizen to Google Chat to receive incident notifications
               and interact with the AI assistant directly from your workspace.
             </p>
           </div>
@@ -215,7 +215,7 @@ GOOGLE_CHAT_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}'`;
               </CardTitle>
               <CardDescription className="text-white/50 mt-2 text-sm">
                 Follow the setup guide to create a Google Chat app and connect
-                it to Aurora.
+                it to InfinitAizen.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5 overflow-x-hidden">
@@ -336,7 +336,7 @@ GOOGLE_CHAT_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}'`;
                 <p className="text-white/50 text-xs">
                   Add these to your{" "}
                   <code className="bg-black/50 px-1 py-0.5 rounded">.env</code>{" "}
-                  file, then restart Aurora.
+                  file, then restart InfinitAizen.
                 </p>
                 <div className="relative">
                   <pre className="bg-black/50 p-3 pr-10 rounded border border-white/10 text-xs overflow-x-auto whitespace-pre text-white/80 font-mono">

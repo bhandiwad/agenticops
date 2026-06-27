@@ -278,7 +278,7 @@ export default function PagerDutyAuthPage() {
         <div className="mb-6 flex flex-col items-center text-center">
           <img src="/pagerduty-ar21.svg" alt="PagerDuty" className="h-24 w-auto mb-4" />
           <p className="text-sm text-muted-foreground max-w-xl">
-            Receive incident alerts and manage on-call schedules directly in Aurora.
+            Receive incident alerts and manage on-call schedules directly in InfinitAizen.
           </p>
         </div>
 

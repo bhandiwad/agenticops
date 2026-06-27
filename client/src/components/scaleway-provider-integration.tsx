@@ -148,7 +148,7 @@ export default function ScalewayProviderIntegration({ onDisconnect }: ScalewayPr
         <div>
           <h3 className="text-lg font-semibold">Scaleway Projects</h3>
           <p className="text-sm text-muted-foreground">
-            Manage which projects Aurora can access
+            Manage which projects InfinitAizen can access
           </p>
         </div>
         <div className="flex items-center gap-2">

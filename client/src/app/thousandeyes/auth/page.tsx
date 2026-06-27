@@ -198,7 +198,7 @@ export default function ThousandEyesAuthPage() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold">ThousandEyes Integration</h1>
           <p className="text-muted-foreground mt-1">
-            Connect your ThousandEyes account to access network intelligence, test results, alerts, and Internet Insights inside Aurora.
+            Connect your ThousandEyes account to access network intelligence, test results, alerts, and Internet Insights inside InfinitAizen.
           </p>
         </div>
 

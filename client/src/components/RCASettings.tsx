@@ -356,13 +356,13 @@ export function RCASettings() {
             Investigation Notifications
           </CardTitle>
           <CardDescription>
-            Get notified when Aurora completes root cause analysis investigations
+            Get notified when InfinitAizen completes root cause analysis investigations
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <NotificationToggle
             title="Investigation Complete"
-            description="Receive an email when Aurora finishes an RCA investigation"
+            description="Receive an email when InfinitAizen finishes an RCA investigation"
             icon={<Bell className="h-4 w-4" />}
             checked={preferences.rca_email_notifications}
             onChange={(checked) => handlePreferenceChange('rca_email_notifications', checked)}
@@ -372,7 +372,7 @@ export function RCASettings() {
 
           <NotificationToggle
             title="Investigation Started"
-            description="Also receive an email when Aurora begins an investigation"
+            description="Also receive an email when InfinitAizen begins an investigation"
             icon={<Bell className="h-4 w-4" />}
             checked={preferences.rca_email_start_notifications}
             onChange={(checked) => handlePreferenceChange('rca_email_start_notifications', checked)}
@@ -396,7 +396,7 @@ export function RCASettings() {
         <CardContent className="space-y-3">
           <NotificationToggle
             title="Action Started"
-            description="Receive an email when an Aurora Action begins running"
+            description="Receive an email when an InfinitAizen Action begins running"
             icon={<Zap className="h-4 w-4" />}
             checked={preferences.action_email_start_notifications}
             onChange={(checked) => handlePreferenceChange('action_email_start_notifications', checked)}
@@ -406,7 +406,7 @@ export function RCASettings() {
 
           <NotificationToggle
             title="Action Complete"
-            description="Receive an email when an Aurora Action finishes running"
+            description="Receive an email when an InfinitAizen Action finishes running"
             icon={<Zap className="h-4 w-4" />}
             checked={preferences.action_email_notifications}
             onChange={(checked) => handlePreferenceChange('action_email_notifications', checked)}

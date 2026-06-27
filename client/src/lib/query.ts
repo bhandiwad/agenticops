@@ -1,5 +1,5 @@
 /**
- * Aurora Query Client
+ * InfinitAizen Query Client
  *
  * Single source of truth for all data fetching. Two layers:
  *

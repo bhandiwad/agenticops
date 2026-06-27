@@ -39,7 +39,7 @@ export function NewRelicConnectionStep({
     <Card>
       <CardHeader>
         <CardTitle>Step 1: Connect Your New Relic Account</CardTitle>
-        <CardDescription>Provide your NerdGraph User API key and Account ID to authorise Aurora</CardDescription>
+        <CardDescription>Provide your NerdGraph User API key and Account ID to authorise InfinitAizen</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="border rounded-lg">
@@ -52,12 +52,12 @@ export function NewRelicConnectionStep({
 
           <div className="p-4 pt-0 space-y-3 text-sm border-t">
             <p className="text-muted-foreground">
-              Aurora uses the NerdGraph GraphQL API (User API Key) to query metrics, logs, traces, and incidents from your account.
+              InfinitAizen uses the NerdGraph GraphQL API (User API Key) to query metrics, logs, traces, and incidents from your account.
             </p>
             <ol className="space-y-2 list-decimal list-inside">
               <li>Log in to <strong>one.newrelic.com</strong> and go to <strong>Administration &rarr; API keys</strong> (or visit <a href="https://one.newrelic.com/admin-portal/api-keys/" target="_blank" rel="noopener noreferrer" className="underline">one.newrelic.com/admin-portal/api-keys</a>).</li>
               <li>Click <strong>Create a key</strong> and select <strong>User</strong> as the key type.</li>
-              <li>Name the key (e.g., &ldquo;Aurora Integration&rdquo;) and save it.</li>
+              <li>Name the key (e.g., &ldquo;InfinitAizen Integration&rdquo;) and save it.</li>
               <li>Copy the key &mdash; it starts with <code>NRAK-</code>.</li>
               <li>Find your <strong>Account ID</strong> in the account dropdown or on the API keys page.</li>
             </ol>
@@ -78,7 +78,7 @@ export function NewRelicConnectionStep({
 
           <div className="p-4 pt-0 space-y-4 text-sm border-t">
             <p className="text-muted-foreground">
-              Aurora stores your keys securely using Vault. Only encrypted references are persisted in the database.
+              InfinitAizen stores your keys securely using Vault. Only encrypted references are persisted in the database.
             </p>
 
             <form className="space-y-4" onSubmit={onConnect}>
@@ -139,7 +139,7 @@ export function NewRelicConnectionStep({
                     value={licenseKey}
                     onChange={(e) => setLicenseKey(e.target.value)}
                   />
-                  <p className="text-xs text-muted-foreground">40-character ingest key, only needed if Aurora writes annotations back</p>
+                  <p className="text-xs text-muted-foreground">40-character ingest key, only needed if InfinitAizen writes annotations back</p>
                 </div>
               </div>
 

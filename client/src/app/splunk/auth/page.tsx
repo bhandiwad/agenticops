@@ -216,8 +216,8 @@ export default function SplunkAuthPage() {
                   <li><strong>Local:</strong> https://host.docker.internal:8089</li>
                 </ul>
                 <p className="mt-2 text-muted-foreground/80">
-                  <strong>Note:</strong> Aurora must have network access to your Splunk instance.
-                  If Splunk is behind a VPN or firewall, ensure port 8089 is reachable from Aurora.
+                  <strong>Note:</strong> InfinitAizen must have network access to your Splunk instance.
+                  If Splunk is behind a VPN or firewall, ensure port 8089 is reachable from InfinitAizen.
                 </p>
               </div>
 
@@ -246,7 +246,7 @@ export default function SplunkAuthPage() {
                   <li>Copy and paste the token above</li>
                 </ol>
                 <p className="text-xs text-muted-foreground mt-3">
-                  Splunk tokens inherit the capabilities of the user who creates them. Aurora only needs the <code className="bg-muted px-1 rounded text-xs">search</code> capability to run searches and list indexes.
+                  Splunk tokens inherit the capabilities of the user who creates them. InfinitAizen only needs the <code className="bg-muted px-1 rounded text-xs">search</code> capability to run searches and list indexes.
                 </p>
                 <a
                   href="https://docs.splunk.com/Documentation/SplunkCloud/latest/Security/CreateAuthTokens"

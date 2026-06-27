@@ -1,7 +1,7 @@
 // ============================================================================
-// Aurora Learn Service
+// InfinitAizen Learn Service
 // - Incident feedback (thumbs up/down)
-// - Aurora Learn settings (enable/disable)
+// - InfinitAizen Learn settings (enable/disable)
 // ============================================================================
 
 import { apiGet, apiPost, apiPut } from './api-client';
@@ -67,11 +67,11 @@ export async function getFeedback(incidentId: string): Promise<IncidentFeedback 
 }
 
 // ============================================================================
-// Aurora Learn Settings
+// InfinitAizen Learn Settings
 // ============================================================================
 
 /**
- * Get the Aurora Learn setting for the current user.
+ * Get the InfinitAizen Learn setting for the current user.
  * Defaults to true if not set.
  */
 export async function getAuroraLearnSetting(): Promise<AuroraLearnSetting> {
@@ -79,7 +79,7 @@ export async function getAuroraLearnSetting(): Promise<AuroraLearnSetting> {
 }
 
 /**
- * Set the Aurora Learn setting for the current user.
+ * Set the InfinitAizen Learn setting for the current user.
  */
 export async function setAuroraLearnSetting(
   enabled: boolean

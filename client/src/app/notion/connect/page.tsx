@@ -141,7 +141,7 @@ export default function NotionConnectPage() {
           title: "Notion connected",
           description: workspaceName
             ? `Connected to ${workspaceName}.`
-            : "You can now search your workspace from Aurora.",
+            : "You can now search your workspace from InfinitAizen.",
         });
 
         void fetchConnectedAccounts(true).catch(() => {});
@@ -228,7 +228,7 @@ export default function NotionConnectPage() {
       }
       const data = (await response.json()) as { authUrl?: string };
       if (!data.authUrl) {
-        throw new Error("No authorization URL returned by Aurora.");
+        throw new Error("No authorization URL returned by InfinitAizen.");
       }
 
       const left =
@@ -287,7 +287,7 @@ export default function NotionConnectPage() {
     <div className="space-y-4">
       <div className="space-y-2 text-sm text-muted-foreground">
         <p>
-          Sign in with your Notion account. Aurora will use your OAuth
+          Sign in with your Notion account. InfinitAizen will use your OAuth
           consent for ACL-aware access — you&apos;ll only see pages and
           databases you&apos;re already allowed to see.
         </p>
@@ -322,7 +322,7 @@ export default function NotionConnectPage() {
         <div className="space-y-1">
           <p className="font-medium">Your consent is encrypted at rest</p>
           <p className="text-muted-foreground">
-            Aurora stores your Notion OAuth tokens encrypted in its
+            InfinitAizen stores your Notion OAuth tokens encrypted in its
             secrets vault, and you can disconnect anytime.
           </p>
         </div>
@@ -343,7 +343,7 @@ export default function NotionConnectPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Notion</h1>
           <p className="text-muted-foreground text-sm">
-            Export postmortems, search workspace docs, and let Aurora create
+            Export postmortems, search workspace docs, and let InfinitAizen create
             runbooks and action-item rows in your Notion workspace.
           </p>
         </div>
@@ -370,8 +370,8 @@ export default function NotionConnectPage() {
             <CardTitle className="text-lg">Connect Your Notion Workspace</CardTitle>
             <CardDescription>
               {showTabs
-                ? "Choose how Aurora should authenticate with Notion. You can always switch later by disconnecting and reconnecting."
-                : "Aurora authenticates with your Notion workspace via an Integration Token (Access token)."}
+                ? "Choose how InfinitAizen should authenticate with Notion. You can always switch later by disconnecting and reconnecting."
+                : "InfinitAizen authenticates with your Notion workspace via an Integration Token (Access token)."}
             </CardDescription>
           </CardHeader>
           <CardContent>

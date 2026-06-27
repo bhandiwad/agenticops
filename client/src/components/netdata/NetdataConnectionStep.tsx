@@ -26,7 +26,7 @@ export function NetdataConnectionStep({
     <Card>
       <CardHeader>
         <CardTitle>Connect Your Netdata Cloud</CardTitle>
-        <CardDescription>Create an API token in Netdata Cloud and connect it to Aurora</CardDescription>
+        <CardDescription>Create an API token in Netdata Cloud and connect it to InfinitAizen</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-3 text-sm">

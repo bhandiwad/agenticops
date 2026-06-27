@@ -143,7 +143,7 @@ export default function McpTokens() {
         <div>
           <h3 className="text-sm font-medium">MCP API Tokens</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Generate tokens for MCP clients (Claude Desktop, Cursor, etc.) to access Aurora
+            Generate tokens for MCP clients (Claude Desktop, Cursor, etc.) to access InfinitAizen
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
@@ -224,7 +224,7 @@ export default function McpTokens() {
         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
           <Key className="h-8 w-8 mb-2 opacity-40" />
           <p className="text-sm">No API tokens yet</p>
-          <p className="text-xs mt-1">Generate a token to connect MCP clients to Aurora</p>
+          <p className="text-xs mt-1">Generate a token to connect MCP clients to InfinitAizen</p>
         </div>
       ) : (
         <div className="border rounded-lg divide-y">

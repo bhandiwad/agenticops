@@ -133,7 +133,7 @@ export default function TailscaleSSHSetupPage() {
           />
           <h1 className="text-3xl font-bold text-foreground">SSH Setup</h1>
           <p className="mt-2 text-muted-foreground">
-            Add Aurora&apos;s SSH public key to your devices to enable remote command execution.
+            Add InfinitAizen&apos;s SSH public key to your devices to enable remote command execution.
           </p>
         </div>
 
@@ -144,7 +144,7 @@ export default function TailscaleSSHSetupPage() {
             <h2 className="text-xl font-semibold text-foreground">Your SSH Public Key</h2>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
-            This is Aurora&apos;s unique SSH public key for your account. Add it to any device you want Aurora to access.
+            This is InfinitAizen&apos;s unique SSH public key for your account. Add it to any device you want InfinitAizen to access.
           </p>
 
           <div className="relative">
@@ -173,7 +173,7 @@ export default function TailscaleSSHSetupPage() {
             <h2 className="text-xl font-semibold text-foreground">Quick Setup Command</h2>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
-            Run this command on any device you want Aurora to access:
+            Run this command on any device you want InfinitAizen to access:
           </p>
 
           <div className="relative">
@@ -201,7 +201,7 @@ export default function TailscaleSSHSetupPage() {
           <ol className="list-decimal list-inside space-y-3 text-sm text-muted-foreground">
             <li>
               <span className="font-medium text-foreground">SSH into your target device</span>
-              <p className="ml-6 mt-1 text-xs">Connect to the device where you want Aurora to have access</p>
+              <p className="ml-6 mt-1 text-xs">Connect to the device where you want InfinitAizen to have access</p>
             </li>
             <li>
               <span className="font-medium text-foreground">Copy the command above</span>
@@ -209,11 +209,11 @@ export default function TailscaleSSHSetupPage() {
             </li>
             <li>
               <span className="font-medium text-foreground">Run the command on your device</span>
-              <p className="ml-6 mt-1 text-xs">This adds Aurora&apos;s public key to your authorized_keys file</p>
+              <p className="ml-6 mt-1 text-xs">This adds InfinitAizen&apos;s public key to your authorized_keys file</p>
             </li>
             <li>
               <span className="font-medium text-foreground">Repeat for each device</span>
-              <p className="ml-6 mt-1 text-xs">Add the key to any device you want Aurora to access via SSH</p>
+              <p className="ml-6 mt-1 text-xs">Add the key to any device you want InfinitAizen to access via SSH</p>
             </li>
           </ol>
         </div>
@@ -224,7 +224,7 @@ export default function TailscaleSSHSetupPage() {
           <div>
             <p className="text-sm font-medium text-yellow-500">Security Note</p>
             <p className="text-xs text-yellow-400 mt-1">
-              Only add this key to devices you trust Aurora to access. You can remove Aurora&apos;s access
+              Only add this key to devices you trust InfinitAizen to access. You can remove InfinitAizen&apos;s access
               at any time by removing this key from ~/.ssh/authorized_keys on the device.
             </p>
           </div>
@@ -236,7 +236,7 @@ export default function TailscaleSSHSetupPage() {
           <div>
             <p className="text-sm font-medium text-green-500">Ready to Use</p>
             <p className="text-xs text-green-400 mt-1">
-              Once you&apos;ve added the key to a device, you can ask Aurora to run commands on it.
+              Once you&apos;ve added the key to a device, you can ask InfinitAizen to run commands on it.
               For example: &quot;Run uptime on my-server&quot; or &quot;Check disk space on web-prod&quot;
             </p>
           </div>

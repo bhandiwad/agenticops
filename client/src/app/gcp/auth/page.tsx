@@ -70,7 +70,7 @@ export default function GcpAuthPage() {
         <CardHeader>
           <CardTitle className="text-lg">Connect Your Google Cloud Account</CardTitle>
           <CardDescription>
-            Choose how Aurora should authenticate with your Google Cloud projects. You can always switch later by disconnecting and reconnecting.
+            Choose how InfinitAizen should authenticate with your Google Cloud projects. You can always switch later by disconnecting and reconnecting.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -83,7 +83,7 @@ export default function GcpAuthPage() {
             <TabsContent value="oauth" className="mt-6 space-y-4">
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>
-                  Sign in with your Google account. Aurora will use your OAuth
+                  Sign in with your Google account. InfinitAizen will use your OAuth
                   consent to access the projects you select. Best for individual
                   users and quick setup.
                 </p>

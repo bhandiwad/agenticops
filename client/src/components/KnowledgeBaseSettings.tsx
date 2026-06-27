@@ -76,7 +76,7 @@ export function KnowledgeBaseSettings() {
   // Polling for processing documents
   const [pollingIds, setPollingIds] = useState<Set<string>>(new Set());
 
-  // Aurora Learn state
+  // InfinitAizen Learn state
   const [auroraLearnEnabled, setAuroraLearnEnabled] = useState(true);
   const [isLoadingLearn, setIsLoadingLearn] = useState(true);
   const [isTogglingLearn, setIsTogglingLearn] = useState(false);
@@ -140,7 +140,7 @@ export function KnowledgeBaseSettings() {
     }
   }, [userId]);
 
-  // Fetch Aurora Learn setting
+  // Fetch InfinitAizen Learn setting
   const fetchAuroraLearnSetting = useCallback(async () => {
     if (!userId) {
       setIsLoadingLearn(false);
@@ -151,7 +151,7 @@ export function KnowledgeBaseSettings() {
       const data = await userPreferencesService.getAuroraLearnSetting();
       setAuroraLearnEnabled(data.enabled);
     } catch (error) {
-      console.error("Failed to fetch Aurora Learn setting:", error);
+      console.error("Failed to fetch InfinitAizen Learn setting:", error);
       // Default to enabled on error
       setAuroraLearnEnabled(true);
     } finally {
@@ -159,7 +159,7 @@ export function KnowledgeBaseSettings() {
     }
   }, [userId]);
 
-  // Handle Aurora Learn toggle
+  // Handle InfinitAizen Learn toggle
   const handleToggleAuroraLearn = async (enabled: boolean) => {
     if (!userId) return;
 
@@ -168,10 +168,10 @@ export function KnowledgeBaseSettings() {
       await userPreferencesService.setAuroraLearnSetting(enabled);
       setAuroraLearnEnabled(enabled);
       toast({
-        title: enabled ? "Aurora Learn enabled" : "Aurora Learn disabled",
+        title: enabled ? "InfinitAizen Learn enabled" : "InfinitAizen Learn disabled",
         description: enabled
-          ? "Aurora will learn from your feedback to improve future analyses."
-          : "Aurora will no longer save or use feedback for learning.",
+          ? "InfinitAizen will learn from your feedback to improve future analyses."
+          : "InfinitAizen will no longer save or use feedback for learning.",
       });
     } catch (error) {
       toast({
@@ -417,7 +417,7 @@ export function KnowledgeBaseSettings() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Knowledge Base</h1>
         <p className="text-muted-foreground">
-          Manage your team&apos;s documentation and context for Aurora to reference.
+          Manage your team&apos;s documentation and context for InfinitAizen to reference.
         </p>
       </div>
 
@@ -429,13 +429,13 @@ export function KnowledgeBaseSettings() {
         </div>
       )}
 
-      {/* Aurora Learn Section */}
+      {/* InfinitAizen Learn Section */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              <CardTitle>Aurora Learn</CardTitle>
+              <CardTitle>InfinitAizen Learn</CardTitle>
             </div>
             {isLoadingLearn ? (
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -450,7 +450,7 @@ export function KnowledgeBaseSettings() {
         </CardHeader>
         <CardContent>
           <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-            <li>Stores feedback locally to improve Aurora for your system</li>
+            <li>Stores feedback locally to improve InfinitAizen for your system</li>
             <li>All data remains on your infrastructure and is never sent externally</li>
           </ul>
         </CardContent>
@@ -464,7 +464,7 @@ export function KnowledgeBaseSettings() {
             <CardTitle>Memory</CardTitle>
           </div>
           <CardDescription>
-            Context that Aurora always remembers. Add key facts, patterns, and
+            Context that InfinitAizen always remembers. Add key facts, patterns, and
             conventions your team uses. This is included in every conversation.
           </CardDescription>
         </CardHeader>
@@ -514,7 +514,7 @@ export function KnowledgeBaseSettings() {
             <CardTitle>Documents</CardTitle>
           </div>
           <CardDescription>
-            Upload runbooks, architecture docs, and postmortems for Aurora to
+            Upload runbooks, architecture docs, and postmortems for InfinitAizen to
             search during investigations.
           </CardDescription>
           {usage && (

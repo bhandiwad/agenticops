@@ -103,7 +103,7 @@ export function PagerDutyWebhookStep() {
         toast({
           title: checked ? 'Automated RCA Enabled' : 'Automated RCA DEACTIVATED',
           description: checked 
-            ? 'Aurora will automatically analyze new incidents and wait for runbook links' 
+            ? 'InfinitAizen will automatically analyze new incidents and wait for runbook links' 
             : 'Automated RCA has been deactivated. You can manually trigger RCA from the incidents page',
         });
       } else {
@@ -132,7 +132,7 @@ export function PagerDutyWebhookStep() {
     <Card>
       <CardHeader>
         <CardTitle>Webhook Configuration</CardTitle>
-        <CardDescription>Configure PagerDuty to send incidents to Aurora</CardDescription>
+        <CardDescription>Configure PagerDuty to send incidents to InfinitAizen</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Webhook URL */}

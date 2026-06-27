@@ -617,7 +617,7 @@ export default function AzureAuthPage() {
                     <h3 className="text-lg font-medium text-foreground">Manual Setup</h3>
                     <p className="text-muted-foreground text-sm">
                       Run our script to automatically create a service principal with read-only permissions 
-                      for Aurora to access your Azure subscription.
+                      for InfinitAizen to access your Azure subscription.
                     </p>
                   </div>
                   <div className="bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-full">
@@ -667,7 +667,7 @@ export default function AzureAuthPage() {
                   <div>
                     <h3 className="text-lg font-medium text-foreground">Enter Credentials Manually</h3>
                     <p className="text-muted-foreground text-sm">
-                      If you already have Aurora service principal credentials
+                      If you already have InfinitAizen service principal credentials
                     </p>
                   </div>
                   <div className="bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-full">
@@ -682,13 +682,13 @@ export default function AzureAuthPage() {
         {/* Manual Script Setup Flow */}
         {authMethod === 'script_setup' && (
           <div className="bg-card shadow rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-foreground">Manual Aurora Setup</h2>
+            <h2 className="text-xl font-semibold mb-4 text-foreground">Manual InfinitAizen Setup</h2>
             
               <div className="space-y-6">
                 <div className="bg-muted border border-border rounded-md p-4">
                 <h3 className="text-lg font-medium text-foreground mb-2">Complete Setup in One Script</h3>
                   <p className="text-muted-foreground text-sm">
-                  Our enhanced setup script will automatically create a service principal with comprehensive permissions, detect existing AKS clusters, and provide both service principal credentials and role assignment commands. You'll get a JSON response to paste into Aurora.
+                  Our enhanced setup script will automatically create a service principal with comprehensive permissions, detect existing AKS clusters, and provide both service principal credentials and role assignment commands. You'll get a JSON response to paste into InfinitAizen.
                   </p>
                 </div>
 
@@ -760,7 +760,7 @@ export default function AzureAuthPage() {
                 </p>
                 
                 <div className="mb-4">
-                  <Label htmlFor="scriptJsonInput" className="text-foreground">Aurora Setup Results</Label>
+                  <Label htmlFor="scriptJsonInput" className="text-foreground">InfinitAizen Setup Results</Label>
                   <textarea
                     id="scriptJsonInput"
                     value={jsonInput}
@@ -814,8 +814,8 @@ export default function AzureAuthPage() {
                 <div className="bg-muted rounded-lg p-4">
                 <h4 className="font-medium text-foreground mb-2">What the script does:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>- Creates a custom "Aurora Manager" role with comprehensive permissions</li>
-                  <li>- Creates a service principal specifically for Aurora</li>
+                  <li>- Creates a custom "InfinitAizen Manager" role with comprehensive permissions</li>
+                  <li>- Creates a service principal specifically for InfinitAizen</li>
                   <li>- Detects existing AKS clusters and automatically assigns permissions</li>
                   <li>- Outputs service principal credentials in JSON format</li>
                   <li>- Includes instructions for revoking access later</li>
@@ -843,10 +843,10 @@ export default function AzureAuthPage() {
                 <h3 className="text-lg font-medium text-foreground mb-2">What This Will Do</h3>
                 <ul className="text-muted-foreground text-sm space-y-1">
                   <li>• Open Azure Cloud Shell directly in your browser</li>
-                  <li>• Create a custom "Aurora Manager" role with comprehensive permissions</li>
+                  <li>• Create a custom "InfinitAizen Manager" role with comprehensive permissions</li>
                   <li>• Create a service principal with the custom role</li>
                   <li>• Automatically detect and configure AKS cluster permissions</li>
-                  <li>• Generate JSON credentials ready to paste into Aurora</li>
+                  <li>• Generate JSON credentials ready to paste into InfinitAizen</li>
                 </ul>
               </div>
 
@@ -916,7 +916,7 @@ export default function AzureAuthPage() {
                 </p>
                 
                 <div className="mb-4">
-                  <Label htmlFor="cloudShellJsonInput" className="text-foreground">Aurora Setup Results</Label>
+                  <Label htmlFor="cloudShellJsonInput" className="text-foreground">InfinitAizen Setup Results</Label>
                   <textarea
                     id="cloudShellJsonInput"
                     value={jsonInput}
@@ -986,7 +986,7 @@ export default function AzureAuthPage() {
               >
                 <h3 className="text-lg font-medium mb-4 text-foreground">Log In</h3>
                 <p className="text-muted-foreground">
-                  If you already have Aurora service principal credentials, you can enter them directly.
+                  If you already have InfinitAizen service principal credentials, you can enter them directly.
                 </p>
               </button>
 
@@ -999,7 +999,7 @@ export default function AzureAuthPage() {
               >
                 <h3 className="text-lg font-medium mb-4 text-foreground">First Time Connecting?</h3>
                 <p className="text-muted-foreground">
-                  If this is your first time connecting Aurora to Azure, follow the steps below to create a new service principal.
+                  If this is your first time connecting InfinitAizen to Azure, follow the steps below to create a new service principal.
                 </p>
               </button>
             </div>
@@ -1010,8 +1010,8 @@ export default function AzureAuthPage() {
           <div className="bg-card shadow rounded-lg p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4 text-foreground">Create an Azure Service Principal</h2>
             <p className="text-muted-foreground mb-4">
-              Aurora connects to your Azure account by granting read and operational access to a dedicated service principal. 
-              A service principal is created specifically for Aurora and assigned roles that allow it to access billing data 
+              InfinitAizen connects to your Azure account by granting read and operational access to a dedicated service principal. 
+              A service principal is created specifically for InfinitAizen and assigned roles that allow it to access billing data 
               and monitor Kubernetes resources across your Azure subscriptions.
             </p>
             <p className="text-muted-foreground mb-4">
@@ -1056,9 +1056,9 @@ export default function AzureAuthPage() {
 
               {/* Step 2: Create Service Principal */}
               <div>
-                <h3 className="text-lg font-medium mb-4">Step 2: Create the Aurora Service Principal</h3>
+                <h3 className="text-lg font-medium mb-4">Step 2: Create the InfinitAizen Service Principal</h3>
                 <p className="text-gray-600 mb-4">
-                  <span className="underline">Run the following command</span> in your terminal to create an account for Aurora in your subscription:
+                  <span className="underline">Run the following command</span> in your terminal to create an account for InfinitAizen in your subscription:
                 </p>
                 <div className="bg-gray-100 rounded-md p-4 mb-4">
                   <code className="text-gray-800">az ad sp create-for-rbac -n "aurora"</code>
@@ -1116,7 +1116,7 @@ export default function AzureAuthPage() {
                   {isReadOnlySectionExpanded && (
                     <div className="mt-4 space-y-3">
                       <p className="text-sm text-muted-foreground">
-                        Paste JSON for a read-only service principal (Reader + Cost Management Reader roles). Aurora uses this identity when Ask mode is selected.
+                        Paste JSON for a read-only service principal (Reader + Cost Management Reader roles). InfinitAizen uses this identity when Ask mode is selected.
                       </p>
                       <textarea
                         id="readOnlyJsonInput"
@@ -1411,7 +1411,7 @@ kubectl create clusterrolebinding aurora-sp-admin-binding --clusterrole=cluster-
               <h3 className="ml-3 text-sm font-medium text-green-800 dark:text-green-200">Successfully Connected!</h3>
             </div>
             <p className="mt-2 text-sm text-green-700 dark:text-green-300">
-              Aurora is now connected to your Azure subscription. 
+              InfinitAizen is now connected to your Azure subscription. 
               {subscription_name && <span> Subscription: <strong>{subscription_name}</strong></span>}
             </p>
             <div className="mt-4">

@@ -147,7 +147,7 @@ export default function AzureProviderIntegration({ onDisconnect }: AzureProvider
         <div>
           <h3 className="text-lg font-semibold">Azure Subscriptions</h3>
           <p className="text-sm text-muted-foreground">
-            Manage which Azure subscriptions Aurora can access
+            Manage which Azure subscriptions InfinitAizen can access
           </p>
         </div>
         <div className="flex items-center gap-2">

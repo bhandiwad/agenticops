@@ -60,7 +60,7 @@ interface BulkResult {
 
 // Helper function to format AWS error messages for better UX
 const formatAWSErrorMessage = (message: string): { title: string; description: string; isDetailed: boolean } => {
-  if (message.includes('Aurora cannot assume this role') || 
+  if (message.includes('InfinitAizen cannot assume this role') || 
       message.includes('Access denied when assuming role') ||
       message.includes('Cannot access AWS data') ||
       message.includes('Please verify:')) {
@@ -229,7 +229,7 @@ function CloudWatchAlertToggle() {
                     Open the topic and click{" "}
                     <strong className="text-white/70">Create subscription</strong>. Set
                     Protocol to <strong className="text-white/70">HTTPS</strong> and paste
-                    the URL above as the Endpoint. Aurora will automatically confirm the
+                    the URL above as the Endpoint. InfinitAizen will automatically confirm the
                     subscription.
                   </li>
                   <li>
@@ -243,12 +243,12 @@ function CloudWatchAlertToggle() {
                   </li>
                   <li>
                     Save the alarm. When it next transitions to{" "}
-                    <strong className="text-white/70">ALARM</strong> state, Aurora will
+                    <strong className="text-white/70">ALARM</strong> state, InfinitAizen will
                     receive the alert and start an RCA investigation automatically.
                   </li>
                 </ol>
                 <p className="text-[10px] text-white/30 pt-1">
-                  Aurora automatically confirms the SNS subscription when AWS first sends
+                  InfinitAizen automatically confirms the SNS subscription when AWS first sends
                   the <code className="bg-black/30 px-0.5 rounded">SubscriptionConfirmation</code>{" "}
                   request — no manual action needed.
                 </p>
@@ -807,7 +807,7 @@ export default function AWSOnboardingPage() {
               <span className="break-words">AWS Credentials Not Configured</span>
             </CardTitle>
             <CardDescription className="text-white/50 mt-2 text-sm">
-              Aurora needs AWS credentials to connect to your AWS account. See the documentation for setup instructions.
+              InfinitAizen needs AWS credentials to connect to your AWS account. See the documentation for setup instructions.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 overflow-x-hidden">
@@ -925,14 +925,14 @@ make dev`}</pre>
               <span className="break-words">AWS Credentials Issue</span>
             </CardTitle>
             <CardDescription className="text-white/50 mt-2 text-sm">
-              Aurora detected your AWS credentials, but couldn't verify them with AWS.
+              InfinitAizen detected your AWS credentials, but couldn't verify them with AWS.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 overflow-x-hidden">
             <Alert className="bg-yellow-500/10 border-yellow-500/20">
               <AlertCircle className="h-4 w-4 text-yellow-400" />
               <AlertDescription className="text-sm text-yellow-400">
-                <strong>Configuration Issue:</strong> Your AWS credentials are set in the .env file, but Aurora couldn't retrieve your AWS account ID. This usually means the credentials are invalid, expired, or don't have the required permissions.
+                <strong>Configuration Issue:</strong> Your AWS credentials are set in the .env file, but InfinitAizen couldn't retrieve your AWS account ID. This usually means the credentials are invalid, expired, or don't have the required permissions.
               </AlertDescription>
             </Alert>
 
@@ -1156,7 +1156,7 @@ make dev`}</pre>
               {/* Single account display fallback */}
               {connectedAccounts.length === 0 && onboardingData?.roleArn && (
                 <div className="bg-white/5 border border-white/10 rounded-lg p-6 text-center space-y-2">
-                  <p className="text-white/70">Aurora can now access your AWS account using secure STS AssumeRole</p>
+                  <p className="text-white/70">InfinitAizen can now access your AWS account using secure STS AssumeRole</p>
                   <p className="text-white/50 text-sm font-mono mt-2">{onboardingData.roleArn}</p>
                 </div>
               )}
@@ -1244,7 +1244,7 @@ make dev`}</pre>
                       <p className="text-xs text-white/40">Loading Quick-Create link...</p>
                     )}
                     <p className="text-xs text-white/30">
-                      Aurora hosts the template. Log into the target account, review the stack, and click Create.
+                      InfinitAizen hosts the template. Log into the target account, review the stack, and click Create.
                     </p>
                     <Button onClick={handleDownloadCfnTemplate} disabled={isDownloadingCfn} variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-white/70 text-xs w-full justify-start">
                       {isDownloadingCfn ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Download className="w-3 h-3 mr-1.5" />}
@@ -1364,7 +1364,7 @@ make dev`}</pre>
             <Card className="bg-black border-white/10">
               <CardHeader>
               <CardTitle className="text-white">Connect AWS Account</CardTitle>
-              <CardDescription className="text-white/50">Create an IAM role and grant Aurora access to your account</CardDescription>
+              <CardDescription className="text-white/50">Create an IAM role and grant InfinitAizen access to your account</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
 
@@ -1418,7 +1418,7 @@ make dev`}</pre>
                 <div className="space-y-3">
                   <p className="text-xs text-white/40">
                     Click below to open the AWS Console with a pre-filled CloudFormation stack.
-                    Aurora hosts the template — no setup required on your side.
+                    InfinitAizen hosts the template — no setup required on your side.
                   </p>
                   {cfnBaseData ? (
                     <Button onClick={() => { const url = buildQuickCreateUrl(); if (url) window.open(url, '_blank', 'noopener,noreferrer'); }} className="w-full bg-[#FF9900] text-black hover:bg-[#FF9900]/90 h-11 font-medium">
@@ -1507,7 +1507,7 @@ make dev`}</pre>
                 {disconnectTarget === 'all' ? 'Disconnect all accounts?' : `Disconnect account ${disconnectTarget}?`}
               </AlertDialogTitle>
               <AlertDialogDescription className="text-white/50">
-                This removes Aurora&apos;s connection only. The IAM role still exists in {disconnectTarget === 'all' ? 'your AWS accounts' : 'the AWS account'}.
+                This removes InfinitAizen&apos;s connection only. The IAM role still exists in {disconnectTarget === 'all' ? 'your AWS accounts' : 'the AWS account'}.
                 To fully revoke access, delete the CloudFormation stack{disconnectTarget === 'all' ? 's (or StackSet)' : ''} in {disconnectTarget === 'all' ? 'those accounts' : 'that account'}.
               </AlertDialogDescription>
             </AlertDialogHeader>

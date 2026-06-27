@@ -118,7 +118,7 @@ export function TokenInputModal({
 
             <div className="p-3 bg-muted border border-border rounded text-xs">
               <p className="text-muted-foreground">
-                Aurora will validate the new token before replacing the old one. If validation fails, your existing connection remains active.
+                InfinitAizen will validate the new token before replacing the old one. If validation fails, your existing connection remains active.
               </p>
             </div>
           </div>

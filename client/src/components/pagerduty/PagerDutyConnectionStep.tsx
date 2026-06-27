@@ -95,7 +95,7 @@ export function PagerDutyConnectionStep({
                 <li>Log in to your PagerDuty account</li>
                 <li>Go to <strong className="text-foreground">Integrations &gt; Developer Tools &gt; API Access Keys</strong></li>
                 <li>Click <strong className="text-foreground">Create New API Key</strong></li>
-                <li>Check <strong className="text-foreground">Read-only API Key</strong> — Aurora only reads incidents and services</li>
+                <li>Check <strong className="text-foreground">Read-only API Key</strong> — InfinitAizen only reads incidents and services</li>
                 <li>Copy the key and paste it above</li>
               </ol>
               <a

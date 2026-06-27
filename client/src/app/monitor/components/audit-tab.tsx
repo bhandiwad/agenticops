@@ -139,7 +139,7 @@ export default function AuditTab({ period }: { period: Period }) {
           <EmptyState
             icon={Shield}
             message="No audit events recorded"
-            hint="Audit events will appear as users interact with Aurora — logins, config changes, agent invocations"
+            hint="Audit events will appear as users interact with InfinitAizen — logins, config changes, agent invocations"
           />
         ) : (
           <>

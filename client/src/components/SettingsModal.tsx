@@ -129,7 +129,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   <DialogContent className="max-w-6xl h-[80vh] p-0 overflow-hidden">
                     <DialogTitle className="sr-only">Settings</DialogTitle>
                     <DialogDescription className="sr-only">
-                      Configure your Aurora account settings, billing preferences, and profile information.
+                      Configure your InfinitAizen account settings, billing preferences, and profile information.
                     </DialogDescription>
                     <div className="flex h-full min-h-0">
                       {/* Left Navigation */}

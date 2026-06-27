@@ -56,7 +56,7 @@ export function CredentialForms({
         <>
           <h1 className="text-[28px] font-bold tracking-tight mb-3">Connect your Operations Center</h1>
           <p className="text-[15px] text-[#777] mb-10">
-            Aurora will discover your managed controllers and monitor deployments across all of them.
+            InfinitAizen will discover your managed controllers and monitor deployments across all of them.
           </p>
 
           {urlError && <p className="text-[13px] text-red-500 mb-4">{urlError}</p>}

@@ -93,7 +93,7 @@ export function DiscoverySettings() {
       if (next) {
         toast({
           title: "Auto-discovery enabled",
-          description: "Aurora will scan your infrastructure on the configured interval.",
+          description: "InfinitAizen will scan your infrastructure on the configured interval.",
         });
       } else if (cancelOutcome === "error") {
         toast({
@@ -204,7 +204,7 @@ export function DiscoverySettings() {
             <Label htmlFor="auto-discovery-toggle" className="font-medium">Automatic Discovery</Label>
             <p className="text-sm text-muted-foreground">
               {autoEnabled
-                ? "Aurora scans on the interval below. Toggle off to stop scheduled runs."
+                ? "InfinitAizen scans on the interval below. Toggle off to stop scheduled runs."
                 : "Scheduled scans are paused. Manual runs still work."}
             </p>
           </div>

@@ -140,7 +140,7 @@ export default function IncidentFeedback({
       toast({
         title: 'Feedback submitted',
         description: feedbackType === 'helpful'
-          ? 'Thanks! Aurora will learn from this analysis.'
+          ? 'Thanks! InfinitAizen will learn from this analysis.'
           : 'Thanks for your feedback.',
       });
     } catch (err) {
@@ -150,8 +150,8 @@ export default function IncidentFeedback({
 
       if (apiError.code === 'AURORA_LEARN_DISABLED') {
         toast({
-          title: 'Aurora Learn is disabled',
-          description: 'Enable Aurora Learn in Settings > Knowledge Base to provide feedback.',
+          title: 'InfinitAizen Learn is disabled',
+          description: 'Enable InfinitAizen Learn in Settings > Knowledge Base to provide feedback.',
           variant: 'destructive',
         });
       } else {

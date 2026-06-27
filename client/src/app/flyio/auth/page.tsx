@@ -196,7 +196,7 @@ export default function FlyioAuthPage() {
                   <CheckCircle2 className="h-5 w-5 text-green-500" />
                   <div>
                     <CardTitle>Fly.io Connected</CardTitle>
-                    <CardDescription>Your Fly.io organization is linked to Aurora</CardDescription>
+                    <CardDescription>Your Fly.io organization is linked to InfinitAizen</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -254,7 +254,7 @@ export default function FlyioAuthPage() {
                     <div className="text-xs text-muted-foreground">
                       <p className="font-medium text-yellow-600 dark:text-yellow-400">Read-only access</p>
                       <p className="mt-0.5">
-                        Aurora can monitor and diagnose but cannot take remediation actions (restart, stop, start machines).
+                        InfinitAizen can monitor and diagnose but cannot take remediation actions (restart, stop, start machines).
                         To enable remediation, reconnect with a full org token from your{" "}
                         <a href={`https://fly.io/dashboard/${status.org_slug}/tokens`} target="_blank" rel="noopener noreferrer" className="underline">dashboard tokens page</a>.
                       </p>
@@ -293,7 +293,7 @@ export default function FlyioAuthPage() {
             <CardContent className="space-y-6">
               <div className="space-y-4 text-sm">
                 <p className="text-muted-foreground">
-                  Aurora uses an org-scoped API token to monitor your Fly.io applications. Generate one from your Fly.io dashboard.
+                  InfinitAizen uses an org-scoped API token to monitor your Fly.io applications. Generate one from your Fly.io dashboard.
                 </p>
 
                 <div className="p-4 bg-muted/50 border border-border rounded-lg space-y-3">
@@ -317,7 +317,7 @@ export default function FlyioAuthPage() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Aurora will automatically detect your token&apos;s permission level (read-only or full access).
+                    InfinitAizen will automatically detect your token&apos;s permission level (read-only or full access).
                   </p>
                 </div>
               </div>

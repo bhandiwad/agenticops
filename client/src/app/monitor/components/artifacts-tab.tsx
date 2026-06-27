@@ -123,7 +123,7 @@ export default function ArtifactsTab() {
   // whose overwrite guard would be unsafe without the real title list).
   if (loadFailed) {
     return (
-      <ChartPanel title="Artifacts" subtitle="Living documents Aurora maintains across runs">
+      <ChartPanel title="Artifacts" subtitle="Living documents InfinitAizen maintains across runs">
         <EmptyState
           icon={BookOpen}
           message="Couldn't load artifacts"
@@ -134,7 +134,7 @@ export default function ArtifactsTab() {
   }
 
   return (
-    <ChartPanel title="Artifacts" subtitle="Living documents Aurora maintains across runs" loading={isLoading}>
+    <ChartPanel title="Artifacts" subtitle="Living documents InfinitAizen maintains across runs" loading={isLoading}>
       <div className="flex justify-end mb-4">
         <button
           onClick={() => setCreating(true)}
@@ -151,7 +151,7 @@ export default function ArtifactsTab() {
         <EmptyState
           icon={BookOpen}
           message="No artifacts yet"
-          hint="Aurora keeps living documents here — findings lists, cost reports, runbooks — that update across runs. Create one or ask Aurora in an action to maintain it."
+          hint="InfinitAizen keeps living documents here — findings lists, cost reports, runbooks — that update across runs. Create one or ask InfinitAizen in an action to maintain it."
         />
       ) : (
         <div className="space-y-2">

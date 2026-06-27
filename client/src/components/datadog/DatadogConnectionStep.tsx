@@ -54,7 +54,7 @@ export function DatadogConnectionStep({
     <Card>
       <CardHeader>
         <CardTitle>Step 1: Connect Your Datadog Organization</CardTitle>
-        <CardDescription>Use a Datadog service account with API + application keys to authorise Aurora</CardDescription>
+        <CardDescription>Use a Datadog service account with API + application keys to authorise InfinitAizen</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="border rounded-lg">
@@ -71,10 +71,10 @@ export function DatadogConnectionStep({
             </p>
             <ol className="space-y-2 list-decimal list-inside">
               <li>Open the bottom-left <strong>Accounts</strong> menu in Datadog and switch to the desired organization if needed.</li>
-              <li>Under <strong>Organization Settings → Service Accounts</strong>, create (or identify) a service account dedicated to Aurora.</li>
+              <li>Under <strong>Organization Settings → Service Accounts</strong>, create (or identify) a service account dedicated to InfinitAizen.</li>
               <li>Still in the Accounts menu, create a new <strong>API Key</strong> (Organization Settings → API Keys) for that service account.</li>
               <li>Generate an <strong>Application Key</strong> (Organization Settings → Application Keys) that is linked to the same service account or team user with read access to logs, metrics, monitors, and events.</li>
-              <li>Record the service account name or email so Aurora can display who owns the integration.</li>
+              <li>Record the service account name or email so InfinitAizen can display who owns the integration.</li>
             </ol>
             <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded">
               <p className="text-xs font-semibold text-purple-900 dark:text-purple-300">Minimum permissions</p>
@@ -93,7 +93,7 @@ export function DatadogConnectionStep({
 
           <div className="p-4 pt-0 space-y-4 text-sm border-t">
             <p className="text-muted-foreground">
-              Aurora stores your keys securely using Vault. Only encrypted references are persisted in the database.
+              InfinitAizen stores your keys securely using Vault. Only encrypted references are persisted in the database.
             </p>
 
             <form className="space-y-4" onSubmit={onConnect}>
@@ -133,7 +133,7 @@ export function DatadogConnectionStep({
                       value={serviceAccountName}
                       onChange={(event) => setServiceAccountName(event.target.value)}
                     />
-                    <p className="text-xs text-muted-foreground">Shown in Aurora to help your team identify who owns the integration.</p>
+                    <p className="text-xs text-muted-foreground">Shown in InfinitAizen to help your team identify who owns the integration.</p>
                   </div>
                 </div>
 

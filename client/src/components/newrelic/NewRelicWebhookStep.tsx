@@ -29,7 +29,7 @@ export function NewRelicWebhookStep({
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Step 2: Configure Alert Notifications</CardTitle>
-            <CardDescription>Set up a webhook in New Relic to send alert notifications to Aurora</CardDescription>
+            <CardDescription>Set up a webhook in New Relic to send alert notifications to InfinitAizen</CardDescription>
           </div>
           <Badge variant="outline" className="border-[#00AC69] text-[#00AC69]">Connected</Badge>
         </div>
@@ -86,7 +86,7 @@ export function NewRelicWebhookStep({
               <li>Under <strong>Workflows</strong>, create or edit a workflow.</li>
               <li>Add a notification channel using the webhook destination.</li>
               <li>In the channel settings, enable <strong>Use custom payload</strong> and paste the JSON template below.</li>
-              <li>Configure the workflow filter for the issues you want Aurora to investigate.</li>
+              <li>Configure the workflow filter for the issues you want InfinitAizen to investigate.</li>
               <li>Save and test the webhook to verify connectivity.</li>
             </ol>
           </div>
@@ -109,7 +109,7 @@ export function NewRelicWebhookStep({
   "accountId": {{ json nrAccountId }}
 }`}</pre>
             <p className="text-xs text-muted-foreground">
-              This ensures Aurora receives the alert title and condition details for accurate incident reports.
+              This ensures InfinitAizen receives the alert title and condition details for accurate incident reports.
             </p>
           </div>
 

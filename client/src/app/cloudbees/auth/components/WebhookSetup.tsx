@@ -25,7 +25,7 @@ export function WebhookSetup({ webhookInfo, onDone }: Readonly<WebhookSetupProps
     <div className="animate-step-in">
       <h1 className="text-[28px] font-bold tracking-tight mb-3">Set up deployment tracking</h1>
       <p className="text-[15px] text-[#777] mb-10">
-        Add this webhook to your Jenkinsfile so Aurora is notified when deployments complete.
+        Add this webhook to your Jenkinsfile so InfinitAizen is notified when deployments complete.
       </p>
 
       {webhookInfo ? (

@@ -188,7 +188,7 @@ export default function NetdataAuthPage() {
           <div className="mb-6">
             <h1 className="text-3xl font-bold">Netdata Integration</h1>
             <p className="text-muted-foreground mt-1">
-              Connect Netdata Cloud and receive alerts in Aurora
+              Connect Netdata Cloud and receive alerts in InfinitAizen
             </p>
           </div>
           <div className="flex items-center justify-center py-12">
@@ -205,7 +205,7 @@ export default function NetdataAuthPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Netdata Integration</h1>
         <p className="text-muted-foreground mt-1">
-          Connect Netdata Cloud and receive alerts in Aurora
+          Connect Netdata Cloud and receive alerts in InfinitAizen
         </p>
       </div>
 

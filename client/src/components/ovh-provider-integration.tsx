@@ -147,7 +147,7 @@ export default function OvhProviderIntegration({ onDisconnect }: OvhProviderInte
         <div>
           <h3 className="text-lg font-semibold">OVH Cloud Projects</h3>
           <p className="text-sm text-muted-foreground">
-            Manage which Public Cloud projects Aurora can access
+            Manage which Public Cloud projects InfinitAizen can access
           </p>
         </div>
         <div className="flex items-center gap-2">

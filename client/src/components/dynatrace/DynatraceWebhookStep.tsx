@@ -46,7 +46,7 @@ export function DynatraceWebhookStep({ status, onDisconnect, loading }: Dynatrac
       toast({
         title: enabled ? "Alert RCA enabled" : "Alert RCA disabled",
         description: enabled
-          ? "Aurora will automatically investigate Dynatrace problems"
+          ? "InfinitAizen will automatically investigate Dynatrace problems"
           : "Dynatrace problems will not trigger automatic investigation",
       });
     } catch {
@@ -98,7 +98,7 @@ export function DynatraceWebhookStep({ status, onDisconnect, loading }: Dynatrac
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="rca-toggle" className="text-base font-medium">Enable Alert RCA</Label>
-              <p className="text-sm text-muted-foreground">Automatically investigate Dynatrace problems with Aurora</p>
+              <p className="text-sm text-muted-foreground">Automatically investigate Dynatrace problems with InfinitAizen</p>
             </div>
             {settingsLoading ? (
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />

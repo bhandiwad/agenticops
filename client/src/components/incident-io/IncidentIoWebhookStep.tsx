@@ -50,7 +50,7 @@ function WebhookSecretField({
         <p className="text-xs text-muted-foreground mt-1 mb-2">
           After creating the webhook endpoint in incident.io, copy the signing secret
           (starts with <code className="bg-muted px-1 rounded">whsec_</code>) and paste it below.
-          When set, Aurora will cryptographically verify that incoming webhooks are genuine.
+          When set, InfinitAizen will cryptographically verify that incoming webhooks are genuine.
           Without it, any request to your webhook URL will be accepted.
         </p>
       )}
@@ -214,7 +214,7 @@ export function IncidentIoWebhookStep({ onDisconnect, loading }: IncidentIoWebho
         toast({
           title: enabled ? "Automatic RCA Enabled" : "Automatic RCA Disabled",
           description: enabled
-            ? "Aurora will automatically investigate new incidents from incident.io"
+            ? "InfinitAizen will automatically investigate new incidents from incident.io"
             : "New incidents will be stored but not automatically investigated",
         });
       } else {
@@ -237,7 +237,7 @@ export function IncidentIoWebhookStep({ onDisconnect, loading }: IncidentIoWebho
           title: enabled ? "Post-back Enabled" : "Post-back Disabled",
           description: enabled
             ? "RCA results will be posted to the incident.io timeline"
-            : "RCA results will only be available in Aurora",
+            : "RCA results will only be available in InfinitAizen",
         });
       } else {
         toast({ title: "Failed to update settings", description: "Could not update post-back setting. Please try again.", variant: "destructive" });
@@ -303,7 +303,7 @@ export function IncidentIoWebhookStep({ onDisconnect, loading }: IncidentIoWebho
                 Automatic RCA
               </Label>
               <p className="text-sm text-muted-foreground">
-                Automatically investigate new incidents with Aurora
+                Automatically investigate new incidents with InfinitAizen
               </p>
             </div>
             {loadingSettings ? (

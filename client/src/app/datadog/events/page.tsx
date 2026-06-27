@@ -109,7 +109,7 @@ export default function DatadogEventsPage() {
           <CardContent className="pt-6 text-center py-12">
             <p className="text-muted-foreground font-medium">No events received yet</p>
             <p className="text-sm text-muted-foreground mt-2">
-              Configure a Datadog webhook to forward monitor notifications to Aurora.
+              Configure a Datadog webhook to forward monitor notifications to InfinitAizen.
             </p>
             <Button variant="outline" className="mt-4" onClick={() => router.push("/datadog/auth")}>Configure Webhook</Button>
           </CardContent>

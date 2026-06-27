@@ -39,7 +39,7 @@ class ConnectorRegistry {
     this.register({
       id: "datadog",
       name: "Datadog",
-      description: "Bring Datadog logs, metrics, and monitor alerts into Aurora. Connect with your Datadog service account to centralize observability insights.",
+      description: "Bring Datadog logs, metrics, and monitor alerts into InfinitAizen. Connect with your Datadog service account to centralize observability insights.",
       iconPath: "/datadog.svg",
       iconBgColor: "bg-white dark:bg-white",
       category: "Monitoring",
@@ -235,7 +235,7 @@ class ConnectorRegistry {
       this.register({
         id: "notion",
         name: "Notion",
-        description: "Export postmortems, search workspace docs, and let Aurora create runbooks and action-item rows in your Notion workspace.",
+        description: "Export postmortems, search workspace docs, and let InfinitAizen create runbooks and action-item rows in your Notion workspace.",
         iconPath: "/notion.svg",
         iconBgColor: "bg-white dark:bg-white",
         category: "Documentation",
@@ -247,7 +247,7 @@ class ConnectorRegistry {
     this.register({
       id: "kubectl",
       name: "Kubernetes",
-      description: "Deploy the Aurora agent into your Kubernetes cluster so Aurora can perform root cause analysis investigations securely.",
+      description: "Deploy the InfinitAizen agent into your Kubernetes cluster so InfinitAizen can perform root cause analysis investigations securely.",
       iconPath: "/kubernetes-svgrepo-com.svg",
       iconBgColor: "bg-white dark:bg-white",
       category: "Infrastructure",
@@ -290,7 +290,7 @@ class ConnectorRegistry {
     this.register({
         id: "slack",
         name: "Slack",
-        description: "Receive alerts and notifications directly in your Slack workspace. Connect your Slack workspace to get real-time updates and interact with Aurora.",
+        description: "Receive alerts and notifications directly in your Slack workspace. Connect your Slack workspace to get real-time updates and interact with InfinitAizen.",
         iconPath: "/slack.png",
         iconBgColor: "bg-white dark:bg-white",
         category: "Communication",
@@ -301,7 +301,7 @@ class ConnectorRegistry {
     this.register({
         id: "google_chat",
         name: "Google Chat",
-        description: "Receive alerts and notifications directly in Google Chat. Connect your Google Workspace to get real-time updates and interact with Aurora.",
+        description: "Receive alerts and notifications directly in Google Chat. Connect your Google Workspace to get real-time updates and interact with InfinitAizen.",
         iconPath: "/google-chat.svg",
         iconBgColor: "bg-white dark:bg-white",
         category: "Communication",

@@ -607,7 +607,7 @@ export function SecuritySettings() {
         </div>
         <div>
           <h1 className="text-sm font-semibold">Command Policies</h1>
-          <p className="text-xs text-muted-foreground">Control what commands the Aurora agent can execute</p>
+          <p className="text-xs text-muted-foreground">Control what commands the InfinitAizen agent can execute</p>
         </div>
       </div>
 

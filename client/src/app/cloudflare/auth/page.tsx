@@ -108,7 +108,7 @@ function PermissionStatus({ permissions }: { permissions: string[] }) {
           <p className="text-xs text-muted-foreground">
             {hasWrite
               ? "Missing write permissions — add for full control:"
-              : "To let Aurora take action during incidents, edit the token and add:"}
+              : "To let InfinitAizen take action during incidents, edit the token and add:"}
           </p>
           <ul className="text-xs text-muted-foreground list-disc list-inside space-y-0.5">
             {missingWriteEntries.map(([, cfName]) => (
@@ -333,7 +333,7 @@ export default function CloudflareAuthPage() {
                   <CheckCircle2 className="h-5 w-5 text-green-500" />
                   <div>
                     <CardTitle>Cloudflare Connected</CardTitle>
-                    <CardDescription>Your Cloudflare account is linked to Aurora</CardDescription>
+                    <CardDescription>Your Cloudflare account is linked to InfinitAizen</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -365,7 +365,7 @@ export default function CloudflareAuthPage() {
                     <div className="text-xs text-muted-foreground">
                       <p className="font-medium text-yellow-600 dark:text-yellow-400">Using a personal token</p>
                       <p className="mt-0.5">
-                        This token is tied to an individual user account. If that user leaves the organization, Aurora will lose access.
+                        This token is tied to an individual user account. If that user leaves the organization, InfinitAizen will lose access.
                         For a more durable setup, use an <strong>Account API Token</strong> instead (Manage Account → Account API Tokens).
                       </p>
                     </div>
@@ -470,7 +470,7 @@ export default function CloudflareAuthPage() {
             <CardContent className="space-y-6">
               <div className="space-y-4 text-sm">
                 <p className="text-muted-foreground">
-                  Aurora uses a scoped API token to interact with your Cloudflare account. This must be set up by an account administrator.
+                  InfinitAizen uses a scoped API token to interact with your Cloudflare account. This must be set up by an account administrator.
                 </p>
 
                 <div className="p-4 bg-muted/50 border border-border rounded-lg space-y-3">
@@ -507,7 +507,7 @@ export default function CloudflareAuthPage() {
                     <div className="flex items-start gap-2">
                       <span className="text-muted-foreground mt-0.5">6.</span>
                       <div>
-                        <p><em>Optional</em> — Under <strong>Permissions</strong>, also add these to let Aurora take action during incidents:</p>
+                        <p><em>Optional</em> — Under <strong>Permissions</strong>, also add these to let InfinitAizen take action during incidents:</p>
                         <ul className="text-xs text-muted-foreground mt-1 list-disc list-inside space-y-0.5">
                           <li>Zone — DNS — Edit</li>
                           <li>Zone — Cache Purge — Purge</li>

@@ -161,7 +161,7 @@ export function WebViewWarning() {
                 </p>
               )}
               <p>
-                You&apos;re viewing Aurora in{" "}
+                You&apos;re viewing InfinitAizen in{" "}
                 <span className="font-semibold text-foreground">
                   {detection.detectedApp || "an in-app browser"}
                 </span>.
@@ -173,7 +173,7 @@ export function WebViewWarning() {
               </p>
               <div className="rounded-lg bg-muted p-3 mt-4">
                 <p className="text-sm font-medium text-foreground mb-2">
-                  Please open Aurora in one of these browsers:
+                  Please open InfinitAizen in one of these browsers:
                 </p>
                 <p className="text-sm flex items-center gap-1.5 flex-wrap">
                   <Globe className="h-4 w-4 text-muted-foreground" />

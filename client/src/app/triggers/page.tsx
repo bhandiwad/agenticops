@@ -135,7 +135,7 @@ export default function TriggersPage() {
           <Route className="h-6 w-6" /> Triggers
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          When these incident events occur, Aurora automatically runs the listed agents and workflows
+          When these incident events occur, InfinitAizen automatically runs the listed agents and workflows
           in order. Admins can add custom routes and toggle each event off. Agents that change your
           systems still require approval before running.
         </p>

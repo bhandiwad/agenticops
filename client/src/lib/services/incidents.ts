@@ -229,7 +229,7 @@ export interface Incident {
   alert: Alert;
   status: IncidentStatus;
   auroraStatus: AuroraStatus;
-  summary: string; // THE MOST VALUABLE TEXT - what Aurora thinks is wrong
+  summary: string; // THE MOST VALUABLE TEXT - what InfinitAizen thinks is wrong
   streamingThoughts: StreamingThought[];
   suggestions: Suggestion[];
   citations?: Citation[]; // Evidence citations for the summary
@@ -481,7 +481,7 @@ export const incidentsService = {
 
   getAuroraStatusLabel(status: AuroraStatus): string {
     switch (status) {
-      case 'running': return 'Aurora Investigating...';
+      case 'running': return 'InfinitAizen Investigating...';
       case 'summarizing': return 'Generating Summary...';
       case 'complete': return 'Analysis Complete';
       case 'error': return 'Analysis Error';

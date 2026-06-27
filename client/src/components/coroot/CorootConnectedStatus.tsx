@@ -20,7 +20,7 @@ export function CorootConnectedStatus({
       <CardHeader>
         <CardTitle>Coroot Connected</CardTitle>
         <CardDescription>
-          Aurora is connected to your Coroot instance and can access observability data
+          InfinitAizen is connected to your Coroot instance and can access observability data
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

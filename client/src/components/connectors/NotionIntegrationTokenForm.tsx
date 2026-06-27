@@ -178,7 +178,7 @@ export function NotionIntegrationTokenForm({
             >
               notion.so/my-integrations
             </a>{" "}
-            &rarr; <strong>+ New connection</strong> &rarr; name it &ldquo;Aurora&rdquo;
+            &rarr; <strong>+ New connection</strong> &rarr; name it &ldquo;InfinitAizen&rdquo;
             &rarr; set Authentication method to <strong>Access token</strong> &rarr;{" "}
             <strong>Create connection</strong>.
           </p>
@@ -190,8 +190,8 @@ export function NotionIntegrationTokenForm({
           </p>
           <p>
             3. Share content with the connection: open each page or database you
-            want Aurora to see &rarr; &hellip; menu &rarr; <strong>Connections</strong>{" "}
-            &rarr; <strong>+ Add connections</strong> &rarr; Aurora (or use the
+            want InfinitAizen to see &rarr; &hellip; menu &rarr; <strong>Connections</strong>{" "}
+            &rarr; <strong>+ Add connections</strong> &rarr; InfinitAizen (or use the
             connection&rsquo;s <strong>Content access</strong> tab).
           </p>
           <p>4. Paste the token below.</p>
@@ -278,8 +278,8 @@ export function NotionIntegrationTokenForm({
         <div className="space-y-1">
           <p className="font-medium">Your token is encrypted at rest</p>
           <p className="text-muted-foreground">
-            The secret is stored encrypted in Aurora&apos;s secrets vault. You
-            can disconnect anytime, and Aurora will only see pages and
+            The secret is stored encrypted in InfinitAizen&apos;s secrets vault. You
+            can disconnect anytime, and InfinitAizen will only see pages and
             databases you explicitly share with the integration.
           </p>
         </div>

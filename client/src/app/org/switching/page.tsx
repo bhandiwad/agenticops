@@ -148,14 +148,14 @@ export default function OrgSwitchingPage() {
         <div className="flex items-center gap-2.5 mb-10">
           <Image
             src="/arvologotransparent.png"
-            alt="Aurora"
+            alt="InfinitAizen"
             width={36}
             height={36}
             className="drop-shadow-[0_0_12px_rgba(56,189,248,0.25)]"
             priority
           />
           <span className="text-[22px] font-bold tracking-tight text-white">
-            Aurora
+            InfinitAizen
           </span>
         </div>
 

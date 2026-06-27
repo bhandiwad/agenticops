@@ -112,18 +112,12 @@ export default function Navigation({
       )}>
         <div className="p-3 flex items-center justify-between border-b border-border/30">
           <div className="flex items-center gap-2">
-            <img 
-              src="/arvologotransparent-modified.png" 
-              alt="Arvo Logo" 
-              className="w-10 h-10 block dark:hidden"
-            />
-            <img 
-              src="/arvologotransparent.png" 
-              alt="Arvo Logo" 
-              className="w-10 h-10 hidden dark:block"
+            <img
+              src="/infinitaizen-logo.png"
+              alt="InfinitAizen Logo"
+              className="h-8 w-auto"
             />
             <div className="flex flex-col items-start">
-              <h1 className="text-lg font-bold text-foreground">Aurora</h1>
               {user?.orgName ? (
                 <span className="text-xs text-muted-foreground truncate max-w-[120px]">
                   {user.orgName}
@@ -180,7 +174,7 @@ export default function Navigation({
                   <Zap size={16} className="text-foreground" />
                   <span className="ml-2">Incidents</span>
                 </div>
-                {/* Running indicator - shows when Aurora is investigating */}
+                {/* Running indicator - shows when InfinitAizen is investigating */}
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-muted-foreground opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-muted-foreground"></span>

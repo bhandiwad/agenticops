@@ -39,16 +39,16 @@ export function CorootConnectionStep({
 
           <div className="p-4 pt-0 space-y-3 text-sm border-t">
             <p className="text-muted-foreground">
-              Aurora connects to your Coroot instance via its HTTP API using session-cookie
+              InfinitAizen connects to your Coroot instance via its HTTP API using session-cookie
               authentication. No direct database access or API keys are needed.
             </p>
             <ol className="space-y-2 list-decimal list-inside">
-              <li>Ensure your Coroot instance is accessible from this Aurora deployment.</li>
+              <li>Ensure your Coroot instance is accessible from this InfinitAizen deployment.</li>
               <li>Use an existing Coroot account (email + password). A dedicated service account is recommended.</li>
-              <li>The account needs access to the project(s) you want Aurora to monitor.</li>
+              <li>The account needs access to the project(s) you want InfinitAizen to monitor.</li>
             </ol>
             <div className="mt-4 p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded">
-              <p className="text-xs font-semibold text-emerald-900 dark:text-emerald-300">What Aurora accesses</p>
+              <p className="text-xs font-semibold text-emerald-900 dark:text-emerald-300">What InfinitAizen accesses</p>
               <p className="text-xs text-emerald-800 dark:text-emerald-400 mt-1">
                 Metrics (PromQL), logs, traces, incidents + RCA, service maps, profiling, deployments, costs, and risks
               </p>
@@ -66,7 +66,7 @@ export function CorootConnectionStep({
 
           <div className="p-4 pt-0 space-y-4 text-sm border-t">
             <p className="text-muted-foreground">
-              Aurora stores your credentials securely using Vault. Only encrypted references are persisted in the database.
+              InfinitAizen stores your credentials securely using Vault. Only encrypted references are persisted in the database.
             </p>
 
             <form className="space-y-4" onSubmit={onConnect}>

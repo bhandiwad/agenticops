@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       if (!response.ok) {
         const text = await response.text();
         return NextResponse.json(
-          { error: text || 'Failed to get Aurora Learn setting' },
+          { error: text || 'Failed to get InfinitAizen Learn setting' },
           { status: response.status }
         );
       }
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error('[api/user/preferences/aurora-learn] GET Error:', error);
-    return NextResponse.json({ error: 'Failed to get Aurora Learn setting' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to get InfinitAizen Learn setting' }, { status: 500 });
   }
 }
 
@@ -96,7 +96,7 @@ export async function PUT(request: NextRequest) {
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         return NextResponse.json(
-          { error: data.error || 'Failed to update Aurora Learn setting' },
+          { error: data.error || 'Failed to update InfinitAizen Learn setting' },
           { status: response.status }
         );
       }
@@ -112,6 +112,6 @@ export async function PUT(request: NextRequest) {
     }
   } catch (error) {
     console.error('[api/user/preferences/aurora-learn] PUT Error:', error);
-    return NextResponse.json({ error: 'Failed to update Aurora Learn setting' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update InfinitAizen Learn setting' }, { status: 500 });
   }
 }

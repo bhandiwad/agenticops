@@ -14,10 +14,10 @@ import { DisconnectConfirmDialog } from "@/components/ui/disconnect-confirm-dial
 import { queryClient, jsonFetcher } from "@/lib/query";
 
 const SLACK_NOTIFICATION_KEYS = [
-  { key: "slack_investigation_start_notifications", label: "Investigation Started", description: "Notify when Aurora begins an RCA investigation", defaultValue: true },
-  { key: "slack_investigation_complete_notifications", label: "Investigation Complete", description: "Notify when Aurora finishes an RCA investigation", defaultValue: true },
-  { key: "slack_action_start_notifications", label: "Action Started", description: "Notify when an Aurora Action begins running", defaultValue: true },
-  { key: "slack_action_complete_notifications", label: "Action Complete", description: "Notify when an Aurora Action finishes", defaultValue: true },
+  { key: "slack_investigation_start_notifications", label: "Investigation Started", description: "Notify when InfinitAizen begins an RCA investigation", defaultValue: true },
+  { key: "slack_investigation_complete_notifications", label: "Investigation Complete", description: "Notify when InfinitAizen finishes an RCA investigation", defaultValue: true },
+  { key: "slack_action_start_notifications", label: "Action Started", description: "Notify when an InfinitAizen Action begins running", defaultValue: true },
+  { key: "slack_action_complete_notifications", label: "Action Complete", description: "Notify when an InfinitAizen Action finishes", defaultValue: true },
 ] as const;
 
 type PreferenceKey = typeof SLACK_NOTIFICATION_KEYS[number]["key"];
@@ -245,7 +245,7 @@ export default function SlackManagePage() {
           <CardHeader>
             <CardTitle className="text-lg text-destructive">Danger Zone</CardTitle>
             <CardDescription>
-              Disconnect Slack from Aurora. You will stop receiving all Slack notifications.
+              Disconnect Slack from InfinitAizen. You will stop receiving all Slack notifications.
             </CardDescription>
           </CardHeader>
           <CardContent>

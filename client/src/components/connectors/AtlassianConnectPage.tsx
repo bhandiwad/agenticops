@@ -90,7 +90,7 @@ export function AtlassianConnectPage({ product, sibling }: AtlassianConnectPageP
         body: JSON.stringify({ jiraMode: mode }),
       });
       if (res.ok) {
-        toast({ title: "Settings saved", description: mode === "full" ? "Aurora can create issues and comment" : "Aurora will only comment on existing issues" });
+        toast({ title: "Settings saved", description: mode === "full" ? "InfinitAizen can create issues and comment" : "InfinitAizen will only comment on existing issues" });
       } else {
         setJiraMode(previousMode);
         toast({ title: "Failed to save settings", variant: "destructive" });
@@ -213,7 +213,7 @@ export function AtlassianConnectPage({ product, sibling }: AtlassianConnectPageP
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">RCA Permissions</CardTitle>
                 <CardDescription className="text-xs">
-                  Choose what Aurora can do with Jira during Root Cause Analysis
+                  Choose what InfinitAizen can do with Jira during Root Cause Analysis
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2 pt-0">
@@ -337,7 +337,7 @@ export function AtlassianConnectPage({ product, sibling }: AtlassianConnectPageP
                       ATLASSIAN_CLIENT_ID=your-client-id<br />
                       ATLASSIAN_CLIENT_SECRET=your-client-secret
                     </div>
-                    <p className="text-xs text-muted-foreground">Then restart Aurora with <code className="px-1 py-0.5 rounded bg-muted text-[11px] font-mono">make down && make dev</code></p>
+                    <p className="text-xs text-muted-foreground">Then restart InfinitAizen with <code className="px-1 py-0.5 rounded bg-muted text-[11px] font-mono">make down && make dev</code></p>
                   </div>
                 </div>
               </CardHeader>

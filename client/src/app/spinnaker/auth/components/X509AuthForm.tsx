@@ -148,7 +148,7 @@ export function X509AuthForm({
         <div className="space-y-1">
           <p className="font-medium">Secure Connection</p>
           <p className="text-muted-foreground">
-            Certificate and key data are encrypted and stored in Vault. Aurora monitors applications and pipelines, and can trigger pipelines (e.g., rollback) with your confirmation.
+            Certificate and key data are encrypted and stored in Vault. InfinitAizen monitors applications and pipelines, and can trigger pipelines (e.g., rollback) with your confirmation.
           </p>
         </div>
       </div>

@@ -55,7 +55,7 @@ export function GrafanaWebhookStep({
         <CardHeader>
           <CardTitle>Webhook Configuration</CardTitle>
           <CardDescription>
-            Configure Grafana to send alert notifications to Aurora.
+            Configure Grafana to send alert notifications to InfinitAizen.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

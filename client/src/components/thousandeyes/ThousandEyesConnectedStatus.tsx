@@ -26,7 +26,7 @@ export function ThousandEyesConnectedStatus({
       <CardHeader>
         <CardTitle>ThousandEyes Connected</CardTitle>
         <CardDescription>
-          Aurora is connected to ThousandEyes and can access network intelligence data
+          InfinitAizen is connected to ThousandEyes and can access network intelligence data
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

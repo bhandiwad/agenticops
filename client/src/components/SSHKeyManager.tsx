@@ -295,7 +295,7 @@ export function SSHKeyManager() {
         <div className="flex-1">
           <h1 className="text-2xl font-semibold">SSH Keys</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Generate and manage Aurora-managed SSH keys for bastions and VMs.
+            Generate and manage InfinitAizen-managed SSH keys for bastions and VMs.
             Public keys are safe to share; private keys are stored securely in
             Vault.
           </p>

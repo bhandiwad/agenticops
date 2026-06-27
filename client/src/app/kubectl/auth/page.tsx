@@ -212,7 +212,7 @@ export default function KubectlAuthPage() {
           <div className="mb-8 flex flex-col items-center text-center">
             <img src="/kubernetes_text.png" alt="Kubernetes" className="h-32 w-auto mb-4" />
             <p className="text-sm text-zinc-400 max-w-xl mb-1">
-              Connect your Kubernetes clusters to Aurora for intelligent incident investigation.
+              Connect your Kubernetes clusters to InfinitAizen for intelligent incident investigation.
             </p>
             <p className="text-xs text-zinc-500">
               All connections are secure and encrypted
@@ -347,7 +347,7 @@ export default function KubectlAuthPage() {
                 <CardHeader className="pb-4">
                   <CardTitle className="text-white text-lg tracking-tight">4. Verify connection</CardTitle>
                   <CardDescription className="text-zinc-400 text-sm">
-                    Aurora will detect the agent automatically once deployed.
+                    InfinitAizen will detect the agent automatically once deployed.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -378,8 +378,8 @@ export default function KubectlAuthPage() {
                 <CardHeader className="pb-4">
                   <CardTitle className="text-white text-lg tracking-tight">Upload Kubeconfig Files</CardTitle>
                   <CardDescription className="text-zinc-400 text-sm">
-                    Use this when you cannot deploy the Aurora agent inside your cluster (e.g., restricted RBAC, air-gapped environments).
-                    Aurora will execute kubectl commands directly using these credentials.
+                    Use this when you cannot deploy the InfinitAizen agent inside your cluster (e.g., restricted RBAC, air-gapped environments).
+                    InfinitAizen will execute kubectl commands directly using these credentials.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

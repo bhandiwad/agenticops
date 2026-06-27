@@ -167,7 +167,7 @@ export default function FleetTab({ period }: { period: Period }) {
         </div>
 
         {!runs || runs.length === 0 ? (
-          <EmptyState icon={Zap} message="No agent runs found for this period" hint="Runs appear when Aurora investigates incidents" />
+          <EmptyState icon={Zap} message="No agent runs found for this period" hint="Runs appear when InfinitAizen investigates incidents" />
         ) : (
           <div className="space-y-2">
             {runs.map(run => (

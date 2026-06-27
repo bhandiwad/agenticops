@@ -265,8 +265,8 @@ export default function OpsGenieAuthPage() {
           </h1>
           <p className="text-muted-foreground mt-1">
             {authType === 'jsm'
-              ? 'Securely connect JSM Operations to ingest alerts and on-call schedules inside Aurora.'
-              : 'Securely connect OpsGenie to ingest alerts, incidents, and on-call schedules inside Aurora.'}
+              ? 'Securely connect JSM Operations to ingest alerts and on-call schedules inside InfinitAizen.'
+              : 'Securely connect OpsGenie to ingest alerts, incidents, and on-call schedules inside InfinitAizen.'}
           </p>
         </div>
 

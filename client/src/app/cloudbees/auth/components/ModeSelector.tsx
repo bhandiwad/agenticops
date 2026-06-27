@@ -11,7 +11,7 @@ interface ModeSelectorProps {
 export function ModeSelector({ onSelect }: Readonly<ModeSelectorProps>) {
   return (
     <div className="animate-step-in">
-      <h1 className="text-[28px] font-bold tracking-tight mb-3">How should Aurora connect?</h1>
+      <h1 className="text-[28px] font-bold tracking-tight mb-3">How should InfinitAizen connect?</h1>
       <p className="text-[15px] text-[#777] mb-10">
         Choose based on your CloudBees setup. You can always change this later.
       </p>
@@ -25,7 +25,7 @@ export function ModeSelector({ onSelect }: Readonly<ModeSelectorProps>) {
           <div>
             <p className="text-[15px] font-medium mb-1">Operations Center</p>
             <p className="text-[13px] text-[#777] leading-relaxed">
-              Recommended for teams with multiple Jenkins controllers. Aurora discovers all controllers and can investigate across them.
+              Recommended for teams with multiple Jenkins controllers. InfinitAizen discovers all controllers and can investigate across them.
             </p>
           </div>
           <ChevronRight className="h-4 w-4 text-[#555] flex-shrink-0 ml-4 group-hover:translate-x-1 transition-transform" />

@@ -85,7 +85,7 @@ export function TokenAuthForm({
         <div className="space-y-1">
           <p className="font-medium">Secure Connection</p>
           <p className="text-muted-foreground">
-            Your credentials are encrypted and stored in Vault. Aurora monitors applications and pipelines, and can trigger pipelines (e.g., rollback) with your confirmation.
+            Your credentials are encrypted and stored in Vault. InfinitAizen monitors applications and pipelines, and can trigger pipelines (e.g., rollback) with your confirmation.
           </p>
         </div>
       </div>

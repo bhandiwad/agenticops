@@ -1,0 +1,10 @@
+services:
+  aurora-server:
+    ports: !override
+      - "127.0.0.1:5081:5080"
+  chatbot:
+    ports: !override
+      - "127.0.0.1:5007:5006"
+  frontend:
+    ports: !override
+      - "127.0.0.1:3000:3000"

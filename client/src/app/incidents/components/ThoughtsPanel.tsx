@@ -577,7 +577,7 @@ export default function ThoughtsPanel({ thoughts, incident, isVisible, canIntera
                     : 'pl-4 border-l-2 border-zinc-700 hover:border-orange-500/50 transition-colors'
                 }>
                   <div className="text-xs text-zinc-500 mb-1">
-                    {msg.role === 'user' ? 'You' : 'Aurora'}
+                    {msg.role === 'user' ? 'You' : 'InfinitAizen'}
                   </div>
                   <div className="text-sm text-zinc-300 break-words leading-relaxed min-w-0 overflow-hidden">
                     <MarkdownRenderer content={msg.content} />

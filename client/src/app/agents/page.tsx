@@ -360,7 +360,7 @@ export default function AgentsPage() {
             <Bot className="h-6 w-6" /> Agents
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Aurora&apos;s specialist agents. RCA investigators run during root-cause analysis; lifecycle
+            InfinitAizen&apos;s specialist agents. RCA investigators run during root-cause analysis; lifecycle
             agents (correlation, summarizer, notification, postmortem, …) run automatically at incident
             events. Admins can create agents, enable/disable them, adjust limits and model, and version
             prompts below.

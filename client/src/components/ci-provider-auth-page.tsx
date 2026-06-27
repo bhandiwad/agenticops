@@ -423,10 +423,10 @@ function WebhookCard({
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Webhook className={`h-5 w-5 ${iconColor}`} />
-          <CardTitle className="text-lg">Send Deployment Events to Aurora</CardTitle>
+          <CardTitle className="text-lg">Send Deployment Events to InfinitAizen</CardTitle>
         </div>
         <CardDescription>
-          Add this to your {config.slug === "jenkins" ? "Jenkinsfile" : `${config.displayName} pipeline`} to notify Aurora when builds complete
+          Add this to your {config.slug === "jenkins" ? "Jenkinsfile" : `${config.displayName} pipeline`} to notify InfinitAizen when builds complete
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -557,7 +557,7 @@ function SetupView({
         <CardHeader>
           <CardTitle className="text-lg">Connect Your {config.displayName} Instance</CardTitle>
           <CardDescription>
-            Follow these steps to generate an API token and connect {config.displayName} to Aurora
+            Follow these steps to generate an API token and connect {config.displayName} to InfinitAizen
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -644,7 +644,7 @@ function SetupView({
                     <div className="space-y-1">
                       <p className="font-medium">Secure &amp; Read-Only</p>
                       <p className="text-muted-foreground">
-                        Your credentials are encrypted and stored in Vault. Aurora only reads job and build data &mdash; it cannot trigger builds or modify configuration.
+                        Your credentials are encrypted and stored in Vault. InfinitAizen only reads job and build data &mdash; it cannot trigger builds or modify configuration.
                       </p>
                     </div>
                   </div>

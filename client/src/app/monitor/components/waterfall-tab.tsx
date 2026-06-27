@@ -84,7 +84,7 @@ export default function WaterfallTab({ period }: { period: Period }) {
         {isLoading ? (
           <ChartSkeleton height={300} />
         ) : !sortedTools.length ? (
-          <EmptyState icon={Wrench} message="No tool execution data" hint="Tool stats populate as Aurora investigates incidents" />
+          <EmptyState icon={Wrench} message="No tool execution data" hint="Tool stats populate as InfinitAizen investigates incidents" />
         ) : (
           <div className="space-y-2">
             {sortedTools.slice(0, 15).map((t, i) => {

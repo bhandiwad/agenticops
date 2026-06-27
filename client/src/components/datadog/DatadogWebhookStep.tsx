@@ -19,7 +19,7 @@ export function DatadogWebhookStep({ status, webhookUrl, copied, onCopy, onDisco
     <Card>
       <CardHeader>
         <CardTitle>Step 2: Configure Datadog Webhook</CardTitle>
-        <CardDescription>Send monitor incidents and events directly into Aurora</CardDescription>
+        <CardDescription>Send monitor incidents and events directly into InfinitAizen</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid md:grid-cols-3 gap-4">
@@ -58,7 +58,7 @@ export function DatadogWebhookStep({ status, webhookUrl, copied, onCopy, onDisco
             <li>Go to <strong>Integrations</strong> and search up <strong>Webhooks</strong> integration by Datadog.</li>
             <li>Create a webhook target using the URL above. Optionally set a shared secret for signing.</li>
             <li>In any monitor notification, include <code className="bg-muted px-1 rounded">@webhook-{"<your_webhook_name>"}</code> so Datadog knows where to send alerts.</li>
-            <li>Navigate to <strong>Monitors → New Monitor → Metric</strong>, set any test condition (e.g., system.cpu.idle &lt; 100), then in the "Notify your team" section add @webhook-&lt;your_webhook_name&gt; and click <strong>Test notifications</strong> to send a sample alert to Aurora.</li>
+            <li>Navigate to <strong>Monitors → New Monitor → Metric</strong>, set any test condition (e.g., system.cpu.idle &lt; 100), then in the "Notify your team" section add @webhook-&lt;your_webhook_name&gt; and click <strong>Test notifications</strong> to send a sample alert to InfinitAizen.</li>
           </ol>
         </div>
 

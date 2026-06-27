@@ -23,7 +23,7 @@ export function OpsGenieWebhookStep({ status, webhookUrl, copied, onCopy, onDisc
     <Card>
       <CardHeader>
         <CardTitle>Step 2: Configure {providerLabel} Webhook</CardTitle>
-        <CardDescription>Send alert events directly into Aurora</CardDescription>
+        <CardDescription>Send alert events directly into InfinitAizen</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className={`grid ${isJSM ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-4`}>

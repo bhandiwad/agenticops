@@ -47,7 +47,7 @@ export function SentryConnectionStep({
     <Card>
       <CardHeader>
         <CardTitle>Step 1: Create a Sentry Internal Integration</CardTitle>
-        <CardDescription>Aurora connects via a Sentry Internal Integration auth token. You&apos;ll create the integration in Sentry, then paste the credentials here.</CardDescription>
+        <CardDescription>InfinitAizen connects via a Sentry Internal Integration auth token. You&apos;ll create the integration in Sentry, then paste the credentials here.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="border rounded-lg">
@@ -62,7 +62,7 @@ export function SentryConnectionStep({
             <ol className="space-y-2 list-decimal list-inside">
               <li>In Sentry, go to <strong>Settings &rarr; Custom Integrations</strong> (under <em>Developer Settings</em>).</li>
               <li>Click <strong>Create New Integration</strong> and choose <strong>Internal Integration</strong>.</li>
-              <li>Name it <code>Aurora</code> and paste the webhook URL below into the <strong>Webhook URL</strong> field.</li>
+              <li>Name it <code>InfinitAizen</code> and paste the webhook URL below into the <strong>Webhook URL</strong> field.</li>
               <li>Under <strong>Permissions</strong>, grant read access to: <strong>Issue &amp; Event</strong>, <strong>Project</strong>, <strong>Organization</strong>.</li>
               <li>Under <strong>Webhooks</strong>, subscribe to: <code>issue</code> and <code>error</code> (Business/Enterprise plans).</li>
               <li>Save. Under <strong>Credentials</strong>, copy the <strong>Client Secret</strong>.</li>
@@ -70,7 +70,7 @@ export function SentryConnectionStep({
             </ol>
 
             <div className="space-y-2 pt-2">
-              <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Aurora Webhook URL</Label>
+              <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">InfinitAizen Webhook URL</Label>
               <div className="flex items-center gap-2">
                 <code className="flex-1 bg-muted px-3 py-2 rounded text-xs break-all">
                   {webhookUrl ?? "Loading…"}
@@ -92,7 +92,7 @@ export function SentryConnectionStep({
 
             <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded">
               <p className="text-xs font-semibold text-purple-900 dark:text-purple-300">Read-only is enough</p>
-              <p className="text-xs text-purple-800 dark:text-purple-400 mt-1">Aurora never writes to Sentry during RCA. Grant only read permissions; revoke the integration in Sentry at any time to immediately cut Aurora&apos;s access.</p>
+              <p className="text-xs text-purple-800 dark:text-purple-400 mt-1">InfinitAizen never writes to Sentry during RCA. Grant only read permissions; revoke the integration in Sentry at any time to immediately cut InfinitAizen&apos;s access.</p>
             </div>
           </div>
         </div>
@@ -107,7 +107,7 @@ export function SentryConnectionStep({
 
           <div className="p-4 pt-0 space-y-4 text-sm border-t">
             <p className="text-muted-foreground">
-              Aurora stores your auth token and client secret securely using Vault. Only encrypted references are persisted in the database.
+              InfinitAizen stores your auth token and client secret securely using Vault. Only encrypted references are persisted in the database.
             </p>
 
             <form className="space-y-4" onSubmit={onConnect}>
@@ -171,7 +171,7 @@ export function SentryConnectionStep({
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Shown by Sentry under <strong>Credentials</strong> when you save the Internal Integration. Aurora uses it to verify HMAC-SHA256 signatures on every webhook — without it, webhook delivery is rejected.
+                  Shown by Sentry under <strong>Credentials</strong> when you save the Internal Integration. InfinitAizen uses it to verify HMAC-SHA256 signatures on every webhook — without it, webhook delivery is rejected.
                 </p>
               </div>
 

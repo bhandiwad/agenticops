@@ -263,7 +263,7 @@ export default function GitHubProviderIntegration() {
   const [installations, setInstallations] = useState<GitHubInstallation[]>([]);
   const [installationFilter, setInstallationFilter] = useState<string>('all');
 
-  // App installations that exist on GitHub but aren't linked to this Aurora
+  // App installations that exist on GitHub but aren't linked to this InfinitAizen
   // user. Surfaced after Install GitHub App when GitHub didn't fire the
   // install callback (because the App was already installed) so the user
   // can explicitly claim them.
@@ -359,7 +359,7 @@ export default function GitHubProviderIntegration() {
       ` from ${names.length} accounts (${names.slice(0, 2).join(', ')}${names.length > 2 ? ', …' : ''})`;
     toast({
       title: 'GitHub App was uninstalled',
-      description: `Aurora detected the App was removed${accountPhrase} on GitHub. Reinstall it any time from this connector to re-enable investigations.`,
+      description: `InfinitAizen detected the App was removed${accountPhrase} on GitHub. Reinstall it any time from this connector to re-enable investigations.`,
       variant: 'destructive',
     });
     lastAccountLoginsRef.current = [];
@@ -445,7 +445,7 @@ export default function GitHubProviderIntegration() {
       if (!popup) {
         toast({
           title: "Popup Blocked",
-          description: "Allow popups for Aurora to continue the GitHub App install flow.",
+          description: "Allow popups for InfinitAizen to continue the GitHub App install flow.",
           variant: "destructive",
         });
         setIsInstallingApp(false);
@@ -593,7 +593,7 @@ export default function GitHubProviderIntegration() {
       await fetchInstallations();
       githubStatus.refresh();
       window.dispatchEvent(new CustomEvent('providerStateChanged'));
-      toast({ title: "Linked", description: "GitHub App installation linked to Aurora" });
+      toast({ title: "Linked", description: "GitHub App installation linked to InfinitAizen" });
     } catch (error: unknown) {
       const err = error as Error;
       toast({
@@ -614,7 +614,7 @@ export default function GitHubProviderIntegration() {
       if (!popup) {
         toast({
           title: "Popup Blocked",
-          description: "Allow popups for Aurora to continue the GitHub OAuth flow.",
+          description: "Allow popups for InfinitAizen to continue the GitHub OAuth flow.",
           variant: "destructive",
         });
         setIsConnectingOAuth(false);
@@ -714,14 +714,14 @@ export default function GitHubProviderIntegration() {
         } else {
           toast({
             title: "Disconnected and uninstalled",
-            description: `Removed Aurora and uninstalled the GitHub App from ${uninstalled} account${uninstalled === 1 ? '' : 's'}.`,
+            description: `Removed InfinitAizen and uninstalled the GitHub App from ${uninstalled} account${uninstalled === 1 ? '' : 's'}.`,
           });
         }
       } else if (hadAppInstall && primaryInstall) {
         const manageUrl = installationManageUrl(primaryInstall);
         toast({
-          title: "Disconnected from Aurora",
-          description: "The GitHub App is still installed on your GitHub side. Open GitHub to fully uninstall it if you no longer want Aurora to receive webhooks.",
+          title: "Disconnected from InfinitAizen",
+          description: "The GitHub App is still installed on your GitHub side. Open GitHub to fully uninstall it if you no longer want InfinitAizen to receive webhooks.",
           action: (
             <ToastAction
               altText="Uninstall on GitHub"
@@ -752,7 +752,7 @@ export default function GitHubProviderIntegration() {
       if (installations.length <= 1) {
         expectedDisconnectRef.current = true;
       }
-      toast({ title: "Installation unlinked", description: "GitHub App installation removed from Aurora" });
+      toast({ title: "Installation unlinked", description: "GitHub App installation removed from InfinitAizen" });
       if (installations.length <= 1) {
         setGithubConnectedOptimistically(false);
       }
@@ -900,7 +900,7 @@ export default function GitHubProviderIntegration() {
               Existing installation{discoveredInstallations.length > 1 ? 's' : ''} found on GitHub
             </p>
             <p className="text-xs text-muted-foreground">
-              The Aurora GitHub App is already installed
+              The InfinitAizen GitHub App is already installed
               {discoveredInstallations.length > 1 ? ' on multiple accounts' : ''}.
               Claim the one that belongs to you to finish connecting.
             </p>
@@ -924,7 +924,7 @@ export default function GitHubProviderIntegration() {
                   data-testid={`claim-installation-${d.installation_id}`}
                 >
                   {isClaimingInstallation ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : null}
-                  Link to Aurora
+                  Link to InfinitAizen
                 </Button>
               </div>
             ))}
@@ -949,13 +949,13 @@ export default function GitHubProviderIntegration() {
             ) : authConfig.oauth_enabled ? (
               <>
                 <span className="font-medium text-foreground">Connect via OAuth</span> uses your
-                personal GitHub access token. The administrator of this Aurora deployment has
+                personal GitHub access token. The administrator of this InfinitAizen deployment has
                 disabled the GitHub App path.
               </>
             ) : (
               <>
                 <span className="font-medium text-foreground">Install the GitHub App</span> on your
-                organization to give Aurora read access to repos, deployments, and workflow runs.
+                organization to give InfinitAizen read access to repos, deployments, and workflow runs.
                 Higher API rate limits, fine-grained repository permissions, and real-time webhook
                 delivery are all included.
               </>
@@ -1166,7 +1166,7 @@ export default function GitHubProviderIntegration() {
                     {repo.installation_id != null && authConfig.incident_prevention_enabled && (
                       <div
                         className="flex items-center justify-between gap-2 pt-1"
-                        title="Incident Prevention — Aurora reviews PRs for incident risk"
+                        title="Incident Prevention — InfinitAizen reviews PRs for incident risk"
                       >
                         <span className="text-xs text-muted-foreground">Incident Prevention</span>
                         <Switch
@@ -1202,10 +1202,10 @@ export default function GitHubProviderIntegration() {
               <AlertDescription className="space-y-3">
                 <p>
                   {activeInstallationState === 'suspended' && (
-                    <>This installation is suspended. Re-enable it on GitHub to continue using Aurora with these repos.</>
+                    <>This installation is suspended. Re-enable it on GitHub to continue using InfinitAizen with these repos.</>
                   )}
                   {activeInstallationState === 'pending_permissions' && (
-                    <>Aurora needs new permissions. Click below to review and accept on GitHub.</>
+                    <>InfinitAizen needs new permissions. Click below to review and accept on GitHub.</>
                   )}
                   {activeInstallationState === 'no_repos' && (
                     <>No repositories are accessible to this installation. Add repositories on GitHub.</>
@@ -1355,7 +1355,7 @@ export default function GitHubProviderIntegration() {
           <AlertDialogHeader>
             <AlertDialogTitle>Disconnect GitHub?</AlertDialogTitle>
             <AlertDialogDescription>
-              Removes your connected repositories and Aurora&apos;s link to your GitHub
+              Removes your connected repositories and InfinitAizen&apos;s link to your GitHub
               {installations.length > 0 ? ' App installation' : ' account'}.
               You can reconnect at any time.
             </AlertDialogDescription>

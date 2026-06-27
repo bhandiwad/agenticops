@@ -64,7 +64,7 @@ function NotionCallbackInner() {
     } catch (err) {
       console.error("Notion callback postMessage failed", err);
       setStatus("error");
-      setMessage("Could not hand off to Aurora. Please close this tab and try again.");
+      setMessage("Could not hand off to InfinitAizen. Please close this tab and try again.");
     }
   }, [searchParams]);
 
@@ -95,7 +95,7 @@ function NotionCallbackInner() {
             <XCircle className="h-12 w-12 mx-auto text-destructive" />
             <p className="text-lg font-medium text-destructive">{message}</p>
             <p className="text-sm text-muted-foreground">
-              You can close this tab and try again from Aurora.
+              You can close this tab and try again from InfinitAizen.
             </p>
           </>
         )}

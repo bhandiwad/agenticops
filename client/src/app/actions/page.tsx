@@ -382,7 +382,7 @@ function ActionDetailView({ actionId, onBack, onEdit }: { readonly actionId: str
           {action.mode === 'agent' && (
             <div className="flex items-start gap-2 text-xs text-amber-400 bg-amber-500/5 border border-amber-500/10 rounded-lg px-3 py-2">
               <AlertTriangle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-              <span>Agent mode: Aurora can execute commands, modify Terraform, and open PRs. All actions are logged.</span>
+              <span>Agent mode: InfinitAizen can execute commands, modify Terraform, and open PRs. All actions are logged.</span>
             </div>
           )}
         </div>
@@ -546,7 +546,7 @@ function ActionFormView({ onBack, onSaved, action }: {
           <ArrowLeft className="h-3 w-3" /> {isEdit ? 'Back' : 'All Actions'}
         </button>
         <h2 className="text-xl font-semibold tracking-tight text-zinc-100">{isEdit ? 'Edit Action' : 'Create Action'}</h2>
-        <p className="text-sm text-zinc-500 mt-0.5">Define natural language instructions that Aurora executes as a background agent task.</p>
+        <p className="text-sm text-zinc-500 mt-0.5">Define natural language instructions that InfinitAizen executes as a background agent task.</p>
       </div>
 
       <div className="grid grid-cols-[1fr_320px] gap-6">
@@ -601,20 +601,20 @@ function ActionFormView({ onBack, onSaved, action }: {
 
           <Panel
             title={targetType ? 'Extra Instructions (optional)' : 'Agent Instructions'}
-            subtitle={targetType ? 'Optional context added to the selected agent/workflow run.' : 'What should Aurora do when this action runs?'}
+            subtitle={targetType ? 'Optional context added to the selected agent/workflow run.' : 'What should InfinitAizen do when this action runs?'}
           >
             <div className="space-y-3">
               <Textarea
                 value={instructions}
                 onChange={e => setInstructions(e.target.value)}
-                placeholder={"Write natural language instructions for Aurora...\n\ne.g. Find the Terraform config that defines this Datadog monitor in our GitHub repo. Modify it to add a mute/downtime rule or adjust the threshold. Open a PR with the change and explain why the alert was noisy."}
+                placeholder={"Write natural language instructions for InfinitAizen...\n\ne.g. Find the Terraform config that defines this Datadog monitor in our GitHub repo. Modify it to add a mute/downtime rule or adjust the threshold. Open a PR with the change and explain why the alert was noisy."}
                 rows={targetType ? 4 : 10}
                 className="bg-zinc-950/50 border-zinc-800/50 text-zinc-200 placeholder:text-zinc-600"
               />
               <p className="text-xs text-zinc-600">
                 {targetType === 'workflow'
                   ? 'Workflows run their predefined steps; instructions here are stored for reference.'
-                  : 'Aurora receives these instructions along with context about the triggering event (incident details, alert data) and executes them using your connected tools.'}
+                  : 'InfinitAizen receives these instructions along with context about the triggering event (incident details, alert data) and executes them using your connected tools.'}
               </p>
             </div>
           </Panel>
@@ -692,7 +692,7 @@ function ActionFormView({ onBack, onSaved, action }: {
               {mode === 'agent' && (
                 <div className="flex items-start gap-2 text-xs text-amber-400 bg-amber-500/5 border border-amber-500/10 rounded-lg px-3 py-2">
                   <AlertTriangle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                  <span>Agent mode allows Aurora to execute commands, modify infrastructure, and open PRs.</span>
+                  <span>Agent mode allows InfinitAizen to execute commands, modify infrastructure, and open PRs.</span>
                 </div>
               )}
             </div>

@@ -35,7 +35,7 @@ export function ThousandEyesConnectionStep({
 
           <div className="p-4 pt-0 space-y-3 text-sm border-t">
             <p className="text-muted-foreground">
-              Aurora connects to ThousandEyes using an OAuth Bearer token from the ThousandEyes API v7.
+              InfinitAizen connects to ThousandEyes using an OAuth Bearer token from the ThousandEyes API v7.
             </p>
             <ol className="space-y-2 list-decimal list-inside">
               <li>Log in to ThousandEyes at <strong>app.thousandeyes.com</strong>.</li>
@@ -44,7 +44,7 @@ export function ThousandEyesConnectionStep({
               <li>Copy the token (it will only be shown once).</li>
             </ol>
             <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded">
-              <p className="text-xs font-semibold text-blue-900 dark:text-blue-300">What Aurora accesses</p>
+              <p className="text-xs font-semibold text-blue-900 dark:text-blue-300">What InfinitAizen accesses</p>
               <p className="text-xs text-blue-800 dark:text-blue-400 mt-1">
                 Tests &amp; results, alerts &amp; alert rules, cloud/enterprise/endpoint agents, dashboards &amp; widgets, Internet Insights (network &amp; app outages), path visualization, BGP monitors, and DNS/VoIP data
               </p>
@@ -62,7 +62,7 @@ export function ThousandEyesConnectionStep({
 
           <div className="p-4 pt-0 space-y-4 text-sm border-t">
             <p className="text-muted-foreground">
-              Aurora stores your credentials securely using Vault. Only encrypted references are persisted in the database.
+              InfinitAizen stores your credentials securely using Vault. Only encrypted references are persisted in the database.
             </p>
 
             <form className="space-y-4" onSubmit={onConnect}>

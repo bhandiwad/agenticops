@@ -194,7 +194,7 @@ export default function BigPandaAuthPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Webhook Configuration</CardTitle>
-                <CardDescription>Configure BigPanda to send incident notifications to Aurora.</CardDescription>
+                <CardDescription>Configure BigPanda to send incident notifications to InfinitAizen.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">

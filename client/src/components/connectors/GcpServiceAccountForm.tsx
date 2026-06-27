@@ -244,7 +244,7 @@ export function GcpServiceAccountForm({ onSuccess }: GcpServiceAccountFormProps)
         </div>
         <p className="text-xs text-muted-foreground">
           The file is read in your browser and never uploaded — only the JSON
-          text is sent to Aurora.
+          text is sent to InfinitAizen.
         </p>
       </div>
 
@@ -281,11 +281,11 @@ export function GcpServiceAccountForm({ onSuccess }: GcpServiceAccountFormProps)
             Grant the service account{" "}
             <code className="font-mono">roles/browser</code> at the{" "}
             <strong>organization</strong> or <strong>folder</strong> level so
-            Aurora can list every project in that scope. Without this, only the
+            InfinitAizen can list every project in that scope. Without this, only the
             project the key was created in shows up.
           </p>
           <p>
-            <code className="font-mono">roles/browser</code> only lets Aurora{" "}
+            <code className="font-mono">roles/browser</code> only lets InfinitAizen{" "}
             <em>see</em> the projects. To actually investigate one, also grant
             viewer-tier roles on that project —{" "}
             <code className="font-mono">roles/viewer</code>,{" "}
@@ -302,9 +302,9 @@ export function GcpServiceAccountForm({ onSuccess }: GcpServiceAccountFormProps)
         <div className="space-y-1">
           <p className="font-medium">Your key is encrypted at rest</p>
           <p className="text-muted-foreground">
-            Your key is stored encrypted in Aurora&apos;s secrets vault. You can
+            Your key is stored encrypted in InfinitAizen&apos;s secrets vault. You can
             disconnect anytime. The file you upload is read in your browser and
-            never transmitted — only the JSON text is sent to Aurora.
+            never transmitted — only the JSON text is sent to InfinitAizen.
           </p>
         </div>
       </div>

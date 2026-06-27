@@ -83,7 +83,7 @@ export default function SreTab({ period }: { period: Period }) {
       }));
   }, [mttr]);
 
-  // MTTS trend line data (Aurora analysis time)
+  // MTTS trend line data (InfinitAizen analysis time)
   const mttsTrendData = useMemo(() => {
     if (!mtts?.trend?.length) return [];
     return mtts.trend
@@ -118,7 +118,7 @@ export default function SreTab({ period }: { period: Period }) {
     return { freqChartData: data, freqSeries: series };
   }, [frequency]);
 
-  // MTTS bar chart data (Aurora solution time by severity)
+  // MTTS bar chart data (InfinitAizen solution time by severity)
   const mttsBarData = useMemo(() => {
     if (!mtts?.bySeverity?.length) return [];
     return mtts.bySeverity
@@ -174,15 +174,15 @@ export default function SreTab({ period }: { period: Period }) {
         ) : summary ? (
           <>
             <StatCard label="Total Incidents" value={String(summary.totalIncidents)} icon={Activity} sub={`${summary.activeIncidents} active`} />
-            <StatCard label="MTTS" value={formatDuration(summary.avgMttsSeconds)} icon={Brain} sub="Aurora solution time" />
+            <StatCard label="MTTS" value={formatDuration(summary.avgMttsSeconds)} icon={Brain} sub="InfinitAizen solution time" />
             <StatCard label="MTTR" value={summary.avgMttrSeconds ? formatDuration(summary.avgMttrSeconds) : '—'} icon={Timer} sub={summary.avgMttrSeconds ? 'human resolution time' : 'no resolved incidents yet'} />
             <StatCard label="MTTD" value={formatDuration(summary.avgMttdSeconds)} icon={Zap} sub="mean time to detect" />
           </>
         ) : null}
       </div>
 
-      {/* MTTS Trend -- Aurora solution time (primary metric with real data) */}
-      <ChartPanel title="MTTS Trend" subtitle="Mean time to solution — how fast Aurora produces an RCA" loading={mttsLoading}>
+      {/* MTTS Trend -- InfinitAizen solution time (primary metric with real data) */}
+      <ChartPanel title="MTTS Trend" subtitle="Mean time to solution — how fast InfinitAizen produces an RCA" loading={mttsLoading}>
         {mttsLoading ? (
           <ChartSkeleton />
         ) : !mttsTrendData.length ? (
@@ -201,7 +201,7 @@ export default function SreTab({ period }: { period: Period }) {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* MTTS by Severity */}
-        <ChartPanel title="MTTS by Severity" subtitle="Aurora solution time by severity · avg / p50 / p95" loading={mttsLoading}>
+        <ChartPanel title="MTTS by Severity" subtitle="InfinitAizen solution time by severity · avg / p50 / p95" loading={mttsLoading}>
           {mttsLoading ? (
             <ChartSkeleton height={220} />
           ) : !mttsBarData.length ? (
@@ -244,7 +244,7 @@ export default function SreTab({ period }: { period: Period }) {
 
       {/* MTTS detail table */}
       {mttsTableData.length > 0 && (
-        <ChartPanel title="MTTS Detail by Severity" subtitle="Aurora solution time breakdown" loading={mttsLoading}>
+        <ChartPanel title="MTTS Detail by Severity" subtitle="InfinitAizen solution time breakdown" loading={mttsLoading}>
           <div className="overflow-x-auto rounded-lg border border-zinc-800/60">
             <table className="w-full text-sm">
               <thead>

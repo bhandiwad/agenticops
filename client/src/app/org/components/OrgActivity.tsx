@@ -264,7 +264,7 @@ export default function OrgActivity() {
         <Clock className="h-6 w-6 text-muted-foreground/30 mb-2" />
         <p className="text-sm text-muted-foreground">No activity yet</p>
         <p className="text-xs text-muted-foreground/60 mt-0.5">
-          Events appear here as your team uses Aurora
+          Events appear here as your team uses InfinitAizen
         </p>
       </div>
     );

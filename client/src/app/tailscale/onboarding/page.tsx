@@ -190,7 +190,7 @@ export default function TailscaleOnboardingPage() {
             <li>Go to the Tailscale Admin Console</li>
             <li>Navigate to Settings &rarr; OAuth clients</li>
             <li>Click &quot;Generate OAuth client&quot;</li>
-            <li>Enter a description (e.g., &quot;Aurora Integration&quot;)</li>
+            <li>Enter a description (e.g., &quot;InfinitAizen Integration&quot;)</li>
             <li>Select the required scopes:
               <ul className="list-disc list-inside ml-4 mt-1">
                 <li><code className="text-xs bg-muted px-1 rounded">devices:read</code> - List and view devices</li>
