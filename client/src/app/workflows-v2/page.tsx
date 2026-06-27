@@ -215,13 +215,6 @@ export default function WorkflowsV2Page() {
     const d = await r.json().catch(() => ({}));
     if (r.ok && d.url) { setWebhookUrl(d.url); setMsg('Webhook created'); } else setMsg('Webhook failed');
   };
-  const migrateV1 = async () => {
-    const r = await fetch('/api/registry/wf2/migrate-v1', { method: 'POST' });
-    const d = await r.json().catch(() => ({}));
-    setMsg(r.ok ? `Migrated ${d.count ?? 0} V1 workflow(s)` : 'Migration failed');
-    if (r.ok) await loadDefs();
-  };
-
   const openRuns = async () => {
     setShowRuns(true); setRunNodes([]);
     try {
@@ -270,8 +263,6 @@ export default function WorkflowsV2Page() {
           <span className="mx-1 text-border">|</span>
           <Button size="sm" variant="ghost" className="h-7" onClick={createWebhook} disabled={!wfKey}>Create webhook</Button>
           {webhookUrl && <code className="rounded bg-background px-1 py-0.5 text-[10px]">{webhookUrl}</code>}
-          <span className="mx-1 text-border">|</span>
-          <Button size="sm" variant="ghost" className="h-7" onClick={migrateV1}>Migrate V1→V2</Button>
         </div>
       )}
 
@@ -347,7 +338,7 @@ export default function WorkflowsV2Page() {
             </div>
           ) : (
             <p className="text-xs text-muted-foreground">
-              <strong>Click any node</strong> to edit its label, ref, and config — works for new graphs and ones you open/migrate.
+              <strong>Click any node</strong> to edit its label, ref, and config — works for new graphs and ones you open.
               Drag from a node&apos;s right handle to its neighbour&apos;s left handle to connect.
               {isAdmin ? '' : ' (read-only — admin to edit)'}
             </p>

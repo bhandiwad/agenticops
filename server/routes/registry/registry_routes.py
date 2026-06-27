@@ -719,20 +719,6 @@ def wf2_hook(token):
         return jsonify({"error": "Failed to trigger workflow"}), 500
 
 
-# ---- Phase B: non-destructive V1 -> V2 migration ----
-
-@registry_bp.route("/wf2/migrate-v1", methods=["POST"])
-@require_permission("admin", "access")
-def wf2_migrate_v1(user_id):
-    org_id = get_org_id_from_request()
-    if not org_id:
-        return jsonify({"error": _ERR_NO_ORG}), 400
-    try:
-        from services.workflows.migrate import migrate_v1_to_v2
-        return jsonify(migrate_v1_to_v2(user_id, org_id))
-    except Exception:
-        logger.exception("registry: wf2 migrate failed")
-        return jsonify({"error": "Migration failed"}), 500
 
 
 # --------------------------------------------------------------------------- #

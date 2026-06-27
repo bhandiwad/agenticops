@@ -116,7 +116,7 @@ export default function ClientShell({ children }: ClientShellProps) {
   };
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark">
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
       <ProviderPreferenceProvider>
         <ChatContext.Provider value={chatContextValue}>
           <AppLayout

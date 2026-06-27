@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ChevronLeft, Settings, LogOut, User, Zap, Plug, Gauge, SquarePen, Workflow, Wrench, Bot, Route, ShieldCheck, Server, Waypoints, History } from "lucide-react"
+import { ChevronLeft, Settings, LogOut, User, Zap, Plug, Gauge, SquarePen, Workflow, Wrench, Bot, Route, ShieldCheck, Server, History, Sun, Moon } from "lucide-react"
+import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import ChatHistory from "@/components/ChatHistory"
@@ -45,6 +46,7 @@ export default function Navigation({
   onSettingsClick,
 }: NavigationProps) {
   const pathname = usePathname()
+  const { resolvedTheme, setTheme } = useTheme()
   const router = useRouter()
   const { user } = useUser()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
@@ -260,25 +262,7 @@ export default function Navigation({
             </Link>
           </li>
 
-          {/* Workflows Navigation Item */}
-          <li>
-            <Link
-              href="/workflows"
-              className={cn(
-                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
-                pathname === "/workflows"
-                  ? "bg-card rounded-lg border border-border shadow-sm"
-                  : "text-muted-foreground"
-              )}
-            >
-              <div className="flex items-center">
-                <Waypoints size={16} />
-                <span className="ml-2">Workflows</span>
-              </div>
-            </Link>
-          </li>
-
-          {/* Flow Builder (Workflow V2) Navigation Item */}
+          {/* Workflows (V2 node-graph builder) Navigation Item */}
           <li>
             <Link
               href="/workflows-v2"
@@ -291,7 +275,7 @@ export default function Navigation({
             >
               <div className="flex items-center">
                 <Workflow size={16} />
-                <span className="ml-2">Flow Builder</span>
+                <span className="ml-2">Workflows</span>
               </div>
             </Link>
           </li>
@@ -403,6 +387,15 @@ export default function Navigation({
         
         {/* User Section at Bottom */}
         <div className="border-t border-border/30 p-3">
+          {/* Theme toggle */}
+          <button
+            type="button"
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            className="mb-2 flex w-full items-center gap-2 rounded-md border border-transparent px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-border/50 hover:bg-primary/10"
+          >
+            {resolvedTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            <span>{resolvedTheme === "dark" ? "Light mode" : "Dark mode"}</span>
+          </button>
           <div className="flex justify-center">
             <div className="w-full">
               {user ? (
