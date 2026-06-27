@@ -30,11 +30,25 @@ class WorkflowRunner:
     async def run(self, payload: dict) -> dict:
         graph = payload.get("graph", {}) or {}
         context = payload.get("context", {}) or {}
+        workflow_key = graph.get("key", "adhoc")
         nodes = {n["id"]: n for n in graph.get("nodes", [])}
         edges = graph.get("edges", []) or []
 
         node_outputs: dict = {}
         scope = {"$node": node_outputs, "$context": context}
+
+        # Create a durable run record (RLS-scoped). Non-fatal if no DB context.
+        run_id = None
+        try:
+            created = await workflow.execute_activity(
+                "create_run",
+                {"workflow_key": workflow_key, "context": context,
+                 "temporal_run_id": workflow.info().run_id},
+                start_to_close_timeout=timedelta(seconds=15),
+            )
+            run_id = (created or {}).get("run_id")
+        except Exception:
+            workflow.logger.warning("create_run failed (non-fatal); continuing without persistence")
 
         for nid in topo_order(nodes, edges):
             node = nodes[nid]
@@ -56,14 +70,25 @@ class WorkflowRunner:
             )
             node_outputs[nid] = {"output": out, "status": "completed"}
 
-            # Best-effort mirror to Postgres for the UI/history (Epic #2 fills this in).
+            # Mirror node IO to Postgres for the UI/history (RLS-scoped). Non-fatal.
             try:
                 await workflow.execute_activity(
                     "persist_node_run",
-                    {"node_id": nid, "type": ntype, "status": "completed", "output": out},
+                    {"run_id": run_id, "node_id": nid, "node_type": ntype,
+                     "status": "completed", "input": {"ref": node.get("ref", ""), "config": cfg},
+                     "output": out, "context": context},
                     start_to_close_timeout=timedelta(seconds=15),
                 )
-            except Exception:  # noqa: BLE001 - persistence is non-fatal in the PoC
+            except Exception:  # noqa: BLE001 - persistence is non-fatal
                 workflow.logger.warning("persist_node_run failed for %s (non-fatal)", nid)
 
-        return {"status": "completed", "node_outputs": node_outputs}
+        try:
+            await workflow.execute_activity(
+                "finish_run",
+                {"run_id": run_id, "status": "completed", "context": context},
+                start_to_close_timeout=timedelta(seconds=15),
+            )
+        except Exception:  # noqa: BLE001
+            workflow.logger.warning("finish_run failed (non-fatal)")
+
+        return {"status": "completed", "run_id": run_id, "node_outputs": node_outputs}

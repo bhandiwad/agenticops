@@ -43,11 +43,49 @@ async def run_set(payload: dict) -> dict:
     return dict(payload.get("config", {}) or {})
 
 
+def _ids(payload: dict):
+    ctx = payload.get("context", {}) or {}
+    return ctx.get("user_id"), ctx.get("org_id")
+
+
+@activity.defn
+async def create_run(payload: dict) -> dict:
+    """Create a workflow_runs row; returns {run_id}. Non-fatal: returns {} on miss."""
+    from workflows_v2 import store
+    user_id, org_id = _ids(payload)
+    if not (user_id and org_id):
+        return {}
+    run_id = store.create_run(
+        user_id, org_id,
+        workflow_key=payload.get("workflow_key", "adhoc"),
+        temporal_run_id=payload.get("temporal_run_id"),
+        incident_id=(payload.get("context", {}) or {}).get("incident_id"),
+    )
+    return {"run_id": run_id}
+
+
+@activity.defn
+async def finish_run(payload: dict) -> None:
+    from workflows_v2 import store
+    user_id, org_id = _ids(payload)
+    if user_id and org_id:
+        store.finish_run(user_id, org_id, payload.get("run_id"), payload.get("status", "completed"))
+    return None
+
+
 @activity.defn
 async def persist_node_run(payload: dict) -> None:
-    """PoC: log only. Epic #2 writes to ``workflow_node_runs`` (RLS-scoped)."""
-    activity.logger.info(
-        "[PoC persist_node_run] node=%s status=%s",
-        payload.get("node_id"), payload.get("status"),
+    """Mirror a node's input/output/status to workflow_node_runs (RLS-scoped).
+    Non-fatal: logs only if user/org context is absent (e.g. the bare PoC run)."""
+    from workflows_v2 import store
+    user_id, org_id = _ids(payload)
+    if not (user_id and org_id and payload.get("run_id")):
+        activity.logger.info("[persist_node_run] node=%s status=%s (no DB context)",
+                             payload.get("node_id"), payload.get("status"))
+        return None
+    store.persist_node_run(
+        user_id, org_id, payload.get("run_id"), payload.get("node_id"),
+        payload.get("node_type", ""), payload.get("status", ""),
+        payload.get("input", {}) or {}, payload.get("output"),
     )
     return None

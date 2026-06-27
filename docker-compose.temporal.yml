@@ -59,6 +59,10 @@ services:
     container_name: aurora-temporal-worker
     depends_on:
       - temporal
+    # Load the app's DB/Vault config so node-run persistence (Epic #2) can reach
+    # Postgres. The worker joins the app network too (for the `postgres` alias).
+    env_file:
+      - ./.env
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_NAMESPACE=default
@@ -66,6 +70,14 @@ services:
       - AURORA_WORKFLOWS_V2=true
     command: ["python", "-m", "workflows_v2.worker"]
     restart: unless-stopped
+    networks:
+      - default
+      - agenticops_default
 
 volumes:
   temporal-pgdata:
+
+networks:
+  default: {}
+  agenticops_default:
+    external: true

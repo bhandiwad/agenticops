@@ -27,11 +27,26 @@ async def main() -> int:
     namespace = os.getenv("TEMPORAL_NAMESPACE", "default")
     task_queue = os.getenv("TEMPORAL_TASK_QUEUE", "aurora-workflows-v2")
 
+    # Resolve a real org/user so persistence (RLS) is exercised. Best-effort:
+    # falls back to no DB context (log-only persistence) if the DB isn't reachable.
+    ctx = {"incident_id": "poc-demo"}
+    try:
+        from utils.db.connection_pool import db_pool
+        with db_pool.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id, org_id FROM users ORDER BY created_at LIMIT 1")
+                row = cur.fetchone()
+        if row:
+            ctx["user_id"], ctx["org_id"] = row[0], row[1]
+            print(f"using org={row[1]} for RLS persistence")
+    except Exception as e:
+        print(f"(no DB context: {e}); persistence will be log-only")
+
     client = await Client.connect(addr, namespace=namespace)
     handle = await client.start_workflow(
         WorkflowRunner.run,
-        {"graph": SAMPLE_AGENT_TO_SET, "context": {"incident_id": "poc-demo"}},
-        id="poc-agent-to-set",
+        {"graph": SAMPLE_AGENT_TO_SET, "context": ctx},
+        id=f"poc-agent-to-set-{os.getpid()}",
         task_queue=task_queue,
     )
     print(f"started workflow id={handle.id}")

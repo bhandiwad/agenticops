@@ -48,6 +48,8 @@ async def main() -> None:
             activities.run_agent,
             activities.run_action,
             activities.run_set,
+            activities.create_run,
+            activities.finish_run,
             activities.persist_node_run,
         ],
     )

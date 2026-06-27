@@ -1329,6 +1329,54 @@ def initialize_tables():
                     CREATE INDEX IF NOT EXISTS idx_run_evidence_incident
                         ON run_evidence(org_id, incident_id, created_at DESC);
                 """,
+                "workflow_defs": """
+                    CREATE TABLE IF NOT EXISTS workflow_defs (
+                        id UUID PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        key VARCHAR(64) NOT NULL,
+                        name VARCHAR(128) NOT NULL,
+                        version INTEGER NOT NULL DEFAULT 1,
+                        graph JSONB NOT NULL DEFAULT '{}'::jsonb,
+                        enabled BOOLEAN NOT NULL DEFAULT true,
+                        created_by VARCHAR(255),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(org_id, key, version)
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_workflow_defs_org
+                        ON workflow_defs(org_id, key);
+                """,
+                "workflow_runs": """
+                    CREATE TABLE IF NOT EXISTS workflow_runs (
+                        id UUID PRIMARY KEY,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        user_id VARCHAR(255),
+                        workflow_key VARCHAR(64) NOT NULL,
+                        temporal_run_id VARCHAR(255),
+                        status VARCHAR(32) NOT NULL DEFAULT 'running',
+                        incident_id UUID,
+                        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        ended_at TIMESTAMP
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_workflow_runs_org
+                        ON workflow_runs(org_id, started_at DESC);
+                """,
+                "workflow_node_runs": """
+                    CREATE TABLE IF NOT EXISTS workflow_node_runs (
+                        id UUID PRIMARY KEY,
+                        run_id UUID NOT NULL REFERENCES workflow_runs(id) ON DELETE CASCADE,
+                        org_id VARCHAR(255) NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+                        node_id VARCHAR(128) NOT NULL,
+                        node_type VARCHAR(64),
+                        status VARCHAR(32) NOT NULL,
+                        input JSONB,
+                        output JSONB,
+                        error TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_workflow_node_runs_run
+                        ON workflow_node_runs(run_id, created_at);
+                """,
                 "prompt_versions": """
                     CREATE TABLE IF NOT EXISTS prompt_versions (
                         id UUID PRIMARY KEY,
@@ -1652,6 +1700,9 @@ def initialize_tables():
             rls_tables.append("custom_trigger_routes")
             rls_tables.append("custom_agents")
             rls_tables.append("run_evidence")
+            rls_tables.append("workflow_defs")
+            rls_tables.append("workflow_runs")
+            rls_tables.append("workflow_node_runs")
             rls_tables.append("prompt_versions")
             rls_tables.append("rca_findings")
             rls_tables.append("actions")
