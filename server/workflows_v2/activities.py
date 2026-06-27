@@ -42,10 +42,17 @@ async def run_agent(payload: dict) -> dict:
 
 @activity.defn
 async def run_action(payload: dict) -> dict:
-    """PoC STUB for an Aurora Action node (Epic #3 returns real action output)."""
-    ref = payload.get("ref") or "action"
-    activity.logger.info("[PoC run_action] %s", ref)
-    return {"action": ref, "status": "stub"}
+    """Execute an Aurora Action (by id in ``ref``) synchronously and return its
+    output. Runs in a worker thread so the blocking background-chat path is safe."""
+    ref = payload.get("ref") or ""
+    ctx = payload.get("context", {}) or {}
+    if not (ref and ctx.get("user_id")):
+        return {"action": ref, "status": "error", "error": "missing action ref or user context"}
+    import asyncio
+    from workflows_v2.agent_runner import run_action_node
+    activity.logger.info("[run_action] %s", ref)
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, run_action_node, ctx["user_id"], ref, ctx.get("incident_id"), ctx)
 
 
 @activity.defn
