@@ -266,7 +266,7 @@ export default function Navigation({
               href="/workflows"
               className={cn(
                 "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
-                pathname?.startsWith("/workflows")
+                pathname === "/workflows"
                   ? "bg-card rounded-lg border border-border shadow-sm"
                   : "text-muted-foreground"
               )}
@@ -274,6 +274,24 @@ export default function Navigation({
               <div className="flex items-center">
                 <Waypoints size={16} />
                 <span className="ml-2">Workflows</span>
+              </div>
+            </Link>
+          </li>
+
+          {/* Flow Builder (Workflow V2) Navigation Item */}
+          <li>
+            <Link
+              href="/workflows-v2"
+              className={cn(
+                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
+                pathname?.startsWith("/workflows-v2")
+                  ? "bg-card rounded-lg border border-border shadow-sm"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div className="flex items-center">
+                <Workflow size={16} />
+                <span className="ml-2">Flow Builder</span>
               </div>
             </Link>
           </li>
