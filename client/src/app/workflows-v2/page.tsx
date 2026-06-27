@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ReactFlow, Background, BackgroundVariant, Controls, MiniMap, addEdge,
   useNodesState, useEdgesState, Handle, Position,
@@ -8,7 +8,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useTheme } from 'next-themes';
-import { Loader2, Plus, Save, Trash2, FolderOpen, PlayCircle, X, Pause, Play, Pencil, ChevronLeft, Workflow,
+import { Loader2, Plus, Save, Trash2, FolderOpen, PlayCircle, X, Pause, Play, Pencil, ChevronLeft, Workflow, LayoutGrid,
   Bot, Wrench, Braces, GitBranch, Split, Merge, Repeat, UserCheck, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,6 @@ type WFNode = Node<WFNodeData>;
 type WFEdge = Edge<{ port?: string; [k: string]: unknown }>;
 
 const PALETTE = ['agent', 'action', 'set', 'if', 'switch', 'merge', 'foreach', 'approval', 'wait_timer'];
-const NEEDS_REF = new Set(['agent', 'action']);
 
 // Per-type accent colour + icon for the custom node.
 const NODE_META: Record<string, { color: string; Icon: typeof Bot }> = {
@@ -67,6 +66,120 @@ function FlowNode({ data, selected }: NodeProps<WFNode>) {
 }
 
 const NODE_TYPES: NodeTypes = { flow: FlowNode };
+
+const OPS = ['==', '!=', '>', '<', '>=', '<=', 'contains'];
+const SELECT_CLS = 'h-8 w-full rounded-md border border-border bg-background px-2 text-sm';
+
+interface AgentOpt { name: string }
+interface ActionOpt { id: string; name?: string; title?: string }
+
+function NodeConfigPanel({ node, agents, actions, isAdmin, onPatch, onDelete }: {
+  node: WFNode; agents: AgentOpt[]; actions: ActionOpt[]; isAdmin: boolean;
+  onPatch: (p: Partial<WFNodeData>) => void; onDelete: () => void;
+}) {
+  const t = node.data.nodeType;
+  let cfg: Record<string, unknown> = {};
+  try { cfg = JSON.parse(node.data.config || '{}'); } catch { cfg = {}; }
+  const setCfg = (patch: Record<string, unknown>) => onPatch({ config: JSON.stringify({ ...cfg, ...patch }, null, 2) });
+  const s = (v: unknown) => (v === undefined || v === null ? '' : String(v));
+  const [nk, setNk] = useState('');
+  const [nv, setNv] = useState('');
+  const Label = ({ children }: { children: ReactNode }) => <label className="mt-1 block text-xs text-muted-foreground">{children}</label>;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Badge variant="secondary" className="capitalize">{t}</Badge>
+      </div>
+
+      <Label>Label</Label>
+      <Input className="h-8" value={node.data.label} onChange={(e) => onPatch({ label: e.target.value })} disabled={!isAdmin} />
+
+      {t === 'agent' && <>
+        <Label>Agent</Label>
+        <select className={SELECT_CLS} value={node.data.ref} onChange={(e) => onPatch({ ref: e.target.value })} disabled={!isAdmin}>
+          <option value="">Select agent…</option>
+          {agents.map((a) => <option key={a.name} value={a.name}>{a.name}</option>)}
+        </select>
+        <Label>Purpose / instructions (optional)</Label>
+        <textarea className="h-20 w-full rounded-md border border-border bg-background p-2 text-xs" value={s(cfg.purpose)} onChange={(e) => setCfg({ purpose: e.target.value })} disabled={!isAdmin} />
+      </>}
+
+      {t === 'action' && <>
+        <Label>Action / tool call</Label>
+        <select className={SELECT_CLS} value={node.data.ref} onChange={(e) => onPatch({ ref: e.target.value })} disabled={!isAdmin}>
+          <option value="">Select action…</option>
+          {actions.map((a) => <option key={a.id} value={a.id}>{a.name || a.title || a.id}</option>)}
+        </select>
+      </>}
+
+      {t === 'if' && <>
+        <Label>Left (value or {'{{ $node.x.output.y }}'})</Label>
+        <Input className="h-8" value={s(cfg.left)} onChange={(e) => setCfg({ left: e.target.value })} disabled={!isAdmin} />
+        <Label>Operator</Label>
+        <select className={SELECT_CLS} value={s(cfg.op) || '=='} onChange={(e) => setCfg({ op: e.target.value })} disabled={!isAdmin}>
+          {OPS.map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
+        <Label>Right</Label>
+        <Input className="h-8" value={s(cfg.right)} onChange={(e) => setCfg({ right: e.target.value })} disabled={!isAdmin} />
+        <p className="text-[10px] text-muted-foreground">Wire two edges out and set each edge&apos;s port to <code>true</code> / <code>false</code>.</p>
+      </>}
+
+      {t === 'switch' && <>
+        <Label>Value ({'{{ expr }}'})</Label>
+        <Input className="h-8" value={s(cfg.value)} onChange={(e) => setCfg({ value: e.target.value })} disabled={!isAdmin} />
+        <p className="text-[10px] text-muted-foreground">Set each outgoing edge&apos;s port to a case value (or <code>default</code>).</p>
+      </>}
+
+      {t === 'set' && <>
+        <Label>Fields (key → value, supports {'{{ expr }}'})</Label>
+        {Object.keys(cfg).map((k) => (
+          <div key={k} className="flex items-center gap-1">
+            <span className="w-16 shrink-0 truncate font-mono text-[11px]" title={k}>{k}</span>
+            <Input className="h-7 flex-1" value={s(cfg[k])} onChange={(e) => setCfg({ [k]: e.target.value })} disabled={!isAdmin} />
+            {isAdmin && <button type="button" onClick={() => { const c = { ...cfg }; delete c[k]; onPatch({ config: JSON.stringify(c, null, 2) }); }}><X className="h-3.5 w-3.5 text-muted-foreground" /></button>}
+          </div>
+        ))}
+        {isAdmin && <div className="flex items-center gap-1 pt-1">
+          <Input className="h-7 w-16" placeholder="key" value={nk} onChange={(e) => setNk(e.target.value)} />
+          <Input className="h-7 flex-1" placeholder="value" value={nv} onChange={(e) => setNv(e.target.value)} />
+          <Button size="sm" variant="ghost" className="h-7" onClick={() => { if (nk) { setCfg({ [nk]: nv }); setNk(''); setNv(''); } }}>Add</Button>
+        </div>}
+      </>}
+
+      {t === 'foreach' && <>
+        <Label>Items ({'{{ expr to a list }}'})</Label>
+        <Input className="h-8" value={s(cfg.items)} onChange={(e) => setCfg({ items: e.target.value })} disabled={!isAdmin} />
+        <Label>Per-item template (JSON, use {'{{ $item }}'} / {'{{ $index }}'})</Label>
+        <textarea className="h-20 w-full rounded-md border border-border bg-background p-2 font-mono text-xs"
+          defaultValue={JSON.stringify(cfg.template ?? {}, null, 2)}
+          onBlur={(e) => { try { setCfg({ template: JSON.parse(e.target.value || '{}') }); } catch { /* keep */ } }} disabled={!isAdmin} />
+      </>}
+
+      {(t === 'approval' || t === 'form') && <>
+        <Label>Approval message shown to the human</Label>
+        <Input className="h-8" value={s(cfg.summary)} onChange={(e) => setCfg({ summary: e.target.value })} disabled={!isAdmin} />
+      </>}
+
+      {t === 'wait_timer' && <>
+        <Label>Wait (seconds)</Label>
+        <Input className="h-8" type="number" value={s(cfg.seconds) || '0'} onChange={(e) => setCfg({ seconds: Number(e.target.value) || 0 })} disabled={!isAdmin} />
+      </>}
+
+      {t === 'merge' && <p className="text-xs text-muted-foreground">Merge joins all incoming branches — no configuration needed.</p>}
+
+      <details className="pt-1">
+        <summary className="cursor-pointer text-[11px] text-muted-foreground">Advanced (raw JSON)</summary>
+        <textarea className="mt-1 h-40 w-full rounded-md border border-border bg-background p-2 font-mono text-xs"
+          value={node.data.config} onChange={(e) => onPatch({ config: e.target.value })} disabled={!isAdmin} />
+      </details>
+
+      {isAdmin && <Button size="sm" variant="ghost" className="gap-1 text-destructive" onClick={onDelete}>
+        <Trash2 className="h-4 w-4" /> Delete node
+      </Button>}
+    </div>
+  );
+}
 
 interface DefSummary {
   key: string; name: string; node_count: number; updated_at: string | null;
@@ -122,6 +235,41 @@ export default function WorkflowsV2Page() {
     } catch { /* ignore */ }
   }, []);
   useEffect(() => { loadDefs(); }, [loadDefs]);
+
+  const [agents, setAgents] = useState<AgentOpt[]>([]);
+  const [actions, setActions] = useState<ActionOpt[]>([]);
+  useEffect(() => {
+    (async () => {
+      try { const r = await fetch('/api/registry/agents'); if (r.ok) setAgents((await r.json()).agents ?? []); } catch { /* ignore */ }
+      try {
+        const r = await fetch('/api/actions');
+        if (r.ok) { const d = await r.json(); setActions(Array.isArray(d) ? d : (d.actions ?? [])); }
+      } catch { /* ignore */ }
+    })();
+  }, []);
+
+  // Auto-layout: longest-path layering, left→right.
+  const tidy = () => {
+    const ids = nodes.map((n) => n.id);
+    const indeg: Record<string, number> = {}; const adj: Record<string, string[]> = {};
+    ids.forEach((id) => { indeg[id] = 0; adj[id] = []; });
+    edges.forEach((e) => { if (adj[e.source] && e.target in indeg) { adj[e.source].push(e.target); indeg[e.target]++; } });
+    const layer: Record<string, number> = {};
+    const ind = { ...indeg };
+    const q = ids.filter((id) => indeg[id] === 0);
+    q.forEach((id) => { layer[id] = 0; });
+    while (q.length) {
+      const id = q.shift() as string;
+      adj[id].forEach((tg) => { layer[tg] = Math.max(layer[tg] ?? 0, (layer[id] ?? 0) + 1); if (--ind[tg] === 0) q.push(tg); });
+    }
+    ids.forEach((id) => { if (layer[id] === undefined) layer[id] = 0; });
+    const perLayer: Record<number, number> = {};
+    setNodes((nds) => nds.map((n) => {
+      const L = layer[n.id] ?? 0; const idx = perLayer[L] ?? 0; perLayer[L] = idx + 1;
+      return { ...n, position: { x: 60 + L * 250, y: 50 + idx * 120 } };
+    }));
+    setMsg('Tidied layout');
+  };
 
   const onConnect = useCallback((c: Connection) => setEdges((eds) => addEdge({ ...c, data: {} }, eds)), [setEdges]);
 
@@ -362,6 +510,7 @@ export default function WorkflowsV2Page() {
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save
         </Button>}
         {isAdmin && <Button size="sm" variant="default" className="gap-1" onClick={runWorkflow} disabled={!wfKey}><PlayCircle className="h-4 w-4" /> Run</Button>}
+        <Button size="sm" variant="outline" className="gap-1" onClick={tidy} disabled={!nodes.length}><LayoutGrid className="h-4 w-4" /> Tidy</Button>
         <Button size="sm" variant="outline" className="gap-1" onClick={openRuns}><FolderOpen className="h-4 w-4" /> Runs</Button>
         {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
       </div>
@@ -421,25 +570,11 @@ export default function WorkflowsV2Page() {
         {/* inspector / config */}
         <div className="w-72 shrink-0 overflow-y-auto border-l border-border p-3 text-sm">
           {sel ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Badge variant="secondary">{sel.data.nodeType}</Badge>
-                <button onClick={() => setSelNode(null)}><X className="h-4 w-4" /></button>
-              </div>
-              <label className="block text-xs text-muted-foreground">Label</label>
-              <Input className="h-8" value={sel.data.label} onChange={(e) => patchNode(sel.id, { label: e.target.value })} disabled={!isAdmin} />
-              {NEEDS_REF.has(sel.data.nodeType) && <>
-                <label className="block text-xs text-muted-foreground">Ref (agent/action name)</label>
-                <Input className="h-8" value={sel.data.ref} onChange={(e) => patchNode(sel.id, { ref: e.target.value })} disabled={!isAdmin} />
-              </>}
-              <label className="block text-xs text-muted-foreground">Config (JSON)</label>
-              <textarea className="h-48 w-full rounded-md border border-border bg-background p-2 font-mono text-xs"
-                value={sel.data.config} onChange={(e) => patchNode(sel.id, { config: e.target.value })} disabled={!isAdmin} />
-              {isAdmin && <Button size="sm" variant="ghost" className="gap-1 text-destructive"
-                onClick={() => { setNodes((nds) => nds.filter((n) => n.id !== sel.id)); setSelNode(null); }}>
-                <Trash2 className="h-4 w-4" /> Delete node
-              </Button>}
-            </div>
+            <NodeConfigPanel
+              node={sel} agents={agents} actions={actions} isAdmin={isAdmin}
+              onPatch={(p) => patchNode(sel.id, p)}
+              onDelete={() => { setNodes((nds) => nds.filter((n) => n.id !== sel.id)); setSelNode(null); }}
+            />
           ) : selEdge ? (
             <div className="space-y-2">
               <div className="text-xs font-medium">Edge port (if/switch branch)</div>
