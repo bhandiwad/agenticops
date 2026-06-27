@@ -42,6 +42,11 @@ services:
       - POSTGRES_SEEDS=temporal-postgresql
     ports:
       - "7233:7233"
+    # Join the app network too so aurora-server can reach temporal:7233
+    # (start runs from the Flow Builder + signal HITL resumes).
+    networks:
+      - default
+      - agenticops_default
 
   temporal-ui:
     image: temporalio/ui:latest

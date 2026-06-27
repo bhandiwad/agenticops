@@ -579,6 +579,32 @@ def wf2_delete_def(user_id, key):
     return jsonify({"key": key, "deleted": True})
 
 
+@registry_bp.route("/wf2/defs/<key>/run", methods=["POST"])
+@require_permission("admin", "access")
+def wf2_run_def(user_id, key):
+    """Start a Temporal run of a saved graph (the Flow Builder 'Run' action)."""
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    body = request.get_json(silent=True) or {}
+    try:
+        from services.workflows.defs import get_def
+        d = get_def(user_id, org_id, key)
+        if not d:
+            return jsonify({"error": "Not found"}), 404
+        from workflows_v2.client import start_run
+        ctx = {"user_id": user_id, "org_id": org_id,
+               "incident_id": body.get("incident_id"),
+               "real_agent": bool(body.get("real_agent"))}
+        res = start_run(d["graph"], ctx)
+        if not res.get("ok"):
+            return jsonify({"error": res.get("error", "Failed to start run")}), 502
+        return jsonify(res), 202
+    except Exception:
+        logger.exception("registry: wf2 run failed")
+        return jsonify({"error": "Failed to start run"}), 500
+
+
 @registry_bp.route("/wf2/runs", methods=["GET"])
 @require_permission("connectors", "read")
 def wf2_list_runs(user_id):

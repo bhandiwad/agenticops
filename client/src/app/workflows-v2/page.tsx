@@ -134,6 +134,20 @@ export default function WorkflowsV2Page() {
     if (r.ok) { newGraph(); await loadDefs(); }
   };
 
+  const runWorkflow = async () => {
+    if (!wfKey) { setMsg('Save the workflow first'); return; }
+    setMsg('Starting run…');
+    try {
+      const r = await fetch(`/api/registry/wf2/defs/${encodeURIComponent(wfKey)}/run`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ real_agent: false }),
+      });
+      const data = await r.json().catch(() => ({}));
+      setMsg(r.ok ? `Run started (${(data.workflow_id || '').slice(0, 18)}…)` : `Run failed: ${data.error || r.status}`);
+      if (r.ok) { setShowRuns(true); setTimeout(openRuns, 1500); }
+    } catch { setMsg('Run failed'); }
+  };
+
   const openRuns = async () => {
     setShowRuns(true); setRunNodes([]);
     try {
@@ -167,7 +181,8 @@ export default function WorkflowsV2Page() {
           {defs.map((d) => <option key={d.key} value={d.key}>{d.name} ({d.node_count})</option>)}
         </select>
         {isAdmin && wfKey && <Button size="sm" variant="ghost" className="gap-1 text-destructive" onClick={removeDef}><Trash2 className="h-4 w-4" /></Button>}
-        <Button size="sm" variant="outline" className="gap-1" onClick={openRuns}><PlayCircle className="h-4 w-4" /> Runs</Button>
+        {isAdmin && <Button size="sm" variant="default" className="gap-1" onClick={runWorkflow} disabled={!wfKey}><PlayCircle className="h-4 w-4" /> Run</Button>}
+        <Button size="sm" variant="outline" className="gap-1" onClick={openRuns}><FolderOpen className="h-4 w-4" /> Runs</Button>
         {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
       </div>
 
