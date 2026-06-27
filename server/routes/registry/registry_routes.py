@@ -510,6 +510,103 @@ def delete_workflow(user_id, workflow_key):
     return jsonify({"workflow_key": workflow_key, "deleted": True})
 
 
+# ---- Workflow V2 (node-graph) defs + run inspector (read/write graphs) ----
+
+@registry_bp.route("/wf2/defs", methods=["GET"])
+@require_permission("connectors", "read")
+def wf2_list_defs(user_id):
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    try:
+        from services.workflows.defs import list_defs
+        return jsonify({"defs": list_defs(user_id, org_id)})
+    except Exception:
+        logger.exception("registry: wf2 list_defs failed")
+        return jsonify({"error": "Failed to load workflow defs"}), 500
+
+
+@registry_bp.route("/wf2/defs/<key>", methods=["GET"])
+@require_permission("connectors", "read")
+def wf2_get_def(user_id, key):
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    try:
+        from services.workflows.defs import get_def
+        d = get_def(user_id, org_id, key)
+        if not d:
+            return jsonify({"error": "Not found"}), 404
+        return jsonify(d)
+    except Exception:
+        logger.exception("registry: wf2 get_def failed")
+        return jsonify({"error": "Failed to load workflow def"}), 500
+
+
+@registry_bp.route("/wf2/defs/<key>", methods=["PUT"])
+@require_permission("admin", "access")
+def wf2_put_def(user_id, key):
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    body = request.get_json(silent=True) or {}
+    try:
+        from services.workflows.defs import upsert_def
+        upsert_def(user_id, org_id, key=key,
+                   name=(body.get("name") or key).strip(),
+                   graph=body.get("graph") or {})
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        logger.exception("registry: wf2 put_def failed")
+        return jsonify({"error": "Failed to save workflow def"}), 500
+    return jsonify({"key": key, "saved": True})
+
+
+@registry_bp.route("/wf2/defs/<key>", methods=["DELETE"])
+@require_permission("admin", "access")
+def wf2_delete_def(user_id, key):
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    try:
+        from services.workflows.defs import delete_def
+        if not delete_def(user_id, org_id, key):
+            return jsonify({"error": "Not found"}), 404
+    except Exception:
+        logger.exception("registry: wf2 delete_def failed")
+        return jsonify({"error": "Failed to delete workflow def"}), 500
+    return jsonify({"key": key, "deleted": True})
+
+
+@registry_bp.route("/wf2/runs", methods=["GET"])
+@require_permission("connectors", "read")
+def wf2_list_runs(user_id):
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    try:
+        from services.workflows.defs import list_runs
+        return jsonify({"runs": list_runs(user_id, org_id, key=request.args.get("key"))})
+    except Exception:
+        logger.exception("registry: wf2 list_runs failed")
+        return jsonify({"error": "Failed to load runs"}), 500
+
+
+@registry_bp.route("/wf2/runs/<run_id>/nodes", methods=["GET"])
+@require_permission("connectors", "read")
+def wf2_run_nodes(user_id, run_id):
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    try:
+        from services.workflows.defs import get_run_nodes
+        return jsonify({"nodes": get_run_nodes(user_id, org_id, run_id)})
+    except Exception:
+        logger.exception("registry: wf2 run_nodes failed")
+        return jsonify({"error": "Failed to load run nodes"}), 500
+
+
 # --------------------------------------------------------------------------- #
 # Prompt versioning
 # --------------------------------------------------------------------------- #
