@@ -579,6 +579,29 @@ def wf2_delete_def(user_id, key):
     return jsonify({"key": key, "deleted": True})
 
 
+@registry_bp.route("/wf2/defs/<key>/enabled", methods=["PUT"])
+@require_permission("admin", "access")
+def wf2_set_enabled(user_id, key):
+    """Pause (enabled=false) / resume (true) a workflow: sets the flag and
+    pauses/unpauses its Temporal schedule if one exists."""
+    org_id = get_org_id_from_request()
+    if not org_id:
+        return jsonify({"error": _ERR_NO_ORG}), 400
+    enabled = (request.get_json(silent=True) or {}).get("enabled")
+    if not isinstance(enabled, bool):
+        return jsonify({"error": "`enabled` must be a boolean"}), 400
+    try:
+        from services.workflows.defs import set_enabled
+        if not set_enabled(user_id, org_id, key, enabled):
+            return jsonify({"error": "Not found"}), 404
+        from workflows_v2.schedules import set_paused
+        set_paused(key, org_id, paused=(not enabled))  # best-effort
+        return jsonify({"key": key, "enabled": enabled})
+    except Exception:
+        logger.exception("registry: wf2 set_enabled failed")
+        return jsonify({"error": "Failed to update workflow"}), 500
+
+
 @registry_bp.route("/wf2/defs/<key>/run", methods=["POST"])
 @require_permission("admin", "access")
 def wf2_run_def(user_id, key):
@@ -592,6 +615,8 @@ def wf2_run_def(user_id, key):
         d = get_def(user_id, org_id, key)
         if not d:
             return jsonify({"error": "Not found"}), 404
+        if not d.get("enabled", True):
+            return jsonify({"error": "Workflow is paused"}), 409
         from workflows_v2.client import start_run
         ctx = {"user_id": user_id, "org_id": org_id,
                "incident_id": body.get("incident_id"),
@@ -709,6 +734,8 @@ def wf2_hook(token):
         d = get_def(wh["user_id"], wh["org_id"], wh["key"])
         if not d:
             return jsonify({"error": "workflow not found"}), 404
+        if not d.get("enabled", True):
+            return jsonify({"error": "workflow is paused"}), 409
         from workflows_v2.client import start_run
         ctx = {"user_id": wh["user_id"], "org_id": wh["org_id"],
                "webhook_payload": request.get_json(silent=True) or {}}

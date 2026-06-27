@@ -8,7 +8,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useTheme } from 'next-themes';
-import { Loader2, Plus, Save, Trash2, FolderOpen, PlayCircle, X,
+import { Loader2, Plus, Save, Trash2, FolderOpen, PlayCircle, X, Pause, Play, Pencil, ChevronLeft, Workflow,
   Bot, Wrench, Braces, GitBranch, Split, Merge, Repeat, UserCheck, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,7 +60,21 @@ function FlowNode({ data, selected }: NodeProps<WFNode>) {
 
 const NODE_TYPES: NodeTypes = { flow: FlowNode };
 
-interface DefSummary { key: string; name: string; node_count: number; updated_at: string | null }
+interface DefSummary {
+  key: string; name: string; node_count: number; updated_at: string | null;
+  enabled: boolean; last_run_status: string | null; last_run_at: string | null; run_count: number;
+}
+
+function relTime(iso: string | null): string {
+  if (!iso) return '—';
+  const d = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(d / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
 interface RunRow { id: string; workflow_key: string; status: string; started_at: string | null }
 interface RunNode { node_id: string; node_type: string; status: string; output: unknown }
 
@@ -79,6 +93,7 @@ export default function WorkflowsV2Page() {
   const [selNode, setSelNode] = useState<string | null>(null);
   const [selEdge, setSelEdge] = useState<string | null>(null);
 
+  const [view, setView] = useState<'list' | 'builder'>('list');
   const [wfKey, setWfKey] = useState('');
   const [wfName, setWfName] = useState('');
   const [defs, setDefs] = useState<DefSummary[]>([]);
@@ -124,6 +139,31 @@ export default function WorkflowsV2Page() {
 
   const newGraph = () => {
     setNodes([]); setEdges([]); setWfKey(''); setWfName(''); setSelNode(null); setSelEdge(null); setMsg(null);
+  };
+
+  // ---- dashboard (list view) actions ----
+  const newDef = () => { newGraph(); setView('builder'); };
+  const editDef = async (key: string) => { await loadGraph(key); setView('builder'); };
+  const backToList = () => { setView('list'); setShowRuns(false); loadDefs(); };
+
+  const runDef = async (key: string) => {
+    const r = await fetch(`/api/registry/wf2/defs/${encodeURIComponent(key)}/run`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}),
+    });
+    const d = await r.json().catch(() => ({}));
+    setMsg(r.ok ? `Run started for ${key}` : `Run failed: ${d.error || r.status}`);
+    setTimeout(loadDefs, 1500);
+  };
+  const togglePause = async (key: string, enabled: boolean) => {
+    const r = await fetch(`/api/registry/wf2/defs/${encodeURIComponent(key)}/enabled`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: !enabled }),
+    });
+    if (r.ok) await loadDefs(); else setMsg('Failed to update');
+  };
+  const deleteDefByKey = async (key: string) => {
+    if (!confirm(`Delete workflow "${key}"? This cannot be undone.`)) return;
+    const r = await fetch(`/api/registry/wf2/defs/${encodeURIComponent(key)}`, { method: 'DELETE' });
+    if (r.ok) await loadDefs(); else setMsg('Delete failed');
   };
 
   const loadGraph = async (key: string) => {
@@ -176,11 +216,6 @@ export default function WorkflowsV2Page() {
     finally { setSaving(false); }
   };
 
-  const removeDef = async () => {
-    if (!wfKey) return;
-    const r = await fetch(`/api/registry/wf2/defs/${encodeURIComponent(wfKey)}`, { method: 'DELETE' });
-    if (r.ok) { newGraph(); await loadDefs(); }
-  };
 
   const runWorkflow = async () => {
     if (!wfKey) { setMsg('Save the workflow first'); return; }
@@ -230,24 +265,94 @@ export default function WorkflowsV2Page() {
   };
 
   const sel = nodes.find((n) => n.id === selNode);
+  const statusColor = (s: string | null) =>
+    s === 'completed' ? 'text-emerald-600 dark:text-emerald-400'
+      : s === 'failed' || s === 'error' ? 'text-destructive'
+      : s === 'running' ? 'text-amber-600' : 'text-muted-foreground';
 
+  // ===== Dashboard (list of all workflows) =====
+  if (view === 'list') {
+    return (
+      <div className="mx-auto w-full max-w-5xl p-6">
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-semibold"><Workflow className="h-6 w-6" /> Workflows</h1>
+            <p className="mt-1 text-sm text-muted-foreground">All node-graph workflows in your org — status, last run, and actions.</p>
+          </div>
+          {isAdmin && <Button size="sm" className="gap-1" onClick={newDef}><Plus className="h-4 w-4" /> New workflow</Button>}
+        </div>
+        {msg && <div className="mb-3 text-xs text-muted-foreground">{msg}</div>}
+        {defs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-muted-foreground">
+            <Workflow className="mb-2 h-8 w-8" />
+            <p>No workflows yet.</p>
+            {isAdmin && <Button size="sm" variant="outline" className="mt-3 gap-1" onClick={newDef}><Plus className="h-4 w-4" /> Create your first workflow</Button>}
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-xs text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-2 text-left font-medium">Name</th>
+                  <th className="px-3 py-2 text-left font-medium">Status</th>
+                  <th className="px-3 py-2 text-left font-medium">Nodes</th>
+                  <th className="px-3 py-2 text-left font-medium">Last run</th>
+                  <th className="px-3 py-2 text-left font-medium">Runs</th>
+                  <th className="px-3 py-2 text-right font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {defs.map((d) => (
+                  <tr key={d.key} className="border-t border-border/60 hover:bg-muted/20">
+                    <td className="px-4 py-2">
+                      <button className="text-left hover:underline" onClick={() => editDef(d.key)}>
+                        <div className="font-medium">{d.name}</div>
+                        <div className="font-mono text-[11px] text-muted-foreground">{d.key}</div>
+                      </button>
+                    </td>
+                    <td className="px-3 py-2">
+                      <Badge variant={d.enabled ? 'secondary' : 'outline'} className="text-[10px]">
+                        {d.enabled ? 'Active' : 'Paused'}
+                      </Badge>
+                    </td>
+                    <td className="px-3 py-2 text-muted-foreground">{d.node_count}</td>
+                    <td className="px-3 py-2">
+                      {d.last_run_at ? (
+                        <span className={`text-xs ${statusColor(d.last_run_status)}`}>
+                          {d.last_run_status} · {relTime(d.last_run_at)}
+                        </span>
+                      ) : <span className="text-xs text-muted-foreground">never</span>}
+                    </td>
+                    <td className="px-3 py-2 text-muted-foreground">{d.run_count}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center justify-end gap-1">
+                        {isAdmin && <Button size="sm" variant="ghost" className="h-7 gap-1" title="Run" onClick={() => runDef(d.key)} disabled={!d.enabled}><PlayCircle className="h-4 w-4" /></Button>}
+                        {isAdmin && <Button size="sm" variant="ghost" className="h-7 gap-1" title={d.enabled ? 'Pause' : 'Resume'} onClick={() => togglePause(d.key, d.enabled)}>{d.enabled ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}</Button>}
+                        <Button size="sm" variant="ghost" className="h-7 gap-1" title="Edit" onClick={() => editDef(d.key)}><Pencil className="h-4 w-4" /></Button>
+                        {isAdmin && <Button size="sm" variant="ghost" className="h-7 gap-1 text-destructive" title="Delete" onClick={() => deleteDefByKey(d.key)}><Trash2 className="h-4 w-4" /></Button>}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ===== Builder =====
   return (
     <div className="flex h-screen flex-col">
       {/* toolbar */}
       <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
-        <h1 className="mr-2 text-lg font-semibold">Flow Builder</h1>
+        <Button size="sm" variant="ghost" className="gap-1" onClick={backToList}><ChevronLeft className="h-4 w-4" /> Workflows</Button>
         <Input className="h-8 w-40" placeholder="workflow_key" value={wfKey} onChange={(e) => setWfKey(e.target.value)} disabled={!isAdmin} />
         <Input className="h-8 w-48" placeholder="Display name" value={wfName} onChange={(e) => setWfName(e.target.value)} disabled={!isAdmin} />
         {isAdmin && <Button size="sm" variant="outline" className="gap-1" onClick={save} disabled={saving || !nodes.length}>
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save
         </Button>}
-        <Button size="sm" variant="ghost" className="gap-1" onClick={newGraph}><Plus className="h-4 w-4" /> New</Button>
-        <select className="h-8 rounded-md border border-border bg-background px-2 text-sm" value={wfKey}
-          onChange={(e) => e.target.value && loadGraph(e.target.value)}>
-          <option value="">Open…</option>
-          {defs.map((d) => <option key={d.key} value={d.key}>{d.name} ({d.node_count})</option>)}
-        </select>
-        {isAdmin && wfKey && <Button size="sm" variant="ghost" className="gap-1 text-destructive" onClick={removeDef}><Trash2 className="h-4 w-4" /></Button>}
         {isAdmin && <Button size="sm" variant="default" className="gap-1" onClick={runWorkflow} disabled={!wfKey}><PlayCircle className="h-4 w-4" /> Run</Button>}
         <Button size="sm" variant="outline" className="gap-1" onClick={openRuns}><FolderOpen className="h-4 w-4" /> Runs</Button>
         {msg && <span className="text-xs text-muted-foreground">{msg}</span>}

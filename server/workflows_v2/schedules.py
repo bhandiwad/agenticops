@@ -77,6 +77,27 @@ def delete_schedule(key: str, org_id: str) -> dict:
         return {"ok": False, "error": str(e)[:200]}
 
 
+def set_paused(key: str, org_id: str, paused: bool) -> dict:
+    """Pause/unpause the def's Temporal schedule if one exists. Best-effort."""
+    if not os.getenv("TEMPORAL_ADDRESS"):
+        return {"ok": True, "note": "no temporal"}
+    sid = _sid(org_id, key)
+
+    async def _do():
+        client = await _connect()
+        handle = client.get_schedule_handle(sid)
+        if paused:
+            await handle.pause()
+        else:
+            await handle.unpause()
+
+    try:
+        asyncio.run(_do())
+        return {"ok": True}
+    except Exception as e:  # noqa: BLE001 - schedule may not exist
+        return {"ok": False, "error": str(e)[:120]}
+
+
 def trigger_now(key: str, org_id: str) -> dict:
     """Fire the schedule immediately (manual run / validation)."""
     if not os.getenv("TEMPORAL_ADDRESS"):

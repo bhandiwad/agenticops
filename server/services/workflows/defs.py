@@ -22,22 +22,55 @@ _KEY_OK = __import__("re").compile(r"^[a-z][a-z0-9_]{1,63}$")
 
 
 def list_defs(user_id: str, org_id: str) -> List[dict]:
+    """All defs for the org, enriched with last-run status/time + run count for the
+    dashboard."""
     with db_pool.get_connection() as conn:
         with conn.cursor() as cur:
             set_rls_context(cur, conn, user_id, log_prefix="[wf2:list_defs]")
             cur.execute(
-                "SELECT key, name, graph, enabled, updated_at FROM workflow_defs "
-                "WHERE org_id = %s ORDER BY updated_at DESC",
+                """SELECT d.key, d.name, d.graph, d.enabled, d.updated_at,
+                          lr.status, lr.started_at, COALESCE(rc.cnt, 0)
+                   FROM workflow_defs d
+                   LEFT JOIN LATERAL (
+                       SELECT status, started_at FROM workflow_runs r
+                       WHERE r.org_id = d.org_id AND r.workflow_key = d.key
+                       ORDER BY started_at DESC LIMIT 1
+                   ) lr ON true
+                   LEFT JOIN LATERAL (
+                       SELECT COUNT(*) cnt FROM workflow_runs r
+                       WHERE r.org_id = d.org_id AND r.workflow_key = d.key
+                   ) rc ON true
+                   WHERE d.org_id = %s
+                   ORDER BY d.updated_at DESC""",
                 (org_id,),
             )
             rows = cur.fetchall()
     out = []
     for r in rows:
         graph = r[2] if isinstance(r[2], dict) else (json.loads(r[2]) if r[2] else {})
-        out.append({"key": r[0], "name": r[1], "graph": graph, "enabled": r[3],
-                    "updated_at": r[4].isoformat() if r[4] else None,
-                    "node_count": len(graph.get("nodes", []))})
+        out.append({
+            "key": r[0], "name": r[1], "graph": graph, "enabled": r[3],
+            "updated_at": r[4].isoformat() if r[4] else None,
+            "node_count": len(graph.get("nodes", [])),
+            "last_run_status": r[5],
+            "last_run_at": r[6].isoformat() if r[6] else None,
+            "run_count": r[7],
+        })
     return out
+
+
+def set_enabled(user_id: str, org_id: str, key: str, enabled: bool) -> bool:
+    with db_pool.get_connection() as conn:
+        with conn.cursor() as cur:
+            set_rls_context(cur, conn, user_id, log_prefix="[wf2:set_enabled]")
+            cur.execute(
+                "UPDATE workflow_defs SET enabled = %s, updated_at = CURRENT_TIMESTAMP "
+                "WHERE org_id = %s AND key = %s",
+                (enabled, org_id, key),
+            )
+            updated = cur.rowcount > 0
+            conn.commit()
+    return updated
 
 
 def get_def(user_id: str, org_id: str, key: str) -> Optional[dict]:
