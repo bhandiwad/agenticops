@@ -52,6 +52,22 @@ def dispatch_node(state: State) -> dict:
             hash_for_log(getattr(state, "incident_id", "") or ""),
         )
 
+    # Fire the org's RCA-enrichment workflows alongside the investigator sub-agents
+    # (read-only; idempotent per incident, so safe across dispatch waves). Best-effort.
+    try:
+        uid = getattr(state, "user_id", None)
+        org = getattr(state, "org_id", None)
+        if uid and not org:
+            from utils.auth.stateless_auth import resolve_org_id
+            org = resolve_org_id(uid)
+        if uid and org:
+            from workflows_v2.client import dispatch_rca_enrichment
+            started = dispatch_rca_enrichment(uid, org, getattr(state, "incident_id", None))
+            if started:
+                logger.info("dispatch_node: started RCA-enrichment workflows %s", started)
+    except Exception:
+        logger.exception("dispatch_node: RCA-enrichment dispatch failed (non-fatal)")
+
     update: dict = {}
     try:
         synthetic_msg = _build_dispatch_aimessage(state)
