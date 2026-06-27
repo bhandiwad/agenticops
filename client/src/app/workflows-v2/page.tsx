@@ -44,7 +44,11 @@ function FlowNode({ data, selected }: NodeProps<WFNode>) {
       className={`rounded-lg border bg-card text-card-foreground shadow-sm transition-shadow ${selected ? 'ring-2 ring-primary' : 'hover:shadow-md'}`}
       style={{ borderLeft: `4px solid ${color}`, minWidth: 168 }}
     >
-      <Handle type="target" position={Position.Left} style={{ background: color, width: 8, height: 8 }} />
+      <Handle
+        type="target" position={Position.Left} isConnectable
+        title="Drop a connection here"
+        style={{ background: color, width: 14, height: 14, border: '2px solid #fff', left: -7, boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }}
+      />
       <div className="flex items-center gap-2 px-3 py-2">
         <Icon className="h-4 w-4 shrink-0" style={{ color }} />
         <div className="min-w-0">
@@ -53,7 +57,11 @@ function FlowNode({ data, selected }: NodeProps<WFNode>) {
           {data.ref ? <div className="truncate text-[10px] text-muted-foreground">{data.ref}</div> : null}
         </div>
       </div>
-      <Handle type="source" position={Position.Right} style={{ background: color, width: 8, height: 8 }} />
+      <Handle
+        type="source" position={Position.Right} isConnectable
+        title="Drag from here to connect"
+        style={{ background: color, width: 14, height: 14, border: '2px solid #fff', right: -7, boxShadow: '0 0 0 1px rgba(0,0,0,0.15)' }}
+      />
     </div>
   );
 }
@@ -393,6 +401,8 @@ export default function WorkflowsV2Page() {
             onNodeClick={(_, n) => { setSelNode(n.id); setSelEdge(null); }}
             onEdgeClick={(_, e) => { setSelEdge(e.id); setSelNode(null); }}
             defaultEdgeOptions={{ animated: true }}
+            connectionRadius={42}
+            connectionLineStyle={{ strokeWidth: 2 }}
             fitView fitViewOptions={{ padding: 0.2 }} minZoom={0.2}
             proOptions={{ hideAttribution: true }}
           >
