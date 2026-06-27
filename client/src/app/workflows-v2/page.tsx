@@ -1,13 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ReactFlow, Background, Controls, MiniMap, addEdge,
-  useNodesState, useEdgesState,
-  type Node, type Edge, type Connection,
+  ReactFlow, Background, BackgroundVariant, Controls, MiniMap, addEdge,
+  useNodesState, useEdgesState, Handle, Position,
+  type Node, type Edge, type Connection, type NodeProps, type NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Loader2, Plus, Save, Trash2, FolderOpen, PlayCircle, X } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { Loader2, Plus, Save, Trash2, FolderOpen, PlayCircle, X,
+  Bot, Wrench, Braces, GitBranch, Split, Merge, Repeat, UserCheck, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +22,44 @@ type WFEdge = Edge<{ port?: string; [k: string]: unknown }>;
 const PALETTE = ['agent', 'action', 'set', 'if', 'switch', 'merge', 'foreach', 'approval', 'wait_timer'];
 const NEEDS_REF = new Set(['agent', 'action']);
 
+// Per-type accent colour + icon for the custom node.
+const NODE_META: Record<string, { color: string; Icon: typeof Bot }> = {
+  agent: { color: '#3b82f6', Icon: Bot },
+  action: { color: '#8b5cf6', Icon: Wrench },
+  set: { color: '#64748b', Icon: Braces },
+  if: { color: '#f59e0b', Icon: GitBranch },
+  switch: { color: '#f59e0b', Icon: Split },
+  merge: { color: '#10b981', Icon: Merge },
+  foreach: { color: '#06b6d4', Icon: Repeat },
+  approval: { color: '#f43f5e', Icon: UserCheck },
+  form: { color: '#f43f5e', Icon: UserCheck },
+  wait_timer: { color: '#a855f7', Icon: Clock },
+};
+const nodeMeta = (t: string) => NODE_META[t] || { color: '#64748b', Icon: Braces };
+
+function FlowNode({ data, selected }: NodeProps<WFNode>) {
+  const { color, Icon } = nodeMeta(data.nodeType);
+  return (
+    <div
+      className={`rounded-lg border bg-card text-card-foreground shadow-sm transition-shadow ${selected ? 'ring-2 ring-primary' : 'hover:shadow-md'}`}
+      style={{ borderLeft: `4px solid ${color}`, minWidth: 168 }}
+    >
+      <Handle type="target" position={Position.Left} style={{ background: color, width: 8, height: 8 }} />
+      <div className="flex items-center gap-2 px-3 py-2">
+        <Icon className="h-4 w-4 shrink-0" style={{ color }} />
+        <div className="min-w-0">
+          <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color }}>{data.nodeType}</div>
+          <div className="truncate text-xs font-medium">{data.label || data.nodeType}</div>
+          {data.ref ? <div className="truncate text-[10px] text-muted-foreground">{data.ref}</div> : null}
+        </div>
+      </div>
+      <Handle type="source" position={Position.Right} style={{ background: color, width: 8, height: 8 }} />
+    </div>
+  );
+}
+
+const NODE_TYPES: NodeTypes = { flow: FlowNode };
+
 interface DefSummary { key: string; name: string; node_count: number; updated_at: string | null }
 interface RunRow { id: string; workflow_key: string; status: string; started_at: string | null }
 interface RunNode { node_id: string; node_type: string; status: string; output: unknown }
@@ -30,6 +70,9 @@ const nid = () => `n${Date.now().toString(36)}${(_id++).toString(36)}`;
 export default function WorkflowsV2Page() {
   const { user } = useUser();
   const isAdmin = user?.role === 'admin';
+  const { resolvedTheme } = useTheme();
+  const colorMode = resolvedTheme === 'dark' ? 'dark' : 'light';
+  const nodeTypes = useMemo(() => NODE_TYPES, []);
 
   const [nodes, setNodes, onNodesChange] = useNodesState<WFNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<WFEdge>([]);
@@ -63,7 +106,8 @@ export default function WorkflowsV2Page() {
     const id = nid();
     setNodes((nds) => nds.concat({
       id,
-      position: { x: 120 + (nds.length % 4) * 180, y: 80 + Math.floor(nds.length / 4) * 110 },
+      type: 'flow',
+      position: { x: 120 + (nds.length % 4) * 200, y: 80 + Math.floor(nds.length / 4) * 130 },
       data: { nodeType: type, ref: '', config: '{}', label: type },
     }));
   };
@@ -92,7 +136,8 @@ export default function WorkflowsV2Page() {
       setWfKey(d.key); setWfName(d.name ?? d.key);
       setNodes((g.nodes ?? []).map((gn: Record<string, unknown>, i: number): WFNode => ({
         id: String(gn.id),
-        position: (gn.position as { x: number; y: number }) ?? { x: 120 + (i % 4) * 180, y: 80 + Math.floor(i / 4) * 110 },
+        type: 'flow',
+        position: (gn.position as { x: number; y: number }) ?? { x: 120 + (i % 4) * 200, y: 80 + Math.floor(i / 4) * 130 },
         data: {
           nodeType: String(gn.type ?? 'set'),
           ref: String(gn.ref ?? ''),
@@ -246,14 +291,24 @@ export default function WorkflowsV2Page() {
         <div className="min-w-0 flex-1">
           <ReactFlow
             nodes={nodes} edges={edges}
+            nodeTypes={nodeTypes}
+            colorMode={colorMode}
             onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
             onNodeClick={(_, n) => { setSelNode(n.id); setSelEdge(null); }}
             onEdgeClick={(_, e) => { setSelEdge(e.id); setSelNode(null); }}
-            fitView proOptions={{ hideAttribution: true }}
+            defaultEdgeOptions={{ animated: true }}
+            fitView fitViewOptions={{ padding: 0.2 }} minZoom={0.2}
+            proOptions={{ hideAttribution: true }}
           >
-            <Background />
-            <Controls />
-            <MiniMap />
+            <Background variant={BackgroundVariant.Dots} gap={18} size={1} />
+            <Controls showInteractive={false} />
+            <MiniMap
+              pannable zoomable
+              nodeColor={(n) => nodeMeta(String((n.data as WFNodeData)?.nodeType || 'set')).color}
+              nodeStrokeWidth={2}
+              maskColor={colorMode === 'dark' ? 'rgba(0,0,0,0.5)' : 'rgba(240,240,240,0.6)'}
+              style={{ backgroundColor: colorMode === 'dark' ? '#1e1e2e' : '#ffffff' }}
+            />
           </ReactFlow>
         </div>
 
@@ -291,7 +346,11 @@ export default function WorkflowsV2Page() {
               </Button>}
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground">Select a node or edge to edit. Drag from a node handle to connect. {isAdmin ? '' : '(read-only — admin to edit)'}</p>
+            <p className="text-xs text-muted-foreground">
+              <strong>Click any node</strong> to edit its label, ref, and config — works for new graphs and ones you open/migrate.
+              Drag from a node&apos;s right handle to its neighbour&apos;s left handle to connect.
+              {isAdmin ? '' : ' (read-only — admin to edit)'}
+            </p>
           )}
         </div>
       </div>
