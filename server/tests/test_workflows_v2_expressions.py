@@ -1,6 +1,6 @@
 """Unit tests for the Workflow V2 expression resolver + topo sort (pure)."""
 
-from workflows_v2.expressions import resolve, topo_order
+from workflows_v2.expressions import resolve, topo_order, eval_condition, truthy
 
 
 def _scope():
@@ -45,6 +45,29 @@ def test_topo_order_linear():
     nodes = {"a1": {}, "s1": {}}
     edges = [{"source": "a1", "target": "s1"}]
     assert topo_order(nodes, edges) == ["a1", "s1"]
+
+
+def test_truthy_string_falsies():
+    assert truthy("hello") is True
+    for v in ("", "false", "0", "none", "null", "no", "  False  "):
+        assert truthy(v) is False
+    assert truthy([1]) is True and truthy([]) is False
+
+
+def test_eval_condition_equality():
+    assert eval_condition({"left": "summarizer_agent", "op": "==", "right": "summarizer_agent"}) is True
+    assert eval_condition({"left": "a", "op": "!=", "right": "b"}) is True
+
+
+def test_eval_condition_numeric_and_contains():
+    assert eval_condition({"left": "5", "op": ">", "right": "3"}) is True
+    assert eval_condition({"left": "3", "op": ">", "right": "5"}) is False
+    assert eval_condition({"left": "abcdef", "op": "contains", "right": "cde"}) is True
+
+
+def test_eval_condition_truthiness_fallback():
+    assert eval_condition({"condition": "yes"}) is True
+    assert eval_condition({"condition": ""}) is False
 
 
 def test_topo_order_diamond_is_deterministic():

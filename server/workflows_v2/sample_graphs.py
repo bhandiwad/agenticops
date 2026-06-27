@@ -24,3 +24,26 @@ SAMPLE_AGENT_TO_SET = {
 #   {"headline": "Summary: [PoC] summarizer_agent executed",
 #    "agent_ran": "summarizer_agent",
 #    "incident": "poc-demo"}
+
+
+# agent -> if -> (true: s_true | false: s_false) -> merge. Exercises branching:
+# the untaken branch must be skipped, and merge joins the taken branch.
+SAMPLE_BRANCHING = {
+    "key": "poc_branching",
+    "name": "PoC: if branching + merge",
+    "nodes": [
+        {"id": "a1", "type": "agent", "ref": "summarizer_agent", "config": {}},
+        {"id": "c1", "type": "if",
+         "config": {"left": "{{ $node.a1.output.agent }}", "op": "==", "right": "summarizer_agent"}},
+        {"id": "s_true", "type": "set", "config": {"branch": "taken-true"}},
+        {"id": "s_false", "type": "set", "config": {"branch": "taken-false"}},
+        {"id": "m1", "type": "merge", "config": {}},
+    ],
+    "edges": [
+        {"source": "a1", "target": "c1"},
+        {"source": "c1", "target": "s_true", "port": "true"},
+        {"source": "c1", "target": "s_false", "port": "false"},
+        {"source": "s_true", "target": "m1"},
+        {"source": "s_false", "target": "m1"},
+    ],
+}

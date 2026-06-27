@@ -1,10 +1,15 @@
 """The generic node-graph interpreter as a Temporal workflow.
 
-``WorkflowRunner`` takes a graph definition (data) and walks it deterministically:
-for each node it resolves config expressions against prior node outputs, then
-executes a typed activity and stores the result. Activities are referenced by
-*name* (string) so this module never imports the activity implementations into
-the workflow sandbox.
+``WorkflowRunner`` takes a graph definition (data) and walks it deterministically.
+Side-effecting nodes (agent/action/set) run as activities referenced by *name*
+(string), so this module never imports activity implementations into the workflow
+sandbox. Control-flow nodes (if/switch/merge/foreach) are evaluated inline because
+they are pure + deterministic.
+
+Branching model: a node executes only if it has an *active* incoming edge (roots
+are active). Normal nodes activate all outgoing edges; ``if``/``switch`` activate
+only the edge(s) whose ``port`` matches the decision, so untaken branches are
+skipped.
 """
 
 from __future__ import annotations
@@ -14,7 +19,7 @@ from datetime import timedelta
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
-    from workflows_v2.expressions import resolve, topo_order
+    from workflows_v2.expressions import resolve, topo_order, eval_condition
 
 # node type -> activity name registered on the worker
 _ACTIVITY_FOR = {
@@ -22,6 +27,8 @@ _ACTIVITY_FOR = {
     "action": "run_action",
     "set": "run_set",
 }
+# node types evaluated inline (pure, no activity)
+_INLINE = {"if", "switch", "merge", "foreach"}
 
 
 @workflow.defn(name="WorkflowRunner")
@@ -37,7 +44,25 @@ class WorkflowRunner:
         node_outputs: dict = {}
         scope = {"$node": node_outputs, "$context": context}
 
-        # Create a durable run record (RLS-scoped). Non-fatal if no DB context.
+        # Activation state for branching. Roots (no incoming edge) start active.
+        indeg = {nid: 0 for nid in nodes}
+        for e in edges:
+            if e.get("target") in indeg and e.get("source") in nodes:
+                indeg[e["target"]] += 1
+        node_active = {nid: (indeg[nid] == 0) for nid in nodes}
+        activated_edges: set = set()
+
+        def activate_outgoing(src: str, port=None) -> None:
+            for e in edges:
+                if e.get("source") != src:
+                    continue
+                ep = e.get("port")
+                take = (port is None) or (ep == port) or (ep == "*")
+                if take:
+                    activated_edges.add((src, e.get("target")))
+                    if e.get("target") in node_active:
+                        node_active[e["target"]] = True
+
         run_id = None
         try:
             created = await workflow.execute_activity(
@@ -53,16 +78,62 @@ class WorkflowRunner:
         for nid in topo_order(nodes, edges):
             node = nodes[nid]
             ntype = node.get("type")
-            activity_name = _ACTIVITY_FOR.get(ntype)
+
+            if not node_active.get(nid, False):
+                node_outputs[nid] = {"output": None, "status": "skipped"}
+                await self._persist(run_id, nid, ntype, "skipped", {}, None, context)
+                continue
+
             cfg = resolve(node.get("config", {}) or {}, scope)
 
+            # ---- inline control-flow / data nodes ----
+            if ntype == "if":
+                result = eval_condition(cfg)
+                node_outputs[nid] = {"output": {"result": result}, "status": "completed"}
+                activate_outgoing(nid, port=("true" if result else "false"))
+                await self._persist(run_id, nid, ntype, "completed", cfg, {"result": result}, context)
+                continue
+            if ntype == "switch":
+                value = cfg.get("value")
+                ports = {e.get("port") for e in edges if e.get("source") == nid}
+                chosen = str(value) if str(value) in ports else "default"
+                node_outputs[nid] = {"output": {"value": value, "port": chosen}, "status": "completed"}
+                activate_outgoing(nid, port=chosen)
+                await self._persist(run_id, nid, ntype, "completed", cfg, {"port": chosen}, context)
+                continue
+            if ntype == "merge":
+                merged = [node_outputs.get(s, {}).get("output")
+                          for (s, t) in activated_edges if t == nid]
+                out = {"merged": merged}
+                node_outputs[nid] = {"output": out, "status": "completed"}
+                activate_outgoing(nid)
+                await self._persist(run_id, nid, ntype, "completed", {}, out, context)
+                continue
+            if ntype == "foreach":
+                items = cfg.get("items") or []
+                if not isinstance(items, list):
+                    items = []
+                template = node.get("config", {}).get("template", {})
+                results = [
+                    resolve(template, {"$node": node_outputs, "$context": context,
+                                       "$item": item, "$index": i})
+                    for i, item in enumerate(items)
+                ]
+                out = {"count": len(results), "results": results}
+                node_outputs[nid] = {"output": out, "status": "completed"}
+                activate_outgoing(nid)
+                await self._persist(run_id, nid, ntype, "completed", {"count": len(results)}, out, context)
+                continue
+
+            # ---- activity-backed nodes (agent/action/set/...) ----
+            activity_name = _ACTIVITY_FOR.get(ntype)
             if not activity_name:
                 node_outputs[nid] = {"output": None, "status": "skipped",
                                      "note": f"no handler for type {ntype!r}"}
+                activate_outgoing(nid)
                 continue
 
             workflow.logger.info("WorkflowRunner: node %s (%s)", nid, ntype)
-            # Agent nodes can run for minutes (LLM + tools); give them headroom.
             default_timeout = 600 if ntype == "agent" else 120
             out = await workflow.execute_activity(
                 activity_name,
@@ -71,26 +142,27 @@ class WorkflowRunner:
                 start_to_close_timeout=timedelta(seconds=int(node.get("timeout_s", default_timeout))),
             )
             node_outputs[nid] = {"output": out, "status": "completed"}
-
-            # Mirror node IO to Postgres for the UI/history (RLS-scoped). Non-fatal.
-            try:
-                await workflow.execute_activity(
-                    "persist_node_run",
-                    {"run_id": run_id, "node_id": nid, "node_type": ntype,
-                     "status": "completed", "input": {"ref": node.get("ref", ""), "config": cfg},
-                     "output": out, "context": context},
-                    start_to_close_timeout=timedelta(seconds=15),
-                )
-            except Exception:  # noqa: BLE001 - persistence is non-fatal
-                workflow.logger.warning("persist_node_run failed for %s (non-fatal)", nid)
+            activate_outgoing(nid)
+            await self._persist(run_id, nid, ntype, "completed",
+                                {"ref": node.get("ref", ""), "config": cfg}, out, context)
 
         try:
             await workflow.execute_activity(
-                "finish_run",
-                {"run_id": run_id, "status": "completed", "context": context},
+                "finish_run", {"run_id": run_id, "status": "completed", "context": context},
                 start_to_close_timeout=timedelta(seconds=15),
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             workflow.logger.warning("finish_run failed (non-fatal)")
 
         return {"status": "completed", "run_id": run_id, "node_outputs": node_outputs}
+
+    async def _persist(self, run_id, node_id, node_type, status, input_, output, context) -> None:
+        try:
+            await workflow.execute_activity(
+                "persist_node_run",
+                {"run_id": run_id, "node_id": node_id, "node_type": node_type,
+                 "status": status, "input": input_, "output": output, "context": context},
+                start_to_close_timeout=timedelta(seconds=15),
+            )
+        except Exception:  # noqa: BLE001 - persistence is non-fatal
+            workflow.logger.warning("persist_node_run failed for %s (non-fatal)", node_id)

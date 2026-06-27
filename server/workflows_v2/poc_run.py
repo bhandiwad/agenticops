@@ -16,7 +16,7 @@ import uuid
 from temporalio.client import Client
 
 from workflows_v2.interpreter import WorkflowRunner
-from workflows_v2.sample_graphs import SAMPLE_AGENT_TO_SET
+from workflows_v2.sample_graphs import SAMPLE_AGENT_TO_SET, SAMPLE_BRANCHING
 
 
 async def main() -> int:
@@ -45,11 +45,14 @@ async def main() -> int:
     except Exception as e:
         print(f"(no DB context: {e}); persistence will be log-only")
 
+    graph_name = os.getenv("POC_GRAPH", "agent_to_set").strip().lower()
+    graph = SAMPLE_BRANCHING if graph_name == "branching" else SAMPLE_AGENT_TO_SET
+
     client = await Client.connect(addr, namespace=namespace)
     handle = await client.start_workflow(
         WorkflowRunner.run,
-        {"graph": SAMPLE_AGENT_TO_SET, "context": ctx},
-        id=f"poc-agent-to-set-{os.getpid()}",
+        {"graph": graph, "context": ctx},
+        id=f"poc-{graph_name}-{os.getpid()}",
         task_queue=task_queue,
     )
     print(f"started workflow id={handle.id}")
@@ -60,6 +63,17 @@ async def main() -> int:
     node_outputs = result.get("node_outputs", {})
     a1 = (node_outputs.get("a1", {}) or {}).get("output", {}) or {}
     s1 = (node_outputs.get("s1", {}) or {}).get("output", {}) or {}
+
+    if graph_name == "branching":
+        st = node_outputs.get("s_true", {}) or {}
+        sf = node_outputs.get("s_false", {}) or {}
+        m1 = (node_outputs.get("m1", {}) or {}).get("output", {}) or {}
+        print(f"s_true={st.get('status')} s_false={sf.get('status')} merge={node_outputs.get('m1',{}).get('status')}")
+        ok = (st.get("status") == "completed" and sf.get("status") == "skipped"
+              and (node_outputs.get("m1", {}) or {}).get("status") == "completed"
+              and m1.get("merged") == [{"branch": "taken-true"}])
+        print("BRANCHING_OK" if ok else "BRANCHING_FAILED")
+        return 0 if ok else 1
 
     if real_agent:
         # Real agent ran: output must be non-empty, completed, and NOT the stub.

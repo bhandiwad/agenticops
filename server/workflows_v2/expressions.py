@@ -52,6 +52,38 @@ def resolve(value: Any, scope: dict) -> Any:
     return value
 
 
+def truthy(value: Any) -> bool:
+    """Deterministic truthiness, treating common string falsies as False."""
+    if isinstance(value, str):
+        return value.strip().lower() not in ("", "false", "0", "none", "null", "no")
+    return bool(value)
+
+
+def eval_condition(cfg: dict) -> bool:
+    """Evaluate an if/switch condition from a *resolved* config dict.
+
+    Either a comparison ``{left, op, right}`` (op in ==, !=, contains, >, <, >=, <=)
+    or a single ``{condition: <value>}`` truthiness check. Pure + deterministic.
+    """
+    op = cfg.get("op")
+    if op:
+        left, right = cfg.get("left"), cfg.get("right")
+        if op == "==":
+            return str(left) == str(right)
+        if op == "!=":
+            return str(left) != str(right)
+        if op == "contains":
+            return str(right) in str(left or "")
+        if op in (">", "<", ">=", "<="):
+            try:
+                l, r = float(left), float(right)
+            except (TypeError, ValueError):
+                return False
+            return {">": l > r, "<": l < r, ">=": l >= r, "<=": l <= r}[op]
+        return False
+    return truthy(cfg.get("condition"))
+
+
 def topo_order(nodes: dict, edges: list) -> list:
     """Kahn topological sort over node ids. Deterministic (sorted frontier).
 
