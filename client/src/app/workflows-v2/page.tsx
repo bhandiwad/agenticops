@@ -409,7 +409,7 @@ export default function WorkflowsV2Page() {
     try {
       const r = await fetch(`/api/registry/wf2/defs/${encodeURIComponent(wfKey)}/run`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ real_agent: false }),
+        body: JSON.stringify({}),
       });
       const data = await r.json().catch(() => ({}));
       setMsg(r.ok ? `Run started (${(data.workflow_id || '').slice(0, 18)}…)` : `Run failed: ${data.error || r.status}`);

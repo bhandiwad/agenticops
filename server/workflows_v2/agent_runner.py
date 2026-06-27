@@ -43,7 +43,8 @@ def _last_assistant_message(user_id: str, session_id: str) -> str:
 
 
 def run_agent_node(user_id: str, ref: str, incident_id: Optional[str],
-                   context: dict, custom_roles: Optional[dict] = None) -> dict:
+                   context: dict, custom_roles: Optional[dict] = None,
+                   purpose: Optional[str] = None) -> dict:
     """Run a single agent synchronously and return its output. Never raises —
     returns a status dict so the interpreter can continue."""
     try:
@@ -70,11 +71,16 @@ def run_agent_node(user_id: str, ref: str, incident_id: Optional[str],
             user_id=user_id, title=f"wf-v2: {spec.agent_name}", trigger_metadata=meta,
         )
 
+        # Steer the agent with the node's Purpose (which tools to use / what to focus on).
+        prompt = spec.prompt
+        if purpose:
+            prompt = f"{prompt}\n\n---\nFocus for this step:\n{purpose}"
+
         # Run the agent to completion (same coroutine the Celery task runs).
         asyncio.run(_execute_background_chat(
             user_id=user_id,
             session_id=session_id,
-            initial_message=spec.prompt,
+            initial_message=prompt,
             trigger_metadata=meta,
             mode=spec.mode,
             send_notifications=False,

@@ -620,7 +620,7 @@ def wf2_run_def(user_id, key):
         from workflows_v2.client import start_run
         ctx = {"user_id": user_id, "org_id": org_id,
                "incident_id": body.get("incident_id"),
-               "real_agent": bool(body.get("real_agent"))}
+               "real_agent": bool(body.get("real_agent", True))}
         res = start_run(d["graph"], ctx)
         if not res.get("ok"):
             return jsonify({"error": res.get("error", "Failed to start run")}), 502

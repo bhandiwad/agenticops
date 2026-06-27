@@ -23,13 +23,14 @@ async def run_agent(payload: dict) -> dict:
     ref = payload.get("ref") or "agent"
     ctx = payload.get("context", {}) or {}
 
-    if ctx.get("real_agent") and ctx.get("user_id"):
+    if ctx.get("user_id") and ctx.get("real_agent", True):
         import asyncio
         from workflows_v2.agent_runner import run_agent_node
+        purpose = (payload.get("config") or {}).get("purpose")
         activity.logger.info("[run_agent REAL] %s", ref)
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
-            None, run_agent_node, ctx["user_id"], ref, ctx.get("incident_id"), ctx, None,
+            None, run_agent_node, ctx["user_id"], ref, ctx.get("incident_id"), ctx, None, purpose,
         )
 
     activity.logger.info("[run_agent stub] %s", ref)
