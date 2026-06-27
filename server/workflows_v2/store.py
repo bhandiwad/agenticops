@@ -16,6 +16,17 @@ from typing import Optional
 logger = logging.getLogger("workflows_v2.store")
 
 
+def _as_uuid_or_none(value) -> Optional[str]:
+    """Coerce to a UUID string, or None if it isn't one (the incident_id column is
+    UUID; node/run contexts may carry a non-UUID ref)."""
+    if not value:
+        return None
+    try:
+        return str(uuid.UUID(str(value)))
+    except (ValueError, AttributeError, TypeError):
+        return None
+
+
 def create_run(user_id: str, org_id: str, workflow_key: str,
                temporal_run_id: Optional[str] = None,
                incident_id: Optional[str] = None) -> Optional[str]:
@@ -29,7 +40,7 @@ def create_run(user_id: str, org_id: str, workflow_key: str,
                 cur.execute(
                     "INSERT INTO workflow_runs (id, org_id, user_id, workflow_key, temporal_run_id, status, incident_id) "
                     "VALUES (%s,%s,%s,%s,%s,'running',%s)",
-                    (run_id, org_id, user_id, workflow_key, temporal_run_id, incident_id),
+                    (run_id, org_id, user_id, workflow_key, temporal_run_id, _as_uuid_or_none(incident_id)),
                 )
                 conn.commit()
         return run_id

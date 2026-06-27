@@ -11,6 +11,7 @@ import asyncio
 import json
 import os
 import sys
+import uuid
 
 from temporalio.client import Client
 
@@ -29,7 +30,7 @@ async def main() -> int:
 
     # Resolve a real org/user so persistence (RLS) is exercised. Best-effort:
     # falls back to no DB context (log-only persistence) if the DB isn't reachable.
-    ctx = {"incident_id": "poc-demo"}
+    ctx = {"incident_id": str(uuid.uuid4())}
     try:
         from utils.db.connection_pool import db_pool
         with db_pool.get_connection() as conn:
