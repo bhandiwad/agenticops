@@ -176,7 +176,7 @@ function exportIncidentsCsv(rows: Incident[]) {
     'Started',
     'Resolved',
     'ServiceNow URL',
-    'InfinitAizen URL',
+    'Incident URL',
   ];
   const lines = rows.map(inc => {
     const snowUrl = inc.alert.metadata?.snow_url || '';
@@ -200,7 +200,7 @@ function exportIncidentsCsv(rows: Incident[]) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `infinitaizen-incidents-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `incidents-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }

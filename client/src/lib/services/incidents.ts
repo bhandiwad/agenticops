@@ -276,9 +276,8 @@ export interface Incident {
 // Service
 // ============================================================================
 
-const ALERT_TITLE_ALIASES: Record<string, string> = {
-  'aurora-ec2-instance-stopped': 'infinitAizen-ec2-instance-stopped',
-};
+// White-label deployments can map raw alert titles to display names here.
+const ALERT_TITLE_ALIASES: Record<string, string> = {};
 
 export function displayAlertTitle(title: string): string {
   return ALERT_TITLE_ALIASES[title] || title;

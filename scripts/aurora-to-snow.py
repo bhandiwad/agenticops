@@ -52,8 +52,8 @@ SEVERITY_TO_SNOW_PRIORITY = {
 }
 
 INSTANCE_ID_RE = re.compile(r"\bi-[0-9a-f]{8,17}\b", re.IGNORECASE)
-DEFAULT_BRAND_NAME = "InfinitAizen"
-DEFAULT_EC2_STOPPED_TITLE = "infinitAizen-ec2-instance-stopped"
+DEFAULT_BRAND_NAME = "Aurora"
+DEFAULT_EC2_STOPPED_TITLE = "aurora-ec2-instance-stopped"
 
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL, logging.INFO),
