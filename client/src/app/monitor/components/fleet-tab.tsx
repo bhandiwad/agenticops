@@ -65,13 +65,13 @@ function statusBadge(status: string) {
     running:     { bg: 'bg-blue-500/10',    text: 'text-blue-400',    dot: 'bg-blue-400',    label: 'Running' },
     analyzing:   { bg: 'bg-blue-500/10',    text: 'text-blue-400',    dot: 'bg-blue-400 animate-pulse', label: 'Analyzing' },
     summarizing: { bg: 'bg-blue-500/10',    text: 'text-blue-400',    dot: 'bg-blue-400 animate-pulse', label: 'Summarizing' },
-    pending:     { bg: 'bg-zinc-500/10',    text: 'text-zinc-400',    dot: 'bg-zinc-400',    label: 'Pending' },
+    pending:     { bg: 'bg-muted/10',    text: 'text-muted-foreground',    dot: 'bg-muted-foreground',    label: 'Pending' },
     complete:    { bg: 'bg-emerald-500/10',  text: 'text-emerald-400', dot: 'bg-emerald-400', label: 'Complete' },
     completed:   { bg: 'bg-emerald-500/10',  text: 'text-emerald-400', dot: 'bg-emerald-400', label: 'Complete' },
     analyzed:    { bg: 'bg-emerald-500/10',  text: 'text-emerald-400', dot: 'bg-emerald-400', label: 'Analyzed' },
     resolved:    { bg: 'bg-emerald-500/10',  text: 'text-emerald-400', dot: 'bg-emerald-400', label: 'Resolved' },
     error:       { bg: 'bg-red-500/10',      text: 'text-red-400',     dot: 'bg-red-400',     label: 'Error' },
-    idle:        { bg: 'bg-zinc-500/10',     text: 'text-zinc-400',    dot: 'bg-zinc-400',    label: 'Idle' },
+    idle:        { bg: 'bg-muted/10',     text: 'text-muted-foreground',    dot: 'bg-muted-foreground',    label: 'Idle' },
   };
   const s = map[status] || map.idle;
   return (
@@ -91,7 +91,7 @@ function severityBadge(severity: string | null) {
     low: 'bg-blue-500/15 text-blue-400 ring-blue-500/20',
   };
   return (
-    <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium ring-1 ${colors[severity] || 'bg-zinc-500/15 text-zinc-400 ring-zinc-500/20'}`}>
+    <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium ring-1 ${colors[severity] || 'bg-muted/15 text-muted-foreground ring-ring/20'}`}>
       {severity}
     </span>
   );
@@ -157,8 +157,8 @@ export default function FleetTab({ period }: { period: Period }) {
               onClick={() => setStatusFilter(f.value)}
               className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
                 statusFilter === f.value
-                  ? 'bg-zinc-700/80 text-zinc-100'
-                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/60'
+                  ? 'bg-muted/80 text-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
               }`}
             >
               {f.label}
@@ -211,46 +211,46 @@ function RunCard({ run, expanded, onToggle }: { run: FleetRun; expanded: boolean
 
   return (
     <div className={`rounded-lg border transition-all duration-200 ${
-      expanded ? 'border-zinc-700/60 bg-zinc-800/20' : 'border-zinc-800/50 hover:border-zinc-700/40 bg-zinc-900/30'
+      expanded ? 'border-border/60 bg-muted/20' : 'border-border/50 hover:border-border/40 bg-card/30'
     }`}>
       {/* Main row */}
       <button
         onClick={onToggle}
         className="w-full text-left px-4 py-3 flex items-start gap-3"
       >
-        <div className="mt-0.5 text-zinc-600 shrink-0">
+        <div className="mt-0.5 text-muted-foreground shrink-0">
           {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </div>
 
         <div className="flex-1 min-w-0">
           {/* Title row */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-zinc-200 truncate max-w-[400px]">
+            <span className="text-sm font-medium text-foreground truncate max-w-[400px]">
               {run.alert_title || run.alert_service || 'Untitled incident'}
             </span>
             {statusBadge(run.aurora_status)}
             {severityBadge(run.severity)}
             {(run.correlated_alert_count ?? 0) > 1 && (
-              <span className="text-[10px] text-zinc-500 font-medium px-1.5 py-0.5 bg-zinc-800/60 rounded">
+              <span className="text-[10px] text-muted-foreground font-medium px-1.5 py-0.5 bg-muted/60 rounded">
                 {run.correlated_alert_count} alerts
               </span>
             )}
           </div>
 
           {/* Meta line */}
-          <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500">
+          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
             <span>{run.source_type}</span>
             {run.alert_service && (
               <>
-                <span className="text-zinc-700">·</span>
-                <span className="text-zinc-400">{run.alert_service}</span>
+                <span className="text-muted-foreground">·</span>
+                <span className="text-muted-foreground">{run.alert_service}</span>
               </>
             )}
-            <span className="text-zinc-700">·</span>
+            <span className="text-muted-foreground">·</span>
             <span>{timeAgo(run.started_at)}</span>
             {run.duration_seconds != null && (
               <>
-                <span className="text-zinc-700">·</span>
+                <span className="text-muted-foreground">·</span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   {formatDuration(run.duration_seconds)}
@@ -259,7 +259,7 @@ function RunCard({ run, expanded, onToggle }: { run: FleetRun; expanded: boolean
             )}
             {run.suggestion_count > 0 && (
               <>
-                <span className="text-zinc-700">·</span>
+                <span className="text-muted-foreground">·</span>
                 <span className="flex items-center gap-1 text-amber-400/80">
                   <Lightbulb className="h-3 w-3" />
                   {fixes.length > 0 && `${fixes.length} fix${fixes.length !== 1 ? 'es' : ''}`}
@@ -272,7 +272,7 @@ function RunCard({ run, expanded, onToggle }: { run: FleetRun; expanded: boolean
 
           {/* Summary preview (collapsed) */}
           {!expanded && run.aurora_summary && trimSummary(run.aurora_summary) && (
-            <p className="text-xs text-zinc-500 mt-1.5 line-clamp-1 leading-relaxed">
+            <p className="text-xs text-muted-foreground mt-1.5 line-clamp-1 leading-relaxed">
               {trimSummary(run.aurora_summary)}
             </p>
           )}
@@ -284,12 +284,12 @@ function RunCard({ run, expanded, onToggle }: { run: FleetRun; expanded: boolean
         <div className="px-4 pb-4 pt-0 ml-7 space-y-3">
           {/* Resolution / Summary */}
           {run.aurora_summary && trimSummary(run.aurora_summary) && (
-            <div className="rounded-lg bg-zinc-900/60 border border-zinc-800/50 p-3">
+            <div className="rounded-lg bg-card/60 border border-border/50 p-3">
               <div className="flex items-center gap-1.5 mb-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500/70" />
-                <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Resolution Summary</span>
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Resolution Summary</span>
               </div>
-              <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
                 {trimSummary(run.aurora_summary)}
               </p>
             </div>
@@ -354,7 +354,7 @@ function ActivitySection({ incidentId }: { incidentId: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-zinc-500 text-xs py-2">
+      <div className="flex items-center gap-2 text-muted-foreground text-xs py-2">
         <Loader2 className="h-3 w-3 animate-spin" /> Loading activity...
       </div>
     );
@@ -366,18 +366,18 @@ function ActivitySection({ incidentId }: { incidentId: string }) {
   const display = toolEvents.length > 0 ? toolEvents.slice(-12) : events.slice(-8);
 
   return (
-    <div className="rounded-lg bg-zinc-900/60 border border-zinc-800/50 p-3">
+    <div className="rounded-lg bg-card/60 border border-border/50 p-3">
       <div className="flex items-center gap-1.5 mb-2">
         <Activity className="h-3.5 w-3.5 text-blue-400/70" />
-        <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
           Tool Activity
-          <span className="text-zinc-600 font-normal ml-1">({events.length} events)</span>
+          <span className="text-muted-foreground font-normal ml-1">({events.length} events)</span>
         </span>
       </div>
       <div className="space-y-1 max-h-48 overflow-y-auto">
         {display.map((evt, i) => (
           <div key={i} className="flex items-center gap-2.5 text-xs group">
-            <span className="text-zinc-600 w-14 shrink-0 text-right" style={{ fontVariantNumeric: 'tabular-nums' }}>
+            <span className="text-muted-foreground w-14 shrink-0 text-right" style={{ fontVariantNumeric: 'tabular-nums' }}>
               {evt.event_time
                 ? new Date(evt.event_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
                 : '—'}
@@ -385,11 +385,11 @@ function ActivitySection({ incidentId }: { incidentId: string }) {
             <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
               evt.status === 'error' ? 'bg-red-400'
               : evt.status === 'success' || evt.status === 'complete' ? 'bg-emerald-400'
-              : 'bg-zinc-500'
+              : 'bg-muted'
             }`} />
-            <span className="text-zinc-300 font-mono truncate">{evt.label}</span>
+            <span className="text-foreground font-mono truncate">{evt.label}</span>
             {evt.duration_ms != null && (
-              <span className="text-zinc-600 shrink-0">{evt.duration_ms}ms</span>
+              <span className="text-muted-foreground shrink-0">{evt.duration_ms}ms</span>
             )}
             {evt.error_message && (
               <span className="text-red-400/80 flex items-center gap-1 truncate">
@@ -410,18 +410,18 @@ function SuggestionBlock({ icon: Icon, iconColor, label, items }: {
   items: string[];
 }) {
   return (
-    <div className="rounded-lg bg-zinc-900/60 border border-zinc-800/50 p-3">
+    <div className="rounded-lg bg-card/60 border border-border/50 p-3">
       <div className="flex items-center gap-1.5 mb-2">
         <Icon className={`h-3.5 w-3.5 ${iconColor}`} />
-        <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
           {label}
-          <span className="text-zinc-600 font-normal ml-1">({items.length})</span>
+          <span className="text-muted-foreground font-normal ml-1">({items.length})</span>
         </span>
       </div>
       <div className="space-y-1">
         {items.map((title, i) => (
-          <div key={i} className="flex items-start gap-2 text-sm text-zinc-300">
-            <span className="text-zinc-600 mt-0.5">→</span>
+          <div key={i} className="flex items-start gap-2 text-sm text-foreground">
+            <span className="text-muted-foreground mt-0.5">→</span>
             <span>{title}</span>
           </div>
         ))}

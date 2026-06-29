@@ -106,15 +106,15 @@ const PERIODS: { label: string; value: Period }[] = [
 
 export function PeriodSelector({ value, onChange }: { value: Period; onChange: (p: Period) => void }) {
   return (
-    <div className="flex rounded-lg border border-zinc-800 overflow-hidden">
+    <div className="flex rounded-lg border border-border overflow-hidden">
       {PERIODS.map(p => (
         <button
           key={p.value}
           onClick={() => onChange(p.value)}
           className={`px-3 py-1 text-xs font-medium transition-all duration-200 ${
             value === p.value
-              ? 'bg-zinc-700/80 text-zinc-100'
-              : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/60'
+              ? 'bg-muted/80 text-foreground'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
           }`}
         >
           {p.label}
@@ -138,13 +138,13 @@ export function ChartPanel({
   className?: string;
 }) {
   return (
-    <div className={`bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-5 ${className ?? ''}`}>
+    <div className={`bg-card/60 border border-border/80 rounded-xl p-5 ${className ?? ''}`}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-medium text-zinc-300">{title}</h3>
-          {subtitle && <p className="text-xs text-zinc-500 mt-0.5">{subtitle}</p>}
+          <h3 className="text-sm font-medium text-foreground">{title}</h3>
+          {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
         </div>
-        {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-600" />}
+        {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
       </div>
       {children}
     </div>
@@ -164,15 +164,15 @@ export function StatCard({
   icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-4 hover:ring-1 hover:ring-white/5 transition-all duration-200">
+    <div className="bg-card/60 border border-border/80 rounded-xl p-4 hover:ring-1 hover:ring-white/5 transition-all duration-200">
       <div className="flex items-center gap-2 mb-2">
-        {Icon && <Icon className="h-3.5 w-3.5 text-zinc-500" />}
-        <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">{label}</span>
+        {Icon && <Icon className="h-3.5 w-3.5 text-muted-foreground" />}
+        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{label}</span>
       </div>
-      <p className="text-3xl font-semibold tracking-tight text-zinc-100" style={{ fontVariantNumeric: 'tabular-nums' }}>
+      <p className="text-3xl font-semibold tracking-tight text-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </p>
-      {sub && <p className="text-xs text-zinc-500 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
     </div>
   );
 }
@@ -184,17 +184,17 @@ export function StatCard({
 export function ChartSkeleton({ height = 280 }: { height?: number }) {
   return (
     <div className="animate-pulse" style={{ height }}>
-      <div className="bg-zinc-800/50 rounded-lg w-full h-full" />
+      <div className="bg-muted/50 rounded-lg w-full h-full" />
     </div>
   );
 }
 
 export function StatCardSkeleton() {
   return (
-    <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-4 animate-pulse">
-      <div className="h-3 w-20 bg-zinc-800/50 rounded mb-3" />
-      <div className="h-8 w-24 bg-zinc-800/50 rounded mb-2" />
-      <div className="h-3 w-16 bg-zinc-800/50 rounded" />
+    <div className="bg-card/60 border border-border/80 rounded-xl p-4 animate-pulse">
+      <div className="h-3 w-20 bg-muted/50 rounded mb-3" />
+      <div className="h-8 w-24 bg-muted/50 rounded mb-2" />
+      <div className="h-3 w-16 bg-muted/50 rounded" />
     </div>
   );
 }
@@ -212,9 +212,9 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      {Icon && <Icon className="h-8 w-8 text-zinc-700 mb-3" />}
-      <p className="text-sm text-zinc-500">{message}</p>
-      {hint && <p className="text-xs text-zinc-600 mt-1">{hint}</p>}
+      {Icon && <Icon className="h-8 w-8 text-muted-foreground mb-3" />}
+      <p className="text-sm text-muted-foreground">{message}</p>
+      {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
     </div>
   );
 }
@@ -232,17 +232,17 @@ function GrafanaTooltipContent({
   const entries = (payload as GrafanaTooltipEntry[]).filter(e => e.value !== undefined && e.value !== null);
   if (!entries.length) return null;
   return (
-    <div className="bg-zinc-950/95 backdrop-blur-sm border border-zinc-700/50 rounded-lg shadow-2xl px-3 py-2.5 pointer-events-none">
-      <p className="text-xs text-zinc-400 mb-1.5 font-medium">
+    <div className="bg-background/95 backdrop-blur-sm border border-border/50 rounded-lg shadow-2xl px-3 py-2.5 pointer-events-none">
+      <p className="text-xs text-muted-foreground mb-1.5 font-medium">
         {typeof label === 'string' && label.match(/^\d{4}-\d{2}/) ? formatDate(label) : label}
       </p>
       {entries.map((entry, i) => (
         <div key={i} className="flex items-center justify-between gap-6 text-xs leading-5">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-            <span className="text-zinc-400">{entry.name || entry.dataKey}</span>
+            <span className="text-muted-foreground">{entry.name || entry.dataKey}</span>
           </div>
-          <span className="text-zinc-200 font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>
+          <span className="text-foreground font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>
             {formatter ? formatter(entry.value, entry.dataKey) : autoFormatAxis(entry.value)}
           </span>
         </div>
@@ -259,7 +259,7 @@ function ZoomResetButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-md bg-zinc-800/90 border border-zinc-700/50 text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/90 transition-all duration-150"
+      className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-md bg-muted/90 border border-border/50 text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/90 transition-all duration-150"
     >
       <RotateCcw className="h-3 w-3" />
       Reset zoom
@@ -269,7 +269,7 @@ function ZoomResetButton({ onClick }: { onClick: () => void }) {
 
 function ZoomHint() {
   return (
-    <div className="absolute bottom-1 right-2 z-10 flex items-center gap-1 text-[10px] text-zinc-600 pointer-events-none select-none">
+    <div className="absolute bottom-1 right-2 z-10 flex items-center gap-1 text-[10px] text-muted-foreground pointer-events-none select-none">
       <ZoomIn className="h-3 w-3" />
       Drag to zoom
     </div>

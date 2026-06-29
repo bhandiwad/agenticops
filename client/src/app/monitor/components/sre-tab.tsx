@@ -159,8 +159,8 @@ export default function SreTab({ period }: { period: Period }) {
     return (
       <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-8 text-center">
         <AlertTriangle className="h-8 w-8 mx-auto text-red-400/80 mb-3" />
-        <p className="text-zinc-300 font-medium">Failed to load metrics</p>
-        <p className="text-zinc-500 text-sm mt-1">{summaryError.message}</p>
+        <p className="text-foreground font-medium">Failed to load metrics</p>
+        <p className="text-muted-foreground text-sm mt-1">{summaryError.message}</p>
       </div>
     );
   }
@@ -245,35 +245,35 @@ export default function SreTab({ period }: { period: Period }) {
       {/* MTTS detail table */}
       {mttsTableData.length > 0 && (
         <ChartPanel title="MTTS Detail by Severity" subtitle="Aurora solution time breakdown" loading={mttsLoading}>
-          <div className="overflow-x-auto rounded-lg border border-zinc-800/60">
+          <div className="overflow-x-auto rounded-lg border border-border/60">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800/60 bg-zinc-900/80">
-                  <th className="text-left px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Severity</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Analyzed</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Avg MTTS</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">p50</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">p95</th>
+                <tr className="border-b border-border/60 bg-card/80">
+                  <th className="text-left px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Severity</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Analyzed</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Avg MTTS</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">p50</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">p95</th>
                 </tr>
               </thead>
               <tbody>
                 {mttsTableData.map(s => (
-                  <tr key={s.severity} className="border-b border-zinc-800/40 hover:bg-zinc-800/20 transition-colors duration-150">
+                  <tr key={s.severity} className="border-b border-border/40 hover:bg-muted/20 transition-colors duration-150">
                     <td className="px-4 py-2.5">
                       <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
                         s.severity === 'critical' ? 'bg-red-500/15 text-red-400' :
                         s.severity === 'high' ? 'bg-orange-500/15 text-orange-400' :
                         s.severity === 'medium' ? 'bg-yellow-500/15 text-yellow-400' :
                         s.severity === 'low' ? 'bg-blue-500/15 text-blue-400' :
-                        'bg-zinc-500/15 text-zinc-400'
+                        'bg-muted/15 text-muted-foreground'
                       }`}>
                         {s.severity}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 text-right text-zinc-300 font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>{s.count}</td>
-                    <td className="px-4 py-2.5 text-right text-zinc-200 font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.avgMttsSeconds)}</td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.p50MttsSeconds)}</td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.p95MttsSeconds)}</td>
+                    <td className="px-4 py-2.5 text-right text-foreground font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>{s.count}</td>
+                    <td className="px-4 py-2.5 text-right text-foreground font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.avgMttsSeconds)}</td>
+                    <td className="px-4 py-2.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.p50MttsSeconds)}</td>
+                    <td className="px-4 py-2.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.p95MttsSeconds)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -303,39 +303,39 @@ export default function SreTab({ period }: { period: Period }) {
       {/* MTTR detail table (only if data exists) */}
       {mttrTableData.length > 0 && (
         <ChartPanel title="MTTR Detail by Severity" subtitle="Human resolution time breakdown" loading={mttrLoading}>
-          <div className="overflow-x-auto rounded-lg border border-zinc-800/60">
+          <div className="overflow-x-auto rounded-lg border border-border/60">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800/60 bg-zinc-900/80">
-                  <th className="text-left px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Severity</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Resolved</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Avg MTTR</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">p50</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">p95</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Detect → RCA</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">RCA → Resolve</th>
+                <tr className="border-b border-border/60 bg-card/80">
+                  <th className="text-left px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Severity</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Resolved</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Avg MTTR</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">p50</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">p95</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Detect → RCA</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">RCA → Resolve</th>
                 </tr>
               </thead>
               <tbody>
                 {mttrTableData.map(s => (
-                  <tr key={s.severity} className="border-b border-zinc-800/40 hover:bg-zinc-800/20 transition-colors duration-150">
+                  <tr key={s.severity} className="border-b border-border/40 hover:bg-muted/20 transition-colors duration-150">
                     <td className="px-4 py-2.5">
                       <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
                         s.severity === 'critical' ? 'bg-red-500/15 text-red-400' :
                         s.severity === 'high' ? 'bg-orange-500/15 text-orange-400' :
                         s.severity === 'medium' ? 'bg-yellow-500/15 text-yellow-400' :
                         s.severity === 'low' ? 'bg-blue-500/15 text-blue-400' :
-                        'bg-zinc-500/15 text-zinc-400'
+                        'bg-muted/15 text-muted-foreground'
                       }`}>
                         {s.severity}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 text-right text-zinc-300 font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>{s.count}</td>
-                    <td className="px-4 py-2.5 text-right text-zinc-200 font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.avgMttrSeconds)}</td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.p50MttrSeconds)}</td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.p95MttrSeconds)}</td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.avgDetectionToRcaSeconds)}</td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.avgRcaToResolveSeconds)}</td>
+                    <td className="px-4 py-2.5 text-right text-foreground font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>{s.count}</td>
+                    <td className="px-4 py-2.5 text-right text-foreground font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.avgMttrSeconds)}</td>
+                    <td className="px-4 py-2.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.p50MttrSeconds)}</td>
+                    <td className="px-4 py-2.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.p95MttrSeconds)}</td>
+                    <td className="px-4 py-2.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.avgDetectionToRcaSeconds)}</td>
+                    <td className="px-4 py-2.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatDuration(s.avgRcaToResolveSeconds)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -367,30 +367,30 @@ export default function SreTab({ period }: { period: Period }) {
         ) : (
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-zinc-800/40 rounded-lg p-3">
-                <p className="text-xs text-zinc-500 mb-1">Avg Steps / RCA</p>
-                <p className="text-xl font-semibold text-zinc-100" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              <div className="bg-muted/40 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground mb-1">Avg Steps / RCA</p>
+                <p className="text-xl font-semibold text-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>
                   {Number(agentExec.avgStepsPerRca ?? 0).toFixed(1)}
                 </p>
               </div>
-              <div className="bg-zinc-800/40 rounded-lg p-3">
-                <p className="text-xs text-zinc-500 mb-1">RCAs Completed</p>
-                <p className="text-xl font-semibold text-zinc-100" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              <div className="bg-muted/40 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground mb-1">RCAs Completed</p>
+                <p className="text-xl font-semibold text-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>
                   {agentExec.totalRcasCompleted}
                 </p>
               </div>
-              <div className="bg-zinc-800/40 rounded-lg p-3">
-                <p className="text-xs text-zinc-500 mb-1">Tools Used</p>
-                <p className="text-xl font-semibold text-zinc-100" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              <div className="bg-muted/40 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground mb-1">Tools Used</p>
+                <p className="text-xl font-semibold text-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>
                   {agentExec.toolStats?.length ?? 0}
                 </p>
               </div>
             </div>
             {(agentExec.toolStats?.length ?? 0) > 0 && (
-              <div className="overflow-hidden rounded-lg border border-zinc-800/60 max-h-48 overflow-y-auto">
+              <div className="overflow-hidden rounded-lg border border-border/60 max-h-48 overflow-y-auto">
                 <table className="w-full text-xs">
-                  <thead className="sticky top-0 bg-zinc-900">
-                    <tr className="border-b border-zinc-800/60 text-zinc-500 uppercase tracking-wider">
+                  <thead className="sticky top-0 bg-card">
+                    <tr className="border-b border-border/60 text-muted-foreground uppercase tracking-wider">
                       <th className="text-left px-3 py-2 font-medium">Tool</th>
                       <th className="text-right px-3 py-2 font-medium">Calls</th>
                       <th className="text-right px-3 py-2 font-medium">Incidents</th>
@@ -398,10 +398,10 @@ export default function SreTab({ period }: { period: Period }) {
                   </thead>
                   <tbody>
                     {[...(agentExec.toolStats ?? [])].sort((a, b) => b.totalCalls - a.totalCalls).slice(0, 10).map(t => (
-                      <tr key={t.toolName} className="border-b border-zinc-800/40 hover:bg-zinc-800/20 transition-colors">
-                        <td className="px-3 py-1.5 text-zinc-300 font-mono">{t.toolName}</td>
-                        <td className="px-3 py-1.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.totalCalls}</td>
-                        <td className="px-3 py-1.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.incidentsUsed}</td>
+                      <tr key={t.toolName} className="border-b border-border/40 hover:bg-muted/20 transition-colors">
+                        <td className="px-3 py-1.5 text-foreground font-mono">{t.toolName}</td>
+                        <td className="px-3 py-1.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.totalCalls}</td>
+                        <td className="px-3 py-1.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.incidentsUsed}</td>
                       </tr>
                     ))}
                   </tbody>

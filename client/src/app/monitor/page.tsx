@@ -30,14 +30,14 @@ export default function MonitorPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">Monitor</h1>
-          <p className="text-sm text-zinc-500 mt-1">Observability, cost tracking, and compliance</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Monitor</h1>
+          <p className="text-sm text-muted-foreground mt-1">Observability, cost tracking, and compliance</p>
         </div>
         <PeriodSelector value={period} onChange={setPeriod} />
       </div>
 
       {/* Tab bar */}
-      <div className="flex items-center gap-1 border-b border-zinc-800/80 mb-6">
+      <div className="flex items-center gap-1 border-b border-border/80 mb-6">
         {TABS.map(t => {
           const Icon = t.icon;
           const active = tab === t.id;
@@ -47,8 +47,8 @@ export default function MonitorPage() {
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-200 border-b-2 -mb-px ${
                 active
-                  ? 'border-zinc-100 text-zinc-100'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                  ? 'border-foreground text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
               }`}
             >
               <Icon className="h-3.5 w-3.5" />

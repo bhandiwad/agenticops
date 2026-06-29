@@ -136,15 +136,15 @@ function formatTooltipDate(dateStr: string): string {
 function DualAxisTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-zinc-700/60 bg-zinc-900/95 backdrop-blur-md px-3 py-2.5 shadow-xl">
-      <p className="text-[11px] text-zinc-500 mb-1.5">{formatTooltipDate(label)}</p>
+    <div className="rounded-lg border border-border/60 bg-card/95 backdrop-blur-md px-3 py-2.5 shadow-xl">
+      <p className="text-[11px] text-muted-foreground mb-1.5">{formatTooltipDate(label)}</p>
       {payload.map((p: any) => (
         <div key={p.dataKey} className="flex items-center justify-between gap-6 text-[12px]">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-            <span className="text-zinc-400">{p.name}</span>
+            <span className="text-muted-foreground">{p.name}</span>
           </span>
-          <span className="text-zinc-100 font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>
+          <span className="text-foreground font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>
             {formatCompact(p.value)}
           </span>
         </div>
@@ -205,7 +205,7 @@ function DualAxisTokenChart({ data, timeFormat }: { data: Array<{ date: string; 
       {zoomed && (
         <button
           onClick={handleReset}
-          className="absolute top-0 right-0 z-10 flex items-center gap-1 text-[11px] text-zinc-400 bg-zinc-800/80 border border-zinc-700/50 rounded-md px-2 py-1 hover:text-zinc-200 transition-colors"
+          className="absolute top-0 right-0 z-10 flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/80 border border-border/50 rounded-md px-2 py-1 hover:text-foreground transition-colors"
         >
           <RotateCcw className="h-3 w-3" /> Reset zoom
         </button>
@@ -296,7 +296,7 @@ function DualAxisTokenChart({ data, timeFormat }: { data: Array<{ date: string; 
         </AreaChart>
       </ResponsiveContainer>
       {!zoomed && (
-        <div className="flex items-center justify-end mt-1 text-[10px] text-zinc-600 gap-1">
+        <div className="flex items-center justify-end mt-1 text-[10px] text-muted-foreground gap-1">
           <ZoomIn className="h-3 w-3" /> Drag to zoom
         </div>
       )}
@@ -442,15 +442,15 @@ export default function UsageTab({ period }: { period: Period }) {
         {!sortedModels.length ? (
           <EmptyState icon={Cpu} message="No models used yet" />
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-zinc-800/60">
+          <div className="overflow-x-auto rounded-lg border border-border/60">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800/60 bg-zinc-900/80">
-                  <th className="text-left px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Model</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Requests</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Tokens</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Cost</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Share</th>
+                <tr className="border-b border-border/60 bg-card/80">
+                  <th className="text-left px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Model</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Requests</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Tokens</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Cost</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Share</th>
                 </tr>
               </thead>
               <tbody>
@@ -458,17 +458,17 @@ export default function UsageTab({ period }: { period: Period }) {
                   const totalCost = modelsData!.billing_summary.total_api_cost || 1;
                   const share = (m.total_cost / totalCost) * 100;
                   return (
-                    <tr key={m.model_name} className="border-b border-zinc-800/40 hover:bg-zinc-800/20 transition-colors duration-150">
-                      <td className="px-4 py-2.5 text-zinc-200 font-mono text-xs">{shortModelName(m.model_name)}</td>
-                      <td className="px-4 py-2.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{m.usage_count.toLocaleString()}</td>
-                      <td className="px-4 py-2.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatCompact(m.total_tokens)}</td>
-                      <td className="px-4 py-2.5 text-right text-zinc-200 font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatCost(m.total_cost)}</td>
+                    <tr key={m.model_name} className="border-b border-border/40 hover:bg-muted/20 transition-colors duration-150">
+                      <td className="px-4 py-2.5 text-foreground font-mono text-xs">{shortModelName(m.model_name)}</td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{m.usage_count.toLocaleString()}</td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatCompact(m.total_tokens)}</td>
+                      <td className="px-4 py-2.5 text-right text-foreground font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatCost(m.total_cost)}</td>
                       <td className="px-4 py-2.5 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <div className="w-16 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                          <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
                             <div className="h-full rounded-full bg-blue-500/60" style={{ width: `${Math.min(share, 100)}%` }} />
                           </div>
-                          <span className="text-xs text-zinc-500 w-10 text-right" style={{ fontVariantNumeric: 'tabular-nums' }}>{share.toFixed(1)}%</span>
+                          <span className="text-xs text-muted-foreground w-10 text-right" style={{ fontVariantNumeric: 'tabular-nums' }}>{share.toFixed(1)}%</span>
                         </div>
                       </td>
                     </tr>

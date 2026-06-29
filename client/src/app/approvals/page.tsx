@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Loader2, ShieldCheck, ShieldAlert, Check, X, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,25 @@ interface Approval {
   incident_id: string | null;
   requested_by: string | null;
   decided_by: string | null;
+  decided_at?: string | null;
   reason: string | null;
   created_at: string | null;
+}
+
+const FILTERS = [
+  { key: 'pending', label: 'Pending' },
+  { key: 'approved', label: 'Approved' },
+  { key: 'rejected', label: 'Rejected' },
+  { key: 'all', label: 'All' },
+] as const;
+type FilterKey = (typeof FILTERS)[number]['key'];
+
+function StatusBadge({ status }: { status: string }) {
+  if (status === 'approved')
+    return <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400"><Check className="h-3 w-3" /> approved</span>;
+  if (status === 'rejected')
+    return <span className="inline-flex items-center gap-1 text-xs text-destructive"><X className="h-3 w-3" /> rejected</span>;
+  return <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Clock className="h-3 w-3" /> pending</span>;
 }
 
 export default function ApprovalsPage() {
@@ -26,25 +43,28 @@ export default function ApprovalsPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [reasons, setReasons] = useState<Record<string, string>>({});
+  const [filter, setFilter] = useState<FilterKey>('pending');
   const { user } = useUser();
   const canDecide = user?.role === 'admin' || user?.role === 'editor';
 
-  const load = async () => {
+  const load = useCallback(async (f: FilterKey) => {
+    setLoading(true);
     try {
-      const res = await fetch('/api/approvals?status=pending');
+      const res = await fetch(`/api/approvals?status=${f}`);
       if (!res.ok) throw new Error(`Failed to load approvals (${res.status})`);
       const data = await res.json();
       setApprovals(data.approvals ?? []);
+      setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load approvals');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    load();
-  }, []);
+    load(filter);
+  }, [filter, load]);
 
   const decide = async (id: string, decision: 'approved' | 'rejected') => {
     setBusy((b) => ({ ...b, [id]: true }));
@@ -55,7 +75,7 @@ export default function ApprovalsPage() {
         body: JSON.stringify({ decision, reason: reasons[id] ?? '' }),
       });
       if (!res.ok) throw new Error(`Decision failed (${res.status})`);
-      setApprovals((prev) => prev.filter((a) => a.id !== id));
+      await load(filter);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to record decision');
     } finally {
@@ -63,26 +83,30 @@ export default function ApprovalsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2 text-muted-foreground">Loading approvals...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto w-full max-w-4xl p-6">
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="flex items-center gap-2 text-2xl font-semibold">
           <ShieldCheck className="h-6 w-6" /> Approvals
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Write/destructive tool actions requested by autonomous (background) agent runs are paused
-          here for human approval. Approving records the decision; rejecting leaves the action
-          blocked.
+          Write/destructive actions from autonomous agent runs and workflows pause here for human
+          approval. This is the full history — filter by status below.
         </p>
+      </div>
+
+      <div className="mb-4 flex gap-1">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`rounded-md border px-3 py-1 text-xs font-medium transition-colors ${
+              filter === f.key ? 'border-primary bg-primary/10 text-foreground' : 'border-border text-muted-foreground hover:bg-muted'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       {error && (
@@ -91,10 +115,14 @@ export default function ApprovalsPage() {
         </div>
       )}
 
-      {approvals.length === 0 ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-16 text-muted-foreground">
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading…
+        </div>
+      ) : approvals.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-muted-foreground">
           <ShieldCheck className="mb-2 h-8 w-8" />
-          <p>No pending approvals.</p>
+          <p>No {filter === 'all' ? '' : filter} approvals.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -106,20 +134,20 @@ export default function ApprovalsPage() {
                     <Badge variant="secondary" className="font-mono text-[11px] font-normal">
                       {a.tool_name}
                     </Badge>
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" /> pending
-                    </span>
+                    <StatusBadge status={a.status} />
                   </div>
                   {a.summary && <p className="mt-2 text-sm">{a.summary}</p>}
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                     {a.incident_id && <span>incident: {a.incident_id}</span>}
                     {a.requested_by && <span>requested by: {a.requested_by}</span>}
                     {a.created_at && <span>{new Date(a.created_at).toLocaleString()}</span>}
+                    {a.status !== 'pending' && a.decided_by && <span>decided by: {a.decided_by}</span>}
+                    {a.status !== 'pending' && a.reason && <span>reason: {a.reason}</span>}
                   </div>
                 </div>
               </div>
 
-              {canDecide ? (
+              {a.status === 'pending' && (canDecide ? (
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Input
                     placeholder="Reason (optional)"
@@ -150,7 +178,7 @@ export default function ApprovalsPage() {
                 <p className="mt-3 text-xs text-muted-foreground">
                   You need Editor or Admin to approve or reject.
                 </p>
-              )}
+              ))}
             </div>
           ))}
         </div>

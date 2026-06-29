@@ -92,10 +92,10 @@ export default function WaterfallTab({ period }: { period: Period }) {
               const color = CHART_COLORS[i % CHART_COLORS.length];
               return (
                 <div key={t.tool_name} className="group flex items-center gap-3">
-                  <span className="text-xs text-zinc-400 font-mono w-40 truncate shrink-0 text-right" title={t.tool_name}>
+                  <span className="text-xs text-muted-foreground font-mono w-40 truncate shrink-0 text-right" title={t.tool_name}>
                     {t.tool_name}
                   </span>
-                  <div className="flex-1 h-6 bg-zinc-800/40 rounded overflow-hidden relative">
+                  <div className="flex-1 h-6 bg-muted/40 rounded overflow-hidden relative">
                     <div
                       className="h-full rounded transition-all duration-500 ease-out"
                       style={{
@@ -104,7 +104,7 @@ export default function WaterfallTab({ period }: { period: Period }) {
                       }}
                     />
                   </div>
-                  <span className="text-xs text-zinc-400 w-12 text-right shrink-0" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  <span className="text-xs text-muted-foreground w-12 text-right shrink-0" style={{ fontVariantNumeric: 'tabular-nums' }}>
                     {t.call_count}
                   </span>
                 </div>
@@ -121,36 +121,36 @@ export default function WaterfallTab({ period }: { period: Period }) {
         ) : !sortedTools.length ? (
           <EmptyState icon={Wrench} message="No tool performance data" />
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-zinc-800/60">
+          <div className="overflow-x-auto rounded-lg border border-border/60">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800/60 bg-zinc-900/80">
-                  <th className="text-left px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Tool</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Calls</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Incidents</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Avg Duration</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">p95</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Success Rate</th>
-                  <th className="text-right px-4 py-2.5 text-zinc-500 text-xs uppercase tracking-wider font-medium">Errors</th>
+                <tr className="border-b border-border/60 bg-card/80">
+                  <th className="text-left px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Tool</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Calls</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Incidents</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Avg Duration</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">p95</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Success Rate</th>
+                  <th className="text-right px-4 py-2.5 text-muted-foreground text-xs uppercase tracking-wider font-medium">Errors</th>
                 </tr>
               </thead>
               <tbody>
                 {sortedTools.map(t => (
-                  <tr key={t.tool_name} className="border-b border-zinc-800/40 hover:bg-zinc-800/20 transition-colors duration-150">
-                    <td className="px-4 py-2.5 text-zinc-200 font-mono text-xs">{t.tool_name}</td>
-                    <td className="px-4 py-2.5 text-right text-zinc-300 font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.call_count}</td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.incident_count}</td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.avg_duration_ms != null ? `${Math.round(t.avg_duration_ms)}ms` : '—'}</td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.p95_duration_ms != null ? `${Math.round(t.p95_duration_ms)}ms` : '—'}</td>
+                  <tr key={t.tool_name} className="border-b border-border/40 hover:bg-muted/20 transition-colors duration-150">
+                    <td className="px-4 py-2.5 text-foreground font-mono text-xs">{t.tool_name}</td>
+                    <td className="px-4 py-2.5 text-right text-foreground font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.call_count}</td>
+                    <td className="px-4 py-2.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.incident_count}</td>
+                    <td className="px-4 py-2.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.avg_duration_ms != null ? `${Math.round(t.avg_duration_ms)}ms` : '—'}</td>
+                    <td className="px-4 py-2.5 text-right text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.p95_duration_ms != null ? `${Math.round(t.p95_duration_ms)}ms` : '—'}</td>
                     <td className="px-4 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <div className="w-14 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                        <div className="w-14 h-1.5 rounded-full bg-muted overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all duration-300 ${t.success_rate >= 95 ? 'bg-emerald-500/70' : t.success_rate >= 80 ? 'bg-yellow-500/70' : 'bg-red-500/70'}`}
                             style={{ width: `${Math.min(t.success_rate, 100)}%` }}
                           />
                         </div>
-                        <span className="text-xs text-zinc-300 w-12 text-right" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.success_rate}%</span>
+                        <span className="text-xs text-foreground w-12 text-right" style={{ fontVariantNumeric: 'tabular-nums' }}>{t.success_rate}%</span>
                       </div>
                     </td>
                     <td className="px-4 py-2.5 text-right">
@@ -159,7 +159,7 @@ export default function WaterfallTab({ period }: { period: Period }) {
                           <XCircle className="h-3 w-3" /> {t.error_count}
                         </span>
                       ) : (
-                        <span className="text-zinc-600 text-xs">0</span>
+                        <span className="text-muted-foreground text-xs">0</span>
                       )}
                     </td>
                   </tr>

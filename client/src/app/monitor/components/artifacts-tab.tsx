@@ -52,16 +52,16 @@ function VersionContent({ loading, version }: Readonly<{
 }>) {
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-4 text-zinc-500">
+      <div className="flex items-center justify-center py-4 text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" />
       </div>
     );
   }
   if (version == null) {
-    return <p className="text-xs text-zinc-500">Couldn&apos;t load this version&apos;s content.</p>;
+    return <p className="text-xs text-muted-foreground">Couldn&apos;t load this version&apos;s content.</p>;
   }
   if (version.content.trim() === '') {
-    return <p className="text-xs text-zinc-500 italic">This version is empty.</p>;
+    return <p className="text-xs text-muted-foreground italic">This version is empty.</p>;
   }
   return <ArtifactMarkdown content={version.content} />;
 }
@@ -138,7 +138,7 @@ export default function ArtifactsTab() {
       <div className="flex justify-end mb-4">
         <button
           onClick={() => setCreating(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-zinc-200 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-foreground bg-muted hover:bg-muted border border-border transition-colors"
         >
           <Plus className="h-3.5 w-3.5" />
           New artifact
@@ -158,20 +158,20 @@ export default function ArtifactsTab() {
           {artifacts.map((a) => (
             <div
               key={a.id}
-              className="group flex items-center justify-between border border-zinc-800 rounded-lg px-4 py-3 hover:border-zinc-700 hover:bg-zinc-800/20 transition-colors"
+              className="group flex items-center justify-between border border-border rounded-lg px-4 py-3 hover:border-border hover:bg-muted/20 transition-colors"
             >
               <button
                 onClick={() => setSelectedId(a.id)}
                 className="flex-1 min-w-0 text-left"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-zinc-200 truncate">{a.title}</span>
+                  <span className="text-sm font-medium text-foreground truncate">{a.title}</span>
                   <EditorBadge who={a.lastEditedBy} />
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-700/60 text-[10px] font-mono text-zinc-300">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-muted/60 text-[10px] font-mono text-foreground">
                     v{a.version}
                   </span>
                 </div>
-                <p className="text-xs text-zinc-500 mt-1">Updated {a.updatedAt ? formatTimeAgo(a.updatedAt) : '—'}</p>
+                <p className="text-xs text-muted-foreground mt-1">Updated {a.updatedAt ? formatTimeAgo(a.updatedAt) : '—'}</p>
               </button>
 
               <div className="flex items-center gap-1.5 shrink-0 ml-3">
@@ -187,7 +187,7 @@ export default function ArtifactsTab() {
                     </button>
                     <button
                       onClick={() => setConfirmingId(null)}
-                      className="inline-flex items-center px-2 py-1 rounded text-[11px] text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                      className="inline-flex items-center px-2 py-1 rounded text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                     >
                       Cancel
                     </button>
@@ -196,7 +196,7 @@ export default function ArtifactsTab() {
                   <button
                     onClick={() => setConfirmingId(a.id)}
                     aria-label={`Delete ${a.title}`}
-                    className="p-1.5 rounded text-zinc-600 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
+                    className="p-1.5 rounded text-muted-foreground hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -249,7 +249,7 @@ function ArtifactCreate({ existingTitles, onBack, onCreated }: Readonly<{
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back
@@ -270,13 +270,13 @@ function ArtifactCreate({ existingTitles, onBack, onCreated }: Readonly<{
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Artifact title"
         aria-label="Artifact title"
-        className="w-full mb-3 px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+        className="w-full mb-3 px-3 py-2 rounded-lg bg-card border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-border"
       />
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="Document content in markdown..."
-        className="w-full h-96 px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-700 text-sm text-zinc-300 font-mono focus:outline-none focus:border-zinc-500 resize-y"
+        className="w-full h-96 px-4 py-3 rounded-lg bg-card border border-border text-sm text-foreground font-mono focus:outline-none focus:border-border resize-y"
       />
       {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
     </ChartPanel>
@@ -387,7 +387,7 @@ function ArtifactDetail({ id, onBack, onDeleted }: Readonly<{
     <button
       onClick={() => setMode(m)}
       className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
-        mode === m ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'
+        mode === m ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
       }`}
     >
       <Icon className="h-3 w-3" />
@@ -400,13 +400,13 @@ function ArtifactDetail({ id, onBack, onDeleted }: Readonly<{
       <div className="flex items-center mb-4 gap-3">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-200 transition-colors shrink-0"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back
         </button>
 
-        <div className="flex items-center gap-1 bg-zinc-800/40 rounded-lg p-0.5 ml-auto">
+        <div className="flex items-center gap-1 bg-muted/40 rounded-lg p-0.5 ml-auto">
           {segBtn('view', 'View', Eye)}
           {segBtn('edit', 'Edit', Edit2)}
           {segBtn('history', 'History', History)}
@@ -425,7 +425,7 @@ function ArtifactDetail({ id, onBack, onDeleted }: Readonly<{
               </button>
               <button
                 onClick={() => setConfirmingDelete(false)}
-                className="inline-flex items-center px-2 py-1 rounded text-[11px] text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                className="inline-flex items-center px-2 py-1 rounded text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 Cancel
               </button>
@@ -434,7 +434,7 @@ function ArtifactDetail({ id, onBack, onDeleted }: Readonly<{
             <button
               onClick={() => setConfirmingDelete(true)}
               aria-label="Delete artifact"
-              className="p-1.5 rounded text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              className="p-1.5 rounded text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
@@ -457,7 +457,7 @@ function ArtifactDetail({ id, onBack, onDeleted }: Readonly<{
           <textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
-            className="w-full h-96 px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-700 text-sm text-zinc-300 font-mono focus:outline-none focus:border-zinc-500 resize-y"
+            className="w-full h-96 px-4 py-3 rounded-lg bg-card border border-border text-sm text-foreground font-mono focus:outline-none focus:border-border resize-y"
             placeholder="Document content in markdown..."
           />
           <div className="flex items-center gap-2 mt-3">
@@ -471,7 +471,7 @@ function ArtifactDetail({ id, onBack, onDeleted }: Readonly<{
             </button>
             <button
               onClick={() => { setEditContent(artifact.content); setMode('view'); }}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <X className="h-3 w-3" />
               Cancel
@@ -483,11 +483,11 @@ function ArtifactDetail({ id, onBack, onDeleted }: Readonly<{
       {artifact && mode === 'history' && (
         <div>
           {loadingVersions ? (
-            <div className="flex items-center justify-center py-8 text-zinc-500">
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
             </div>
           ) : versions.length === 0 ? (
-            <p className="text-xs text-zinc-500 py-4">
+            <p className="text-xs text-muted-foreground py-4">
               {versionsError ? "Couldn't load version history." : 'No version history available.'}
             </p>
           ) : (
@@ -497,7 +497,7 @@ function ArtifactDetail({ id, onBack, onDeleted }: Readonly<{
                 return (
                   <div
                     key={v.id}
-                    className="rounded-md bg-zinc-800/40 border border-zinc-800 hover:border-zinc-700 transition-colors overflow-hidden"
+                    className="rounded-md bg-muted/40 border border-border hover:border-border transition-colors overflow-hidden"
                   >
                     <div className="flex items-center justify-between py-2 px-3 gap-2">
                       <button
@@ -506,15 +506,15 @@ function ArtifactDetail({ id, onBack, onDeleted }: Readonly<{
                         className="flex items-center gap-2.5 min-w-0 flex-1 text-left"
                       >
                         <ChevronRight
-                          className={`h-3.5 w-3.5 text-zinc-500 shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                          className={`h-3.5 w-3.5 text-muted-foreground shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
                         />
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-700/60 text-[10px] font-mono text-zinc-300">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-muted/60 text-[10px] font-mono text-foreground">
                           v{v.versionNumber}
                         </span>
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-700/40 text-[10px] text-zinc-400 capitalize">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-muted/40 text-[10px] text-muted-foreground capitalize">
                           {v.source}
                         </span>
-                        <span className="text-[10px] text-zinc-500">
+                        <span className="text-[10px] text-muted-foreground">
                           {v.createdAt
                             ? new Date(v.createdAt).toLocaleString(undefined, {
                                 month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -537,7 +537,7 @@ function ArtifactDetail({ id, onBack, onDeleted }: Readonly<{
                       )}
                     </div>
                     {isExpanded && (
-                      <div className="border-t border-zinc-800 px-4 py-3">
+                      <div className="border-t border-border px-4 py-3">
                         <VersionContent loading={loadingVersionContent} version={expandedVersion} />
                       </div>
                     )}
