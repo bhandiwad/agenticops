@@ -2783,6 +2783,30 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
             except Exception as e:  # noqa: BLE001
                 return json.dumps({"ok": False, "error": str(e)[:200]})
 
+        def get_operations_stats(period: str = "30d") -> str:
+            """Operational throughput for the org over a period (7d/30d/90d/180d/365d): workflow runs (total, success rate, failed, top workflows), action runs, agent runs, and pending human approvals. Use to answer questions like 'how many workflows failed this week' or 'what's pending approval'."""
+            import json
+            _uid, _org, _ = _wf_ids()
+            if not _uid:
+                return "error: no user context"
+            try:
+                from services.metrics.ops_stats import ops_summary
+                return json.dumps(ops_summary(_uid, period))
+            except Exception as e:  # noqa: BLE001
+                return json.dumps({"error": str(e)[:200]})
+
+        def get_incident_stats(period: str = "30d") -> str:
+            """Incident metrics for the org over a period (7d/30d/90d/180d/365d): total/active/resolved/analyzed counts, average MTTD/MTTA/MTTR in seconds, and top services by incident count. Use to answer questions like 'what's our MTTR' or 'which service has the most incidents'."""
+            import json
+            _uid, _org, _ = _wf_ids()
+            if not _uid:
+                return "error: no user context"
+            try:
+                from services.metrics.ops_stats import incident_summary
+                return json.dumps(incident_summary(_uid, period))
+            except Exception as e:  # noqa: BLE001
+                return json.dumps({"error": str(e)[:200]})
+
         tools.append(_ST.from_function(func=list_workflows, name="list_workflows",
             description="List automation workflows available to run (with whether each is RCA-safe enrichment)."))
         tools.append(_ST.from_function(func=run_workflow, name="run_workflow",
@@ -2791,6 +2815,10 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
             description="List one-click Quick Actions (id, name)."))
         tools.append(_ST.from_function(func=run_quick_action, name="run_quick_action",
             description="Run a Quick Action by id or name, e.g. 'Generate Incident Summary'."))
+        tools.append(_ST.from_function(func=get_operations_stats, name="get_operations_stats",
+            description="Get operational stats (workflow/action/agent runs + pending approvals) for a period. Read-only."))
+        tools.append(_ST.from_function(func=get_incident_stats, name="get_incident_stats",
+            description="Get incident metrics (counts, MTTD/MTTA/MTTR, top services) for a period. Read-only."))
     except Exception:
         logging.warning("failed to register workflow/quick-action tools", exc_info=True)
 
