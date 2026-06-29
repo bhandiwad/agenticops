@@ -45,6 +45,7 @@ CONNECTOR_DIRS: frozenset = frozenset({
     "spinnaker",
     "splunk",
     "tailscale",
+    "teams",
     "terraform",
     "thousandeyes",
 })

@@ -453,6 +453,10 @@ app.register_blueprint(splunk_search_bp, url_prefix="/splunk")
 from routes.servicenow import bp as servicenow_bp  # noqa: F401
 app.register_blueprint(servicenow_bp, url_prefix="/servicenow")
 
+# --- Microsoft Teams Notification Routes ---
+from routes.teams.teams_routes import teams_bp  # noqa: F401
+app.register_blueprint(teams_bp, url_prefix="/api/teams")
+
 # --- CloudFabrix Integration Routes ---
 from routes.cloudfabrix import bp as cloudfabrix_bp  # noqa: F401
 app.register_blueprint(cloudfabrix_bp, url_prefix="/cloudfabrix")

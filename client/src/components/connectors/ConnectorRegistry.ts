@@ -1,4 +1,4 @@
-import { Server } from "lucide-react";
+import { Server, MessageSquare } from "lucide-react";
 import { isOvhEnabled, isSharePointEnabled, isJiraEnabled, isSpinnakerEnabled, isNotionEnabled, isCloudBeesEnabled } from "@/lib/feature-flags";
 import type { ConnectorConfig } from "./types";
 
@@ -329,6 +329,18 @@ class ConnectorRegistry {
         category: "Communication",
         storageKey: "isGoogleChatConnected",
         useCustomConnection: true,
+      });
+
+    this.register({
+        id: "teams",
+        name: "Microsoft Teams",
+        description: "Send incident notifications to a Microsoft Teams channel via Incoming Webhook.",
+        icon: MessageSquare,
+        iconColor: "text-foreground",
+        iconBgColor: "bg-muted",
+        category: "Communication",
+        path: "/teams/auth",
+        storageKey: "isTeamsConnected",
       });
 
     // Cloud Providers (now under Infrastructure category)

@@ -270,6 +270,11 @@ def _check_google_chat(creds: Dict[str, Any]) -> Dict[str, Any]:
         return {"connected": False}
 
 
+def _check_teams(creds: Dict[str, Any]) -> Dict[str, Any]:
+    """Credential-existence check — a stored webhook URL means connected."""
+    return {"connected": bool(creds.get("webhook_url")), "name": creds.get("name")}
+
+
 def _check_github(creds_or_user_id, app_runtime_ready: bool = True) -> Dict[str, Any]:
     """Mirrors /github/status — App-aware AND OAuth-aware (hybrid mode).
 
@@ -764,6 +769,7 @@ PROVIDER_CHECKERS = {
     "jira": _check_jira,
     "slack": _check_slack,
     "google_chat": _check_google_chat,
+    "teams": _check_teams,
     "github": _check_github,
     "gitlab": _check_gitlab,
     "bitbucket": _check_bitbucket,

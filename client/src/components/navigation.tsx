@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ChevronLeft, Settings, LogOut, User, Zap, Plug, Gauge, SquarePen, Workflow, Wrench, Bot, Route, ShieldCheck, Server, History, Sun, Moon, Brain } from "lucide-react"
+import { ChevronLeft, Settings, LogOut, User, Zap, Plug, Gauge, SquarePen, Workflow, Wrench, Bot, Route, ShieldCheck, Server, History, Sun, Moon, Brain, BarChart3, DollarSign } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -330,6 +330,42 @@ export default function Navigation({
               <div className="flex items-center">
                 <Brain size={16} />
                 <span className="ml-2">Knowledge Base</span>
+              </div>
+            </Link>
+          </li>
+
+          {/* Dashboards Navigation Item */}
+          <li>
+            <Link
+              href="/dashboards"
+              className={cn(
+                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
+                pathname?.startsWith("/dashboards")
+                  ? "bg-card rounded-lg border border-border shadow-sm"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div className="flex items-center">
+                <BarChart3 size={16} />
+                <span className="ml-2">Dashboards</span>
+              </div>
+            </Link>
+          </li>
+
+          {/* FinOps Navigation Item */}
+          <li>
+            <Link
+              href="/finops"
+              className={cn(
+                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
+                pathname?.startsWith("/finops")
+                  ? "bg-card rounded-lg border border-border shadow-sm"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div className="flex items-center">
+                <DollarSign size={16} />
+                <span className="ml-2">FinOps</span>
               </div>
             </Link>
           </li>
