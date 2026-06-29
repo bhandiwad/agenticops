@@ -341,6 +341,18 @@ def list_mcp(user_id):
         return jsonify({"error": "Failed to load MCP servers"}), 500
 
 
+@registry_bp.route("/mcp-catalog", methods=["GET"])
+@require_permission("connectors", "read")
+def mcp_catalog(user_id):
+    """Curated catalog of pre-built MCP servers users can one-click add."""
+    try:
+        from services.registry.mcp_catalog import CATALOG, categories
+        return jsonify({"catalog": CATALOG, "categories": categories()})
+    except Exception:
+        logger.exception("registry: failed to load MCP catalog")
+        return jsonify({"error": "Failed to load MCP catalog"}), 500
+
+
 @registry_bp.route("/mcp-servers", methods=["POST"])
 @require_permission("admin", "access")
 def create_mcp(user_id):

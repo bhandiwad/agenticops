@@ -121,7 +121,20 @@ export default function ConnectorsClient() {
           onCategoryToggle={handleCategoryToggle}
           availableCategories={availableCategories}
         />
-        
+
+        <a
+          href="/mcp"
+          className="mb-6 flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/50"
+        >
+          <div>
+            <div className="text-sm font-semibold">Need more integrations?</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              Add 60+ pre-built MCP servers — cloud, network, datacenter, security ops, CMDBs and more — from the MCP catalog.
+            </div>
+          </div>
+          <span className="shrink-0 rounded-md border border-border px-3 py-1.5 text-xs font-medium">Browse MCP catalog →</span>
+        </a>
+
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="text-muted-foreground">Loading connectors...</div>

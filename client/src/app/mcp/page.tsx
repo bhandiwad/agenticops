@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, Server, ShieldAlert, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Server, ShieldAlert, Plus, Trash2, Library } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,14 +25,35 @@ interface McpServer {
   has_auth: boolean;
 }
 
+interface CatalogEntry {
+  key: string;
+  name: string;
+  category: string;
+  transport: string;
+  url: string;
+  auth: string;
+  read_only: boolean;
+  description: string;
+}
+
 export default function McpPage() {
   const [servers, setServers] = useState<McpServer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ name: '', transport: 'http', url: '', read_only: true, auth_token: '' });
+  const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
+  const [showCatalog, setShowCatalog] = useState(false);
+  const [catFilter, setCatFilter] = useState<string>('All');
   const { user } = useUser();
   const isAdmin = user?.role === 'admin';
+
+  const cats = ['All', ...Array.from(new Set(catalog.map((c) => c.category)))];
+  const useTemplate = (e: CatalogEntry) => {
+    setForm({ name: e.name, transport: e.transport || 'http', url: e.url || '', read_only: e.read_only, auth_token: '' });
+    setShowCatalog(false);
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const load = async () => {
     try {
@@ -49,6 +70,10 @@ export default function McpPage() {
 
   useEffect(() => {
     load();
+    fetch('/api/registry/mcp-catalog')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setCatalog(d.catalog ?? []))
+      .catch(() => {});
   }, []);
 
   const create = async () => {
@@ -178,6 +203,53 @@ export default function McpPage() {
               <Plus className="h-4 w-4" /> Add
             </Button>
           </div>
+        </div>
+      )}
+
+      {isAdmin && catalog.length > 0 && (
+        <div className="mb-6">
+          <Button size="sm" variant="outline" className="gap-1" onClick={() => setShowCatalog((v) => !v)}>
+            <Library className="h-4 w-4" /> {showCatalog ? 'Hide' : 'Browse'} catalog ({catalog.length} pre-built)
+          </Button>
+          {showCatalog && (
+            <div className="mt-3 rounded-lg border border-border bg-card p-4">
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                {cats.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setCatFilter(c)}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                      catFilter === c ? 'border-primary bg-primary/10 text-foreground' : 'border-border text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {catalog
+                  .filter((e) => catFilter === 'All' || e.category === catFilter)
+                  .map((e) => (
+                    <div key={e.key} className="flex items-start justify-between gap-2 rounded-md border border-border p-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-medium">{e.name}</span>
+                          <Badge variant="outline" className="text-[10px] text-muted-foreground">{e.auth}</Badge>
+                        </div>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{e.description}</p>
+                      </div>
+                      <Button size="sm" variant="ghost" className="shrink-0 gap-1" onClick={() => useTemplate(e)}>
+                        <Plus className="h-3.5 w-3.5" /> Use
+                      </Button>
+                    </div>
+                  ))}
+              </div>
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                &ldquo;Use&rdquo; pre-fills the form above — set the server URL (self-hosted or vendor endpoint) and auth token, then Add.
+                Some entries ship with a known hosted endpoint.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
