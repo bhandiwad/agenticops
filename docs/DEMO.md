@@ -3,11 +3,12 @@
 A single incident that exercises **chat → agent → tools → workflows → human approval → postmortem → Knowledge Base → dashboards → data‑aware chat**. ~10 minutes.
 
 ## Pre‑flight (already set up)
-- **RCA‑enrichment workflow** `Incident Diagnostics (RCA enrichment)` — enabled, read‑only; **auto‑fires during every RCA**.
-- **Remediation workflows with human approval** — `DB Problem: Triage & Remediate`, `VM Resource Crunch: Scale or Optimize`, `Network Link Down: Failover`, `Security Incident Response` (each has an **approval** gate + postmortem step).
-- **AWS** connector is connected (gives investigators real tools). More tools available via the **MCP catalog**.
+- **RCA‑enrichment workflow** `Incident Diagnostics (RCA enrichment)` — enabled, read‑only, **single fast node**; **auto‑fires once per incident** when an RCA is triggered (idempotent — no duplicates).
+- **Guaranteed‑approval demo workflow** `Demo: Remediate with Approval (HITL)` — *assess → human approval → apply*. Use this for the HITL moment; it **always** pauses at the approval (no severity gate), so it's reliable on stage.
+- **Realistic remediation workflows** — `DB Problem: Triage & Remediate`, `VM Resource Crunch`, `Network Link Down`, `Security Incident Response` (full investigate→gate→approve→remediate→postmortem). Their approval branch is **gated on `severity == high`**, so trigger the incident as **high** if you run one of these.
+- **AWS** connector is connected (gives investigators real tools). More tools via the **MCP catalog**.
 
-> Tip: phrase the trigger as a clear operational symptom tied to AWS so the agent calls `trigger_rca` and the investigators have relevant tools.
+> Tips: (1) phrase the trigger as a clear AWS‑related symptom so the agent calls `trigger_rca`; (2) trigger the incident a couple minutes before you walk the audience through it, so the RCA + enrichment have completed; (3) **LLM must have quota** — the platform is on Anthropic Claude.
 
 ---
 
@@ -25,16 +26,17 @@ A single incident that exercises **chat → agent → tools → workflows → hu
 6. Back on the incident → the **Root Cause Analysis** + **Evidence & Replay** populate (every tool call is replayable).
 
 ## Act 3 — Postmortem + Org Brain *(postmortem · Knowledge Base · learning loop)*
-7. The incident gets an **auto‑generated postmortem**.
-8. Open **Knowledge Base** → the postmortem has been **auto‑ingested** and is searchable.
+7. On the incident, run the **Generate Postmortem** Quick Action (postmortems are on‑demand, not automatic). It drafts the postmortem from the investigation **and auto‑ingests it into the Knowledge Base**.
+8. Open **Knowledge Base** → the postmortem is searchable.
    **Show:** the platform learns from every incident; future RCAs reuse it.
 
 ## Act 4 — Remediation with a human gate *(workflows · HITL · actions · durable resume)*
-9. Open **Workflows** → **Run** `DB Problem: Triage & Remediate` (or `VM Resource Crunch`).
-10. It investigates, then **pauses at an approval node**.
+9. Open **Workflows** → **Run** `Demo: Remediate with Approval (HITL)` for this incident.
+10. It runs a quick assessment, then **pauses at the approval node** (always — no gate).
 11. Go to **Approvals** → the pending request appears → **Approve**.
-12. The workflow **resumes** (Temporal signal) and runs its remediation + notification steps to completion.
+12. The workflow **resumes** (Temporal signal) and runs the post‑approval *apply* step to completion.
     **Show:** *nothing changes a system without explicit human approval*; the run is durable and resumes exactly where it paused.
+    *(Optional, for realism: run `DB Problem: Triage & Remediate` instead — but trigger the incident as **severity high** so its gate routes into the approval branch.)*
 
 ## Act 5 — Dashboards reflect it all *(dashboards)*
 13. Open **Dashboards**:
