@@ -2743,8 +2743,14 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
             if not d:
                 return f"error: workflow '{workflow_key}' not found"
             from workflows_v2.client import start_run
+            _inc = incident_id or inc
+            # RCA-enrichment workflows are idempotent per (incident, workflow): a deterministic
+            # id means re-running (agent re-fire or parallel dispatch) is a no-op, not a duplicate.
+            _wid = None
+            if (d.get("graph") or {}).get("rca_enrichment") and _inc:
+                _wid = f"wf2-rcaenrich-{_inc}-{workflow_key}"
             return json.dumps(start_run(d["graph"], {"user_id": _uid, "org_id": org,
-                                                     "incident_id": incident_id or inc}))
+                                                     "incident_id": _inc}, workflow_id=_wid))
 
         def list_quick_actions() -> str:
             """List one-click Quick Actions (id, name)."""

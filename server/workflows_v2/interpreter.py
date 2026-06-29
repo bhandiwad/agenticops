@@ -199,8 +199,12 @@ class WorkflowRunner:
                 continue
 
             workflow.logger.info("WorkflowRunner: node %s (%s)", nid, ntype)
-            default_timeout = 600 if ntype in ("agent", "action") else 120
-            retry = RetryPolicy(maximum_attempts=int(node.get("retries", 3)))
+            # Agent/action nodes run a full agent investigation — give them room, and don't
+            # retry them by default (a timed-out heavy node retried 3x compounds worker load).
+            heavy = ntype in ("agent", "action")
+            default_timeout = 900 if heavy else 120
+            default_retries = 1 if heavy else 3
+            retry = RetryPolicy(maximum_attempts=int(node.get("retries", default_retries)))
             try:
                 out = await workflow.execute_activity(
                     activity_name,
