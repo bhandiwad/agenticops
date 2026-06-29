@@ -616,3 +616,72 @@ def get_agent_execution(user_id):
     except Exception as e:
         logger.exception("[METRICS] Error computing agent execution: %s", e)
         return jsonify({"error": "Failed to compute agent execution metrics"}), 500
+
+
+@metrics_bp.route("/api/metrics/ops-summary", methods=["GET"])
+@require_permission("incidents", "read")
+def get_ops_summary(user_id):
+    """Operational throughput: workflow runs, action runs, agent node runs, and approvals."""
+    period = _get_period_interval(request.args.get("period", "30d"))
+
+    def _total(d):
+        return sum(d.values())
+
+    def _success_rate(d):
+        t = _total(d)
+        ok = sum(v for k, v in d.items() if str(k).lower() in (
+            "completed", "succeeded", "success", "ok", "complete", "done", "approved"))
+        return round(ok / t * 100, 1) if t else 0
+
+    try:
+        with db_pool.get_user_connection() as conn:
+            cursor = conn.cursor()
+            set_rls_context(cursor, conn, user_id, log_prefix=_LOG_PREFIX)
+
+            cursor.execute(
+                "SELECT status, COUNT(*) FROM workflow_runs "
+                "WHERE started_at >= NOW() - %s::interval GROUP BY status", (period,))
+            wf_status = {r[0]: r[1] for r in cursor.fetchall()}
+
+            cursor.execute(
+                "SELECT DATE_TRUNC('day', started_at)::date AS d, COUNT(*), "
+                "COUNT(*) FILTER (WHERE status IN ('failed','error','timed_out')) "
+                "FROM workflow_runs WHERE started_at >= NOW() - %s::interval "
+                "GROUP BY d ORDER BY d", (period,))
+            wf_over_time = [{"date": str(r[0]), "runs": r[1], "failed": r[2]} for r in cursor.fetchall()]
+
+            cursor.execute(
+                "SELECT workflow_key, COUNT(*) FROM workflow_runs "
+                "WHERE started_at >= NOW() - %s::interval GROUP BY workflow_key "
+                "ORDER BY COUNT(*) DESC LIMIT 8", (period,))
+            wf_top = [{"workflow": r[0], "count": r[1]} for r in cursor.fetchall()]
+
+            cursor.execute(
+                "SELECT status, COUNT(*) FROM action_runs "
+                "WHERE started_at >= NOW() - %s::interval GROUP BY status", (period,))
+            act_status = {r[0]: r[1] for r in cursor.fetchall()}
+
+            cursor.execute(
+                "SELECT status, COUNT(*) FROM workflow_node_runs "
+                "WHERE created_at >= NOW() - %s::interval AND node_type = 'agent' "
+                "GROUP BY status", (period,))
+            agent_status = {r[0]: r[1] for r in cursor.fetchall()}
+
+            cursor.execute(
+                "SELECT status, COUNT(*) FROM approvals "
+                "WHERE created_at >= NOW() - %s::interval GROUP BY status", (period,))
+            appr_status = {r[0]: r[1] for r in cursor.fetchall()}
+
+            cursor.execute("SELECT COUNT(*) FROM approvals WHERE status = 'pending'")
+            appr_pending = cursor.fetchone()[0]
+
+        return jsonify({
+            "workflows": {"byStatus": wf_status, "total": _total(wf_status),
+                          "successRate": _success_rate(wf_status), "overTime": wf_over_time, "top": wf_top},
+            "actions": {"byStatus": act_status, "total": _total(act_status), "successRate": _success_rate(act_status)},
+            "agents": {"byStatus": agent_status, "total": _total(agent_status), "successRate": _success_rate(agent_status)},
+            "approvals": {"byStatus": appr_status, "pending": appr_pending, "total": _total(appr_status)},
+        })
+    except Exception as e:
+        logger.exception("[METRICS] Error computing ops summary: %s", e)
+        return jsonify({"error": "Failed to compute ops summary"}), 500

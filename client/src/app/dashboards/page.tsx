@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Activity, Clock, AlertTriangle, CheckCircle2, GitBranch, Gauge, Timer, Search, Layers } from "lucide-react";
+import { Activity, Clock, AlertTriangle, CheckCircle2, GitBranch, Gauge, Timer, Search, Layers, Workflow, Zap, Bot, ShieldCheck, MessageCircle } from "lucide-react";
+import Link from "next/link";
 import {
   ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie,
   XAxis, YAxis, Tooltip, CartesianGrid, Cell, Legend,
@@ -18,6 +19,12 @@ interface FreqPoint { date: string; group: string; count: number }
 interface SevRow { severity: string; count: number; avgMttrSeconds?: number | null; avgMttsSeconds?: number | null }
 interface SrcRow { sourceType: string; count: number; avgMttdSeconds?: number | null }
 interface CfrRow { service: string; totalDeployments: number; failureLinked: number; rate: number }
+interface OpsSummary {
+  workflows: { byStatus: Record<string, number>; total: number; successRate: number; overTime: { date: string; runs: number; failed: number }[]; top: { workflow: string; count: number }[] };
+  actions: { byStatus: Record<string, number>; total: number; successRate: number };
+  agents: { byStatus: Record<string, number>; total: number; successRate: number };
+  approvals: { byStatus: Record<string, number>; pending: number; total: number };
+}
 
 function fmt(s: number | null | undefined): string {
   if (s == null) return "—";
@@ -62,12 +69,13 @@ export default function DashboardsPage() {
   const [mtta, setMtta] = useState<SevRow[]>([]);
   const [mttd, setMttd] = useState<SrcRow[]>([]);
   const [cfr, setCfr] = useState<CfrRow[]>([]);
+  const [ops, setOps] = useState<OpsSummary | null>(null);
 
   useEffect(() => {
     let cancelled = false; setLoading(true);
     (async () => {
       const get = (u: string) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-      const [s, fSev, fSvc, mr, ma, md, cf] = await Promise.all([
+      const [s, fSev, fSvc, mr, ma, md, cf, op] = await Promise.all([
         get(`/api/metrics/summary?period=${period}`),
         get(`/api/metrics/incident-frequency?period=${period}&group_by=severity`),
         get(`/api/metrics/incident-frequency?period=${period}&group_by=service`),
@@ -75,6 +83,7 @@ export default function DashboardsPage() {
         get(`/api/metrics/mtts?period=${period}`),
         get(`/api/metrics/mttd?period=${period}`),
         get(`/api/metrics/change-failure-rate?period=${period}`),
+        get(`/api/metrics/ops-summary?period=${period}`),
       ]);
       if (cancelled) return;
       setSummary(s);
@@ -84,6 +93,7 @@ export default function DashboardsPage() {
       setMtta((ma?.bySeverity ?? []) as SevRow[]);
       setMttd((md?.bySource ?? []) as SrcRow[]);
       setCfr((cf?.byService ?? []) as CfrRow[]);
+      setOps(op as OpsSummary | null);
       setLoading(false);
     })();
     return () => { cancelled = true; };
@@ -102,10 +112,15 @@ export default function DashboardsPage() {
           <h1 className="flex items-center gap-2 text-2xl font-semibold"><Activity className="h-6 w-6" /> Dashboards</h1>
           <p className="mt-1 text-sm text-muted-foreground">Incident operations — volume, response times, and reliability.</p>
         </div>
-        <div className="flex gap-1">
-          {PERIODS.map((p) => (
-            <button key={p} onClick={() => setPeriod(p)} className={`rounded-md border px-2.5 py-1 text-xs ${period === p ? "border-primary bg-primary/10" : "border-border text-muted-foreground hover:bg-muted"}`}>{p}</button>
-          ))}
+        <div className="flex items-center gap-2">
+          <Link href="/chat" className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium hover:border-primary/50">
+            <MessageCircle className="h-3.5 w-3.5" /> Ask in chat
+          </Link>
+          <div className="flex gap-1">
+            {PERIODS.map((p) => (
+              <button key={p} onClick={() => setPeriod(p)} className={`rounded-md border px-2.5 py-1 text-xs ${period === p ? "border-primary bg-primary/10" : "border-border text-muted-foreground hover:bg-muted"}`}>{p}</button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -216,6 +231,43 @@ export default function DashboardsPage() {
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" /><XAxis type="number" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `${v}%`} />
                       <YAxis type="category" dataKey="service" width={120} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" /><Tooltip formatter={(v: number) => `${v}%`} contentStyle={tip} />
                       <Bar dataKey="rate" radius={[0, 4, 4, 0]}>{cfr.slice(0, 10).map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}</Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </Panel>
+            </div>
+          </div>
+
+          {/* Operations (workflows / actions / agents / approvals) */}
+          <div className="space-y-4">
+            <SectionHeader icon={<Workflow className="h-4 w-4 text-muted-foreground" />} title="Operations" desc="Automation throughput and human approvals." />
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <StatCard icon={<Workflow className="h-3.5 w-3.5" />} label="Workflow runs" value={String(ops?.workflows.total ?? 0)} sub={`${ops?.workflows.successRate ?? 0}% success`} />
+              <StatCard icon={<Zap className="h-3.5 w-3.5" />} label="Action runs" value={String(ops?.actions.total ?? 0)} sub={`${ops?.actions.successRate ?? 0}% success`} />
+              <StatCard icon={<Bot className="h-3.5 w-3.5" />} label="Agent runs" value={String(ops?.agents.total ?? 0)} sub={`${ops?.agents.successRate ?? 0}% success`} />
+              <StatCard accent={!!ops?.approvals.pending} icon={<ShieldCheck className="h-3.5 w-3.5" />} label="Approvals pending" value={String(ops?.approvals.pending ?? 0)} sub={`${ops?.approvals.total ?? 0} total`} />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Panel title="Workflow runs over time">
+                {!ops?.workflows.overTime?.length ? <Empty msg="No workflow runs in this period." /> : (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <AreaChart data={ops.workflows.overTime}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" /><YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip contentStyle={tip} />
+                      <Area type="monotone" dataKey="runs" stackId="1" stroke={PALETTE[1]} fill={PALETTE[1]} fillOpacity={0.3} />
+                      <Area type="monotone" dataKey="failed" stackId="2" stroke={PALETTE[3]} fill={PALETTE[3]} fillOpacity={0.3} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+              </Panel>
+              <Panel title="Top workflows by runs">
+                {!ops?.workflows.top?.length ? <Empty msg="No workflow runs yet." /> : (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={ops.workflows.top} layout="vertical" margin={{ left: 24 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" /><XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis type="category" dataKey="workflow" width={130} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" /><Tooltip contentStyle={tip} />
+                      <Bar dataKey="count" radius={[0, 4, 4, 0]}>{ops.workflows.top.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}</Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 )}
