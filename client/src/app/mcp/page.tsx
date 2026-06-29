@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Loader2, Server, ShieldAlert, Plus, Trash2, Library } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -48,11 +48,19 @@ export default function McpPage() {
   const { user } = useUser();
   const isAdmin = user?.role === 'admin';
 
+  const formRef = useRef<HTMLDivElement | null>(null);
+  const urlRef = useRef<HTMLInputElement | null>(null);
+
   const cats = ['All', ...Array.from(new Set(catalog.map((c) => c.category)))];
   const useTemplate = (e: CatalogEntry) => {
     setForm({ name: e.name, transport: e.transport || 'http', url: e.url || '', read_only: e.read_only, auth_token: '' });
     setShowCatalog(false);
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll the (now pre-filled) register form into view and focus the URL field.
+    // scrollIntoView works whether the page scrolls in the window or an inner container.
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      urlRef.current?.focus();
+    }, 60);
   };
 
   const load = async () => {
@@ -149,7 +157,7 @@ export default function McpPage() {
       )}
 
       {isAdmin && (
-        <div className="mb-6 rounded-lg border border-border bg-card p-4">
+        <div ref={formRef} className="mb-6 rounded-lg border border-border bg-card p-4">
           <h2 className="mb-3 text-sm font-semibold">Register a server</h2>
           <div className="flex flex-wrap items-end gap-3">
             <label className="text-xs text-muted-foreground">
@@ -177,6 +185,7 @@ export default function McpPage() {
             <label className="text-xs text-muted-foreground">
               URL
               <Input
+                ref={urlRef}
                 className="mt-1 h-8 w-56"
                 value={form.url}
                 onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
