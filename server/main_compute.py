@@ -457,6 +457,10 @@ app.register_blueprint(servicenow_bp, url_prefix="/servicenow")
 from routes.teams.teams_routes import teams_bp  # noqa: F401
 app.register_blueprint(teams_bp, url_prefix="/api/teams")
 
+# --- FinOps Routes (cloud cost via connected providers) ---
+from routes.finops.finops_routes import finops_bp  # noqa: F401
+app.register_blueprint(finops_bp)
+
 # --- CloudFabrix Integration Routes ---
 from routes.cloudfabrix import bp as cloudfabrix_bp  # noqa: F401
 app.register_blueprint(cloudfabrix_bp, url_prefix="/cloudfabrix")
