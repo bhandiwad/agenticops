@@ -175,6 +175,16 @@ def trigger_rca(
     except Exception as e:
         logger.warning(f"[TriggerRCA] Failed to enqueue summary: {e}")
 
+    # Fire the org's read-only RCA-enrichment workflows for this incident, in parallel
+    # with the investigation. Idempotent per (incident, workflow); best-effort.
+    try:
+        from workflows_v2.client import dispatch_rca_enrichment
+        _enriched = dispatch_rca_enrichment(user_id, org_id, incident_id)
+        if _enriched:
+            logger.info("[TriggerRCA] started RCA-enrichment workflows %s for incident %s", _enriched, incident_id)
+    except Exception:
+        logger.warning("[TriggerRCA] RCA-enrichment dispatch failed (non-fatal)", exc_info=True)
+
     rca_session_id = None
     try:
         from chat.background.task import (
