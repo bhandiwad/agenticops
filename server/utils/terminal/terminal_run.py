@@ -11,6 +11,7 @@ import logging
 import os
 import re
 import shlex
+import signal
 import subprocess
 from typing import Optional, List, Union, Dict
 from dataclasses import dataclass
@@ -28,6 +29,77 @@ class CompletedProcess:
     returncode: int
     stdout: str
     stderr: str
+
+
+def _kill_process_tree(proc: subprocess.Popen) -> None:
+    """Kill a timed-out command and any shell-spawned children."""
+    try:
+        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+    except (ProcessLookupError, PermissionError, OSError):
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+
+
+def _decode_communicate_output(value, text: bool) -> str:
+    if value is None:
+        return ""
+    if text and isinstance(value, (bytes, bytearray)):
+        return value.decode()
+    return value if isinstance(value, str) else str(value)
+
+
+def _run_local_subprocess(
+    args: Union[str, List[str]],
+    cmd: Union[str, List[str]],
+    *,
+    capture_output: bool,
+    text: bool,
+    shell: bool,
+    timeout: int,
+    cwd: Optional[str],
+    env: Optional[Dict[str, str]],
+    kwargs: dict,
+) -> CompletedProcess:
+    use_shell = shell if isinstance(cmd, str) else False
+    popen_kwargs = {
+        "cwd": cwd,
+        "env": env,
+        "start_new_session": True,
+        "text": text,
+    }
+    if capture_output:
+        popen_kwargs["stdout"] = subprocess.PIPE
+        popen_kwargs["stderr"] = subprocess.PIPE
+
+    safe_kwargs = {
+        k: v for k, v in kwargs.items()
+        if k not in {"check", "timeout", "capture_output", "text", "shell"}
+    }
+
+    proc = subprocess.Popen(cmd, shell=use_shell, **popen_kwargs, **safe_kwargs)
+    try:
+        stdout, stderr = proc.communicate(timeout=timeout)
+        return CompletedProcess(
+            args=args,
+            returncode=proc.returncode,
+            stdout=_decode_communicate_output(stdout, text) if capture_output else "",
+            stderr=_decode_communicate_output(stderr, text) if capture_output else "",
+        )
+    except subprocess.TimeoutExpired as exc:
+        _kill_process_tree(proc)
+        try:
+            stdout, stderr = proc.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            stdout, stderr = proc.communicate()
+        out = _decode_communicate_output(stdout or exc.stdout, text)
+        err = _decode_communicate_output(stderr or exc.stderr, text)
+        if not err:
+            err = f"Command timed out after {timeout} seconds"
+        logger.error("Command timed out after %ss: %s", timeout, cmd)
+        return CompletedProcess(args=args, returncode=124, stdout=out, stderr=err)
 
 
 def terminal_run(
@@ -97,31 +169,16 @@ def terminal_run(
             cmd = args
         
         try:
-            # Use subprocess.run() directly
-            result = subprocess.run(
+            return _run_local_subprocess(
+                args,
                 cmd,
                 capture_output=capture_output,
                 text=text,
-                shell=shell if isinstance(cmd, str) else False,
+                shell=shell,
                 timeout=timeout or 300,
                 cwd=cwd,
-                env=env,  # Use env directly (already contains PATH, HOME, etc.)
-                **kwargs
-            )
-            
-            return CompletedProcess(
-                args=args,
-                returncode=result.returncode,
-                stdout=result.stdout if capture_output else "",
-                stderr=result.stderr if capture_output else ""
-            )
-        except subprocess.TimeoutExpired as e:
-            logger.error(f"Command timed out after {timeout}s: {cmd}")
-            return CompletedProcess(
-                args=args,
-                returncode=124,  # Standard timeout exit code
-                stdout=e.stdout.decode() if e.stdout else "",
-                stderr=f"Command timed out after {timeout} seconds"
+                env=env,
+                kwargs=kwargs,
             )
         except Exception as e:
             logger.error(f"Subprocess execution failed: {e}")

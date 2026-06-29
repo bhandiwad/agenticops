@@ -1,14 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Zap, Clock, ChevronRight, Loader2, CheckCircle2, Link2, GitMerge, Plus, AlertTriangle } from 'lucide-react';
-import { Incident, incidentsService } from '@/lib/services/incidents';
+import { Zap, Loader2, CheckCircle2, Plus } from 'lucide-react';
+import { mapIncidentFromApi } from '@/lib/services/incidents';
 import { useConnectedAccounts } from '@/hooks/useConnectedAccounts';
 import { connectorRegistry } from '@/components/connectors/ConnectorRegistry';
 import { useQuery } from '@/lib/query';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -19,6 +18,9 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { IncidentsTable } from '@/app/incidents/components/IncidentsTable';
+import type { Incident } from '@/lib/services/incidents';
 
 const ALERT_CATEGORIES = new Set(['Monitoring', 'Incident Management']);
 
@@ -36,32 +38,7 @@ const incidentsFetcher = async (key: string, signal: AbortSignal) => {
   const res = await fetch(key, { credentials: 'include', signal });
   if (!res.ok) throw new Error(`incidents ${res.status}`);
   const data: IncidentsResponse = await res.json();
-  return (data.incidents || []).map((inc: any): Incident => ({
-    id: inc.id,
-    alert: {
-      source: inc.sourceType,
-      sourceUrl: inc.alert?.sourceUrl || '',
-      rawPayload: '',
-      triggeredAt: inc.startedAt,
-      title: inc.alert?.title || 'Unknown',
-      severity: inc.severity,
-      service: inc.alert?.service || 'unknown',
-    },
-    status: inc.status,
-    auroraStatus: inc.auroraStatus || 'idle',
-    summary: inc.summary || '',
-    streamingThoughts: inc.streamingThoughts || [],
-    suggestions: inc.suggestions || [],
-    correlatedAlertCount: inc.correlatedAlertCount || 0,
-    mergedIntoIncidentId: inc.mergedIntoIncidentId,
-    mergedIntoTitle: inc.mergedIntoTitle,
-    postMortem: inc.postMortem ?? undefined,
-    startedAt: inc.startedAt,
-    analyzedAt: inc.analyzedAt,
-    createdAt: inc.createdAt,
-    updatedAt: inc.updatedAt,
-    activeTab: inc.activeTab || 'thoughts',
-  }));
+  return (data.incidents || []).map(mapIncidentFromApi);
 };
 
 export default function IncidentsPage() {
@@ -81,7 +58,6 @@ export default function IncidentsPage() {
   const mutateRef = useRef(mutate);
   mutateRef.current = mutate;
 
-  // Real-time updates via SSE — reconnects on stale connection detection
   useEffect(() => {
     let es: EventSource | null = null;
 
@@ -113,154 +89,44 @@ export default function IncidentsPage() {
     };
   }, []);
 
-  const activeIncidents = useMemo(() => incidents.filter(i => i.status === 'investigating'), [incidents]);
-  const analyzedIncidents = useMemo(() => incidents.filter(i => i.status === 'analyzed' || i.status === 'resolved'), [incidents]);
-  const mergedIncidents = useMemo(() => incidents.filter(i => i.status === 'merged'), [incidents]);
+  const showEmpty = !isLoading && incidents.length === 0;
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="mb-8">
+    <div className="max-w-[1400px] mx-auto py-8 px-4">
+      <div className="mb-6">
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Zap className="h-6 w-6 text-foreground" />
           Incidents
         </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Search, filter, and export incident records with linked ServiceNow tickets.
+        </p>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {incidents.length > 0 && !isConnectedToIncidentPlatform && !isLoadingAccounts && (
-            <DisconnectedBanner />
-          )}
-
-          {activeIncidents.length > 0 && (
-            <div>
-              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-muted-foreground opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-muted-foreground"></span>
-                </span>
-                Investigating ({activeIncidents.length})
-              </h2>
-              <div className="space-y-2">
-                {activeIncidents.map(incident => (
-                  <IncidentRow key={incident.id} incident={incident} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {analyzedIncidents.length > 0 && (
-            <div>
-              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                Analyzed
-              </h2>
-              <div className="space-y-2">
-                {analyzedIncidents.map(incident => (
-                  <IncidentRow key={incident.id} incident={incident} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {mergedIncidents.length > 0 && (
-            <div>
-              <h2 className="text-sm font-medium text-zinc-600 uppercase tracking-wide mb-3 flex items-center gap-2">
-                <GitMerge className="h-4 w-4 text-zinc-600" />
-                Merged
-              </h2>
-              <div className="space-y-2">
-                {mergedIncidents.map(incident => (
-                  <IncidentRow key={incident.id} incident={incident} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {incidents.length === 0 && (
-            <Card>
-              <CardContent className="py-12 text-center">
-                {!isConnectedToIncidentPlatform && !isLoadingAccounts ? (
-                  <ConnectPlatformCTA />
-                ) : (
-                  <>
-                    <CheckCircle2 className="h-10 w-10 mx-auto text-green-500 mb-3" />
-                    <p className="font-medium">All clear</p>
-                    <p className="text-sm text-muted-foreground">No incidents yet</p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )}
+      {incidents.length > 0 && !isConnectedToIncidentPlatform && !isLoadingAccounts && (
+        <div className="mb-4">
+          <DisconnectedBanner />
         </div>
       )}
-    </div>
-  );
-}
 
-function IncidentRow({ incident }: { incident: Incident }) {
-  const isActive = incident.status === 'investigating';
-  const isMerged = incident.status === 'merged';
-  const showSeverity = (incident.alert.severity && incident.alert.severity !== 'unknown') || incident.status === 'analyzed';
-  const correlatedCount = incident.correlatedAlertCount || 0;
-
-  return (
-    <Link href={`/incidents/${incident.id}`} aria-label={`View incident: ${incident.alert.title}`}>
-      <Card className={`hover:border-primary/50 transition-colors cursor-pointer ${isActive ? 'border-l-4 border-l-muted-foreground' : ''} ${isMerged ? 'opacity-60' : ''}`}>
-        <CardContent className="py-3 px-4">
-          <div className="flex items-center gap-4">
-            {/* Severity - hide if unknown during investigation */}
-            {showSeverity && (
-              <Badge className={incidentsService.getSeverityColor(incident.alert.severity)}>
-                {incident.alert.severity} severity
-              </Badge>
+      {showEmpty ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            {!isConnectedToIncidentPlatform && !isLoadingAccounts ? (
+              <ConnectPlatformCTA />
+            ) : (
+              <>
+                <CheckCircle2 className="h-10 w-10 mx-auto text-green-500 mb-3" />
+                <p className="font-medium">All clear</p>
+                <p className="text-sm text-muted-foreground">No incidents yet</p>
+              </>
             )}
-
-            {/* Title & Service */}
-            <div className="flex-1 min-w-0">
-              <p className={`font-medium truncate ${isMerged ? 'text-zinc-500' : ''}`}>{incident.alert.title}</p>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
-                {incident.alert.service !== 'unknown' && <span>{incident.alert.service}</span>}
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {incidentsService.formatDuration(incident.startedAt)}
-                </span>
-                {correlatedCount > 0 && (
-                  <span className="flex items-center gap-1 text-muted-foreground">
-                    <Link2 className="h-3 w-3" />
-                    {correlatedCount} related
-                  </span>
-                )}
-                {isActive && (
-                  <span className="flex items-center gap-1 text-muted-foreground">
-                    {Date.now() - new Date(incident.startedAt).getTime() > 30 * 60 * 1000 ? (
-                      <><AlertTriangle className="h-3 w-3 text-red-400" /> Investigation stalled</>
-                    ) : (
-                      <><Loader2 className="h-3 w-3 animate-spin" /> Aurora investigating</>
-                    )}
-                  </span>
-                )}
-                {isMerged && (
-                  <span className="flex items-center gap-1 text-zinc-500">
-                    <GitMerge className="h-3 w-3" />
-                    {incident.mergedIntoTitle 
-                      ? `Merged into "${incident.mergedIntoTitle}"`
-                      : 'Merged into another incident'
-                    }
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
+          </CardContent>
+        </Card>
+      ) : (
+        <IncidentsTable incidents={incidents} isLoading={isLoading} />
+      )}
+    </div>
   );
 }
 

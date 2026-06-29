@@ -200,6 +200,36 @@ def trigger_rca(
             "severity": severity,
         }
 
+        try:
+            from chat.backend.agent.tools.cfx_rca_context import (
+                build_cfx_payload_supplement, extract_ticket_number, load_enriched_doc,
+            )
+            _cfx_ticket = extract_ticket_number(issue_description)
+            if _cfx_ticket:
+                try:
+                    alert_metadata["snow_ticket_number"] = _cfx_ticket
+                except Exception:
+                    pass
+            _cfx_doc = load_enriched_doc(ticket_number=_cfx_ticket) if _cfx_ticket else None
+            if _cfx_doc:
+                payload.update(build_cfx_payload_supplement(_cfx_doc))
+                _cfx_inc = _cfx_doc.get("incident") or {}
+                _cfx_snow = _cfx_doc.get("snow") or {}
+                try:
+                    if _cfx_inc.get("cfx_incident_id"):
+                        alert_metadata["cfx_incident_id"] = _cfx_inc["cfx_incident_id"]
+                    if _cfx_snow.get("ticket_number"):
+                        alert_metadata["snow_ticket_number"] = _cfx_snow["ticket_number"]
+                except Exception:
+                    pass
+                if not service:
+                    _cfx_assets = _cfx_doc.get("affected_assets") or []
+                    if _cfx_assets and isinstance(_cfx_assets[0], dict):
+                        service = _cfx_assets[0].get("name") or _cfx_assets[0].get("ci_name") or service
+        except Exception as _cfx_e:
+            import logging as _l
+            _l.getLogger("cfx_rca_trigger").warning("CFX enriched payload merge failed: %s", _cfx_e)
+
         rca_prompt, rail_text = build_rca_prompt(
             "chat", incident_title, payload, user_id=user_id,
         )

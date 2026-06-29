@@ -159,6 +159,28 @@ class ConnectorRegistry {
       storageKey: "isPagerDutyConnected",
     });
 
+
+
+    this.register({
+      id: "cloudfabrix",
+      name: "CloudFabrix",
+      description: "Connect CloudFabrix for incident enrichment, topology mapping, and RCA via the local join store and live API.",
+      iconPath: "/cloudfabrix.svg",
+      iconBgColor: "bg-white dark:bg-white",
+      category: "Monitoring",
+      path: "/cloudfabrix/auth",
+      storageKey: "isCloudFabrixConnected",
+    });
+    this.register({
+      id: "servicenow",
+      name: "ServiceNow",
+      description: "Connect ServiceNow for ITSM ticket create, fetch, and resolve. Agents use the connector for RCA, postmortem, and incident workflows.",
+      iconPath: "/servicenow.svg",
+      iconBgColor: "bg-white dark:bg-white",
+      category: "Incident Management",
+      path: "/servicenow/auth",
+      storageKey: "isServiceNowConnected",
+    });
     this.register({
       id: "opsgenie",
       name: "OpsGenie / JSM",

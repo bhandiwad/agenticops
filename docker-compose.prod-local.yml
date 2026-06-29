@@ -120,6 +120,59 @@ x-common-env: &common-env
   SUMMARIZATION_MODEL: ${SUMMARIZATION_MODEL}
   AGENT_RECURSION_LIMIT: ${AGENT_RECURSION_LIMIT}
   GEMINI_DISABLE_THINKING: ${GEMINI_DISABLE_THINKING}
+  # ServiceNow (connector + Aurora -> SNOW export)
+  SNOW_ENABLED: ${SNOW_ENABLED:-false}
+  SNOW_EXPORT_ENABLED: ${SNOW_EXPORT_ENABLED:-false}
+  SNOW_INSTANCE: ${SNOW_INSTANCE}
+  SNOW_USER: ${SNOW_USER}
+  SNOW_PASSWORD: ${SNOW_PASSWORD}
+  SNOW_TABLE: ${SNOW_TABLE}
+  SNOW_CREATE_TABLE: ${SNOW_CREATE_TABLE}
+  SNOW_CREATE_ASSIGNMENT_GROUP: ${SNOW_CREATE_ASSIGNMENT_GROUP}
+  SNOW_CREATE_COMPANY: ${SNOW_CREATE_COMPANY}
+  SNOW_CREATE_SERVICE_REQ_TYPE: ${SNOW_CREATE_SERVICE_REQ_TYPE}
+  SNOW_CREATE_ACTUAL_SERVICE_REQUEST: ${SNOW_CREATE_ACTUAL_SERVICE_REQUEST}
+  SNOW_CREATE_SERVICE_TYPE: ${SNOW_CREATE_SERVICE_TYPE}
+  SNOW_CREATE_CASE_TYPE: ${SNOW_CREATE_CASE_TYPE}
+  SNOW_CREATE_PRIORITY: ${SNOW_CREATE_PRIORITY}
+  SNOW_CREATE_URGENCY: ${SNOW_CREATE_URGENCY}
+  SNOW_CREATE_IMPACT: ${SNOW_CREATE_IMPACT}
+  SNOW_CREATE_CONTACT_TYPE: ${SNOW_CREATE_CONTACT_TYPE}
+  SNOW_CREATE_CALLER_ID: ${SNOW_CREATE_CALLER_ID:-}
+  SNOW_CREATE_CATEGORY: ${SNOW_CREATE_CATEGORY:-}
+  SNOW_CREATE_OPENED_BY: ${SNOW_CREATE_OPENED_BY:-}
+  SNOW_CREATE_USER_BELONGS_TO: ${SNOW_CREATE_USER_BELONGS_TO:-}
+  SNOW_TITLE_PREFIX: ${SNOW_TITLE_PREFIX:-Server down}
+  SNOW_VERIFY_SSL: ${SNOW_VERIFY_SSL:-true}
+  SNOW_RESOLVE_STATE: ${SNOW_RESOLVE_STATE:-4}
+  SNOW_RESOLVE_ACTIVE: ${SNOW_RESOLVE_ACTIVE:-false}
+  SNOW_POLL_QUERY: ${SNOW_POLL_QUERY:-}
+  SNOW_POLL_INTERVAL_SEC: ${SNOW_POLL_INTERVAL_SEC:-30}
+  SNOW_POLL_FIELDS: ${SNOW_POLL_FIELDS:-}
+  SNOW_POLL_MAX_ROWS: ${SNOW_POLL_MAX_ROWS:-50}
+  SNOW_CMDB_FIELD: ${SNOW_CMDB_FIELD:-}
+  SNOW_TABLE_LABEL: ${SNOW_TABLE_LABEL:-}
+  SNOW_EXPORT_ON_CREATE: ${SNOW_EXPORT_ON_CREATE:-false}
+  SNOW_TEST_INSTANCE_ID: ${SNOW_TEST_INSTANCE_ID:-}
+
+  # CloudFabrix (connector + incident enrichment / RCA)
+  CFX_ENABLED: ${CFX_ENABLED:-false}
+  CFX_API_BASE: ${CFX_API_BASE}
+  CFX_API_TOKEN: ${CFX_API_TOKEN}
+  CFX_REFRESH_TOKEN: ${CFX_REFRESH_TOKEN}
+  CFX_REFRESH_API_URL: ${CFX_REFRESH_API_URL}
+  CFX_INCIDENT_QUERY: ${CFX_INCIDENT_QUERY:-}
+  CFX_POLL_USER_ID: ${CFX_POLL_USER_ID:-}
+  CFX_POLL_ORG_ID: ${CFX_POLL_ORG_ID:-}
+  CFX_POLL_TIMEOUT_SEC: ${CFX_POLL_TIMEOUT_SEC:-60}
+  CFX_VERIFY_SSL: ${CFX_VERIFY_SSL:-false}
+  CFX_PROJECT_ID: ${CFX_PROJECT_ID:-}
+  CFX_CUSTOMER_ID: ${CFX_CUSTOMER_ID:-}
+  CFX_TOPOLOGY_GRAPH: ${CFX_TOPOLOGY_GRAPH:-cfx_rdaf_topology_graph}
+  CFX_TOPOLOGY_DB: ${CFX_TOPOLOGY_DB:-cfx_rdaf_topology}
+  CFX_RELATIONSHIP_MAP: ${CFX_RELATIONSHIP_MAP:-rdaf_topology_relationships}
+  CFX_RCA_INTEGRATIONS_PATH: ${CFX_RCA_INTEGRATIONS_PATH:-/app/integrations}
+  CFX_RCA_OUTPUT_DIR: ${CFX_RCA_OUTPUT_DIR:-/app/data/cfx_rca}
 
   # GitHub auth — every Aurora service that talks to GitHub (server,
   # celery_worker, chatbot) needs the auth mode + App credentials to mint
@@ -212,6 +265,8 @@ services:
       - "${FLASK_PORT}:${FLASK_PORT}"
     volumes:
       - terraform-workdir:/app/terraform_workdir
+      - ./data/cfx_rca:/app/data/cfx_rca
+      - ./integrations:/app/integrations
     command: ["sh", "-c", "gunicorn main_compute:app --bind 0.0.0.0:${FLASK_PORT:-5080} -k gthread --threads ${GUNICORN_THREADS:-16} --workers ${GUNICORN_WORKERS:-3} --timeout 300 --preload"]
     environment:
       <<: *common-env
@@ -289,9 +344,9 @@ services:
       memgraph:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${FLASK_PORT}/health/')"]
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${FLASK_PORT}/health/liveness')"]
       interval: 15s
-      timeout: 5s
+      timeout: 30s
       retries: 5
       start_period: 20s
     restart: unless-stopped
@@ -307,6 +362,8 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - terraform-workdir:/app/terraform_workdir
+      - ./data/cfx_rca:/app/data/cfx_rca
+      - ./integrations:/app/integrations
     command: >
       celery -A celery_config worker
         --loglevel=info
@@ -461,6 +518,8 @@ services:
     command: ["python", "main_chatbot.py"]
     volumes:
       - terraform-workdir:/app/terraform_workdir
+      - ./data/cfx_rca:/app/data/cfx_rca
+      - ./integrations:/app/integrations
     environment:
       <<: *common-env
       OTEL_SERVICE_NAME: chatbot

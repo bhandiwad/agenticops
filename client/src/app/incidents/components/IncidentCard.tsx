@@ -125,6 +125,8 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
   const showSeverity = (alert.severity && (alert.severity as string) !== 'unknown') || incident.status === 'analyzed';
   const sourceIconSrc = getSourceIconSrc(alert.source);
   const sourceIconBgColor = getSourceIconBgColor(alert.source);
+  const snowNumber = alert.metadata?.snow_number;
+  const snowUrl = alert.metadata?.snow_url;
 
   const [justResolved, setJustResolved] = useState(false);
 
@@ -426,6 +428,23 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
               <Badge className={`${incidentsService.getSeverityColor(alert.severity)} text-sm font-bold uppercase tracking-wider px-3 py-1`}>
                 {alert.severity} severity
               </Badge>
+            )}
+            {snowNumber && (
+              snowUrl && isSafeUrl(snowUrl) ? (
+                <a
+                  href={snowUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-sky-500 hover:text-sky-400"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  {snowNumber}
+                </a>
+              ) : (
+                <Badge variant="outline" className="text-sky-500 border-sky-500/40">
+                  {snowNumber}
+                </Badge>
+              )
             )}
             <div className="flex items-center gap-2">
               {sourceIconSrc && (

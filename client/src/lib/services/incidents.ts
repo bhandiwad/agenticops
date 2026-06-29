@@ -68,6 +68,13 @@ export interface AlertMetadata {
   incidentUrl?: string;
   urgency?: string;
   customFields?: Record<string, string>;
+
+  // ServiceNow export linkage
+  snow_number?: string;
+  snow_sys_id?: string;
+  snow_url?: string;
+  snow_table?: string;
+  snow_exported_at?: string;
 }
 
 export interface Alert {
@@ -268,6 +275,82 @@ export interface Incident {
 // ============================================================================
 // Service
 // ============================================================================
+
+const ALERT_TITLE_ALIASES: Record<string, string> = {
+  'aurora-ec2-instance-stopped': 'infinitAizen-ec2-instance-stopped',
+};
+
+export function displayAlertTitle(title: string): string {
+  return ALERT_TITLE_ALIASES[title] || title;
+}
+
+export function isSafeExternalUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+export function getIncidentStatusBadgeClass(status: IncidentStatus): string {
+  switch (status) {
+    case 'resolved':
+      return 'bg-green-500/15 text-green-600 border-green-500/30 dark:text-green-400';
+    case 'analyzed':
+      return 'bg-blue-500/15 text-blue-600 border-blue-500/30 dark:text-blue-400';
+    case 'investigating':
+      return 'bg-orange-500/15 text-orange-600 border-orange-500/30 dark:text-orange-400';
+    case 'merged':
+      return 'bg-zinc-500/15 text-zinc-600 border-zinc-500/30 dark:text-zinc-400';
+  }
+}
+
+export function formatIncidentStatusLabel(status: IncidentStatus): string {
+  switch (status) {
+    case 'resolved':
+      return 'Resolved';
+    case 'analyzed':
+      return 'Analyzed';
+    case 'investigating':
+      return 'Investigating';
+    case 'merged':
+      return 'Merged';
+  }
+}
+
+export function mapIncidentFromApi(inc: any): Incident {
+  return {
+    id: inc.id,
+    alert: {
+      source: inc.sourceType as AlertSource,
+      sourceUrl: inc.alert?.sourceUrl || '',
+      rawPayload: '',
+      triggeredAt: inc.alertFiredAt ?? inc.startedAt,
+      title: inc.alert?.title || 'Unknown',
+      severity: inc.severity,
+      service: inc.alert?.service || 'unknown',
+      metadata: inc.alert?.metadata || undefined,
+    },
+    status: inc.status as IncidentStatus,
+    auroraStatus: (inc.auroraStatus || 'idle') as AuroraStatus,
+    summary: inc.summary || '',
+    streamingThoughts: inc.streamingThoughts || [],
+    suggestions: inc.suggestions || [],
+    correlatedAlertCount: inc.correlatedAlertCount || 0,
+    mergedIntoIncidentId: inc.mergedIntoIncidentId,
+    mergedIntoTitle: inc.mergedIntoTitle,
+    postMortem: inc.postMortem ?? undefined,
+    startedAt: inc.startedAt,
+    analyzedAt: inc.analyzedAt,
+    resolvedAt: inc.resolvedAt,
+    alertFiredAt: inc.alertFiredAt,
+    createdAt: inc.createdAt,
+    updatedAt: inc.updatedAt,
+    activeTab: inc.activeTab || 'thoughts',
+  };
+}
 
 export const incidentsService = {
   async getIncidents(): Promise<Incident[]> {

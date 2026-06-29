@@ -421,6 +421,17 @@ def build_rca_prompt(
         if similar_context:
             prompt_parts.append(similar_context)
 
+    # CFX enriched join store: inject pre-built CFX+SNOW+topology context
+    try:
+        from chat.backend.agent.tools.cfx_rca_context import get_cfx_rca_prompt_section
+        _cfx_section = get_cfx_rca_prompt_section(payload, title=title)
+        if _cfx_section:
+            prompt_parts.append("")
+            prompt_parts.append(_cfx_section)
+    except Exception as _cfx_e:
+        import logging as _l
+        _l.getLogger("cfx_rca_prompt").warning("CFX enriched RCA injection failed: %s", _cfx_e)
+
     # Prediscovery: inject infrastructure topology context
     if user_id:
         prediscovery_context = _get_prediscovery_context(

@@ -286,7 +286,7 @@ services:
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${FLASK_PORT:-5080}/health/')"]
       interval: 15s
-      timeout: 5s
+      timeout: 30s
       retries: 5
       start_period: 20s
 
