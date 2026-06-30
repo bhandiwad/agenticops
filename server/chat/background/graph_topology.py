@@ -52,6 +52,85 @@ def _resolve_seed(client, user_id: str, affected: str):
         return None
 
 
+def _cfx_topology_to_viz(doc: dict) -> Optional[VisualizationData]:
+    """Build VisualizationData from a CloudFabrix enriched doc's topology block."""
+    topo = (doc or {}).get("topology") or {}
+    matched = topo.get("matched_nodes") or []
+    dependents = topo.get("dependents") or []
+    if not matched and not dependents:
+        return None
+
+    nodes = {}
+    edges = []
+    affected_ids = []
+
+    def _key(n):
+        return n.get("node_id") or n.get("node_key") or n.get("label") or ""
+
+    for m in matched:
+        k = _key(m)
+        if not k:
+            continue
+        nid = _nid(k)
+        nodes[k] = InfraNode(id=nid, label=_label(m.get("label") or k), type=(m.get("node_type") or "ci").lower(),
+                             status="failed", source="cfx", confidence=1.0)
+        affected_ids.append(nid)
+
+    # Anchor dependents to the primary impacted CI (first matched node).
+    anchor = affected_ids[0] if affected_ids else None
+    for d in dependents:
+        k = _key(d)
+        if not k:
+            continue
+        nid = _nid(k)
+        nodes.setdefault(k, InfraNode(id=nid, label=_label(d.get("label") or k), type=(d.get("node_type") or "ci").lower(),
+                                      status="unknown", source="cfx", confidence=0.9))
+        if anchor:
+            inbound = (d.get("direction") or "").lower() == "inbound"
+            src, tgt = (nid, anchor) if inbound else (anchor, nid)
+            edges.append(InfraEdge(source=src, target=tgt, type="dependency",
+                                   label=d.get("relation_type") or "connected-to",
+                                   provenance="cfx", confidence=0.9))
+
+    if not nodes:
+        return None
+    logger.info("[GraphViz] built CFX topology: %d nodes, %d edges", len(nodes), len(edges))
+    return VisualizationData(nodes=list(nodes.values()), edges=edges, affectedIds=affected_ids)
+
+
+def build_topology_from_cfx(incident_id: str, user_id: str) -> Optional[VisualizationData]:
+    """Load the incident's CloudFabrix enriched doc (by ticket/CFX id parsed from the
+    incident) and render its real topology. Returns None when no CFX topology is available."""
+    try:
+        from chat.backend.agent.tools.cfx_rca_context import (
+            extract_ticket_number, extract_cfx_incident_id, load_enriched_doc,
+        )
+        from utils.db.connection_pool import db_pool
+        from utils.auth.stateless_auth import set_rls_context
+    except Exception:  # noqa: BLE001
+        return None
+    try:
+        text = ""
+        with db_pool.get_user_connection() as conn:
+            cur = conn.cursor()
+            set_rls_context(cur, conn, user_id, log_prefix="[GraphViz]")
+            cur.execute("SELECT alert_title, alert_service FROM incidents WHERE id = %s", (incident_id,))
+            row = cur.fetchone()
+        if row:
+            text = " ".join([str(x) for x in row if x])
+        ticket = extract_ticket_number(text)
+        cfx_id = extract_cfx_incident_id(text)
+        if not (ticket or cfx_id):
+            return None
+        doc = load_enriched_doc(ticket_number=ticket, cfx_incident_id=cfx_id)
+        if not doc:
+            return None
+        return _cfx_topology_to_viz(doc)
+    except Exception:  # noqa: BLE001
+        logger.warning("[GraphViz] build_topology_from_cfx failed", exc_info=True)
+        return None
+
+
 def build_topology_from_graph(user_id: str, affected_service: str, incident_id: str = "") -> Optional[VisualizationData]:
     """Return a discovered-topology VisualizationData for the incident, or None."""
     try:

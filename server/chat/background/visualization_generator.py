@@ -128,15 +128,21 @@ def update_visualization(
         # Base the topology on the DISCOVERED infrastructure graph (trusted source of truth);
         # the LLM only annotates node statuses. Falls back to LLM-only when the graph has
         # nothing for this incident's entity (e.g. discovery hasn't run / unknown service).
+        # Trusted-topology priority: CloudFabrix (richest, real CMDB-style topology) →
+        # discovered cloud graph → LLM-only fallback. The LLM only overlays statuses.
         updated_viz = llm_viz
         try:
-            from chat.background.graph_topology import build_topology_from_graph
-            affected = _get_affected_service(incident_id, user_id)
-            graph_viz = build_topology_from_graph(user_id, affected, incident_id)
-            if graph_viz and graph_viz.nodes:
-                updated_viz = _merge_graph_and_llm(graph_viz, llm_viz)
+            from chat.background.graph_topology import build_topology_from_cfx, build_topology_from_graph
+            base = build_topology_from_cfx(incident_id, user_id)
+            base_src = "cfx"
+            if not (base and base.nodes):
+                affected = _get_affected_service(incident_id, user_id)
+                base = build_topology_from_graph(user_id, affected, incident_id)
+                base_src = "discovered"
+            if base and base.nodes:
+                updated_viz = _merge_graph_and_llm(base, llm_viz)
                 updated_viz.version = llm_viz.version
-                logger.info(f"{_LOG_PREFIX} Using discovered-graph topology "
+                logger.info(f"{_LOG_PREFIX} Using {base_src} topology "
                             f"({len(updated_viz.nodes)} nodes) for incident {incident_id}")
         except Exception:
             logger.warning(f"{_LOG_PREFIX} graph topology merge failed; using LLM-only", exc_info=True)
