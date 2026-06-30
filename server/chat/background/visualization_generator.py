@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 import redis
@@ -15,6 +16,47 @@ from chat.backend.constants import MAX_TOOL_OUTPUT_CHARS, INFRASTRUCTURE_TOOLS
 
 logger = logging.getLogger(__name__)
 _LOG_PREFIX = "[Visualization]"
+
+
+def _get_affected_service(incident_id: str, user_id: str) -> str:
+    """Best-effort: the incident's affected service/entity (seed for the topology)."""
+    try:
+        with db_pool.get_user_connection() as conn:
+            cur = conn.cursor()
+            set_rls_context(cur, conn, user_id, log_prefix=_LOG_PREFIX)
+            cur.execute("SELECT alert_service, alert_title FROM incidents WHERE id = %s", (incident_id,))
+            row = cur.fetchone()
+        if not row:
+            return ""
+        return (row[0] or row[1] or "").strip()
+    except Exception:  # noqa: BLE001
+        logger.warning(f"{_LOG_PREFIX} could not resolve affected service for {incident_id}", exc_info=True)
+        return ""
+
+
+def _merge_graph_and_llm(graph_viz: VisualizationData, llm_viz: VisualizationData) -> VisualizationData:
+    """Use the discovered graph as the trusted structure; overlay LLM-derived statuses onto
+    matching nodes (by normalized name). LLM-only nodes/edges are intentionally NOT added —
+    the graph is authoritative for structure, so we never show invented topology as fact."""
+    def _norm(s: str) -> str:
+        return re.sub(r"[^a-z0-9]", "", (s or "").lower())
+
+    status_by_name = {}
+    for n in (llm_viz.nodes or []):
+        if n.status and n.status != "investigating":
+            status_by_name.setdefault(_norm(n.label), n.status)
+            status_by_name.setdefault(_norm(n.id), n.status)
+
+    for gn in graph_viz.nodes:
+        st = status_by_name.get(_norm(gn.label)) or status_by_name.get(_norm(gn.id))
+        if st:
+            gn.status = st
+
+    # Carry over the LLM's root-cause hint only if it maps to a graph node.
+    graph_ids = {n.id for n in graph_viz.nodes}
+    if llm_viz.rootCauseId and llm_viz.rootCauseId in graph_ids:
+        graph_viz.rootCauseId = llm_viz.rootCauseId
+    return graph_viz
 
 # Module-level singleton extractor (reuses LLM client across invocations)
 _extractor: Optional[VisualizationExtractor] = None
@@ -78,11 +120,27 @@ def update_visualization(
         existing_viz = _fetch_existing_visualization(incident_id, user_id)
         
         extractor = _get_extractor()
-        updated_viz = extractor.extract_incremental(
+        llm_viz = extractor.extract_incremental(
             tool_calls, existing_viz, is_final=force_full,
             user_id=user_id, session_id=session_id,
         )
-        
+
+        # Base the topology on the DISCOVERED infrastructure graph (trusted source of truth);
+        # the LLM only annotates node statuses. Falls back to LLM-only when the graph has
+        # nothing for this incident's entity (e.g. discovery hasn't run / unknown service).
+        updated_viz = llm_viz
+        try:
+            from chat.background.graph_topology import build_topology_from_graph
+            affected = _get_affected_service(incident_id, user_id)
+            graph_viz = build_topology_from_graph(user_id, affected, incident_id)
+            if graph_viz and graph_viz.nodes:
+                updated_viz = _merge_graph_and_llm(graph_viz, llm_viz)
+                updated_viz.version = llm_viz.version
+                logger.info(f"{_LOG_PREFIX} Using discovered-graph topology "
+                            f"({len(updated_viz.nodes)} nodes) for incident {incident_id}")
+        except Exception:
+            logger.warning(f"{_LOG_PREFIX} graph topology merge failed; using LLM-only", exc_info=True)
+
         if not updated_viz.nodes:
             logger.warning(f"{_LOG_PREFIX} No entities extracted for incident {incident_id}")
             return {"status": "skipped", "reason": "no_entities"}

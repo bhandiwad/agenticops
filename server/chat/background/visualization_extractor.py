@@ -15,6 +15,9 @@ class InfraNode(BaseModel):
     type: str = Field(description="Infrastructure entity type (e.g., 'pod', 'deployment', 'lambda', 'load-balancer', 'database')")
     status: Literal['healthy', 'degraded', 'failed', 'investigating', 'unknown'] = 'investigating'
     parentId: Optional[str] = Field(default=None, description="ID of parent node for hierarchical grouping (e.g., cluster, namespace, region)")
+    # Provenance (set by the system, not the LLM): where this entity came from + how trusted.
+    source: str = Field(default="inferred", description="Provenance: discovered|cmdb|cfx|inferred")
+    confidence: float = Field(default=0.5, description="0..1 confidence; verified sources are high")
 
 
 class InfraEdge(BaseModel):
@@ -23,6 +26,8 @@ class InfraEdge(BaseModel):
     target: str = Field(description="Target node ID")
     label: str = Field(default="", description="Relationship description")
     type: Literal['dependency', 'communication', 'causation', 'hosts'] = 'dependency'
+    provenance: str = Field(default="inferred", description="Provenance: discovered|cmdb|cfx|inferred")
+    confidence: float = Field(default=0.5, description="0..1 confidence")
 
 
 class VisualizationData(BaseModel):
