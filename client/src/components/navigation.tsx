@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ChevronLeft, Settings, LogOut, User, Zap, Plug, Gauge, SquarePen, Workflow, Wrench, Bot, Route, ShieldCheck, Server, History, Sun, Moon, Brain, BarChart3 } from "lucide-react"
+import { ChevronLeft, Settings, LogOut, User, Zap, Plug, Gauge, SquarePen, Workflow, Wrench, Bot, Route, ShieldCheck, History, Sun, Moon, Brain, BarChart3, Sparkles } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -244,6 +244,24 @@ export default function Navigation({
             </Link>
           </li>
 
+          {/* Skills Navigation Item */}
+          <li>
+            <Link
+              href="/skills"
+              className={cn(
+                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
+                pathname?.startsWith("/skills")
+                  ? "bg-card rounded-lg border border-border shadow-sm"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div className="flex items-center">
+                <Sparkles size={16} />
+                <span className="ml-2">Skills</span>
+              </div>
+            </Link>
+          </li>
+
           {/* Agents Navigation Item */}
           <li>
             <Link
@@ -372,23 +390,7 @@ export default function Navigation({
             </Link>
           </li>
 
-          {/* MCP Servers Navigation Item */}
-          <li>
-            <Link
-              href="/mcp"
-              className={cn(
-                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
-                pathname?.startsWith("/mcp")
-                  ? "bg-card rounded-lg border border-border shadow-sm"
-                  : "text-muted-foreground"
-              )}
-            >
-              <div className="flex items-center">
-                <Server size={16} />
-                <span className="ml-2">MCP</span>
-              </div>
-            </Link>
-          </li>
+          {/* MCP folded into Connectors (a tab) — nav item removed */}
 
           {/* Connectors Navigation Item */}
           <li>

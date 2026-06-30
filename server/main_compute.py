@@ -461,6 +461,10 @@ app.register_blueprint(teams_bp, url_prefix="/api/teams")
 from routes.finops.finops_routes import finops_bp  # noqa: F401
 app.register_blueprint(finops_bp)
 
+# --- Skills catalog (SKILL.md packs) ---
+from routes.skills_routes import skills_bp  # noqa: F401
+app.register_blueprint(skills_bp)
+
 # --- CloudFabrix Integration Routes ---
 from routes.cloudfabrix import bp as cloudfabrix_bp  # noqa: F401
 app.register_blueprint(cloudfabrix_bp, url_prefix="/cloudfabrix")
