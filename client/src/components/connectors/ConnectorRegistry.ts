@@ -89,6 +89,18 @@ class ConnectorRegistry {
     });
 
     this.register({
+      id: "whatsapp",
+      name: "WhatsApp",
+      description: "Connect a WhatsApp Business number (Meta Cloud API) so automation workflows can send notifications (approval-needed / outcome). Uses a phone number ID + permanent access token.",
+      iconPath: "/whatsapp.svg",
+      iconBgColor: "bg-white dark:bg-white",
+      category: "Notification",
+      path: "/whatsapp/auth",
+      storageKey: "isWhatsAppConnected",
+      useCustomConnection: true,
+    });
+
+    this.register({
       id: "netdata",
       name: "Netdata",
       description: "Real-time infrastructure monitoring with Netdata Cloud. Receive alerts and monitor system metrics across all your nodes.",

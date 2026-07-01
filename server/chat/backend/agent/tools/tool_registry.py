@@ -77,7 +77,7 @@ KNOWN_CONNECTORS: FrozenSet[str] = frozenset({
     "slack", "jenkins", "cloudbees", "spinnaker", "splunk", "incidentio",
     "dynatrace", "datadog", "newrelic", "sentry", "opsgenie", "confluence",
     "sharepoint", "coroot", "thousandeyes", "cloudflare", "flyio", "jira",
-    "notion", "fortigate", "zabbix", "servicenow", "commvault",
+    "notion", "fortigate", "zabbix", "servicenow", "commvault", "whatsapp",
 })
 
 
@@ -353,6 +353,10 @@ _CATALOG: List[ToolSpec] = [
     _spec("query_commvault", Risk.READ, {"infra", "runtime_state"}, "commvault"),
     _spec("commvault_backup", Risk.DESTRUCTIVE, {"infra"}, "commvault",
           notes="Triggers a Commvault backup job. Background/workflow only."),
+
+    # --- WhatsApp notifications ------------------------------------------ #
+    _spec("send_whatsapp", Risk.WRITE, {"chat"}, "whatsapp",
+          notes="Sends a WhatsApp text notification. Background/workflow only."),
 ]
 
 

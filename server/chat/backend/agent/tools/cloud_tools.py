@@ -154,6 +154,11 @@ from .commvault_tool import (
     QueryCommvaultArgs,
     CommvaultBackupArgs,
 )
+from .whatsapp_tool import (
+    send_whatsapp,
+    is_whatsapp_connected,
+    SendWhatsAppArgs,
+)
 from .opsgenie_tool import query_opsgenie, is_opsgenie_connected, QueryOpsGenieArgs
 from .newrelic_tool import (
     query_newrelic,
@@ -2142,6 +2147,23 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
                 args_schema=CommvaultBackupArgs,
             ))
             logging.info(f"Added Commvault backup (write) tool for user {user_id} (background)")
+
+    # WhatsApp notification tool: background/workflow execution only (workflows notify a
+    # recipient on approval-needed / completion). Not available in interactive chat.
+    if is_background and is_whatsapp_connected(user_id):
+        context_wrapped_wa = with_user_context(send_whatsapp)
+        notification_wrapped_wa = with_completion_notification(context_wrapped_wa)
+        final_wa_func = wrap_func_with_capture(notification_wrapped_wa, "send_whatsapp") if tool_capture else notification_wrapped_wa
+        tools.append(StructuredTool.from_function(
+            func=final_wa_func,
+            name="send_whatsapp",
+            description=(
+                "Send a WhatsApp text notification to a recipient (E.164 number) via the connected "
+                "WhatsApp Business number. Use for workflow notifications (approval-needed / outcome)."
+            ),
+            args_schema=SendWhatsAppArgs,
+        ))
+        logging.info(f"Added WhatsApp notify tool for user {user_id} (background)")
 
     # Add New Relic tool if connected
     if is_newrelic_connected(user_id):

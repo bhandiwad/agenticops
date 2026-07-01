@@ -447,6 +447,9 @@ app.register_blueprint(zabbix_bp, url_prefix="/zabbix")
 from routes.commvault import bp as commvault_bp  # noqa: F401
 app.register_blueprint(commvault_bp, url_prefix="/commvault")
 
+from routes.whatsapp import bp as whatsapp_bp  # noqa: F401
+app.register_blueprint(whatsapp_bp, url_prefix="/whatsapp")
+
 # --- Netdata Integration Routes ---
 from routes.netdata import bp as netdata_bp  # noqa: F401
 import routes.netdata.tasks  # noqa: F401
