@@ -438,6 +438,9 @@ from routes.datadog import bp as datadog_bp  # noqa: F401
 import routes.datadog.tasks  # noqa: F401
 app.register_blueprint(datadog_bp, url_prefix="/datadog")
 
+from routes.fortigate import bp as fortigate_bp  # noqa: F401
+app.register_blueprint(fortigate_bp, url_prefix="/fortigate")
+
 # --- Netdata Integration Routes ---
 from routes.netdata import bp as netdata_bp  # noqa: F401
 import routes.netdata.tasks  # noqa: F401

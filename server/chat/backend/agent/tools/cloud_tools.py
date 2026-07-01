@@ -130,6 +130,11 @@ from .datadog_tool import (
     is_datadog_connected,
     QueryDatadogArgs,
 )
+from .fortigate_tool import (
+    query_fortigate,
+    is_fortigate_connected,
+    QueryFortiGateArgs,
+)
 from .opsgenie_tool import query_opsgenie, is_opsgenie_connected, QueryOpsGenieArgs
 from .newrelic_tool import (
     query_newrelic,
@@ -2009,6 +2014,26 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
             args_schema=QueryDatadogArgs,
         ))
         logging.info(f"Added Datadog tool for user {user_id}")
+
+    # Add FortiGate tool if connected (read-only firewall inspection)
+    if is_fortigate_connected(user_id):
+        context_wrapped_fg = with_user_context(query_fortigate)
+        notification_wrapped_fg = with_completion_notification(context_wrapped_fg)
+        final_fg_func = wrap_func_with_capture(notification_wrapped_fg, "query_fortigate") if tool_capture else notification_wrapped_fg
+
+        tools.append(StructuredTool.from_function(
+            func=final_fg_func,
+            name="query_fortigate",
+            description=(
+                "Inspect FortiGate firewall configuration and state (read-only). "
+                "Set resource_type to 'status', 'policies', 'addresses', 'services', or 'interfaces'. "
+                "Example: query_fortigate(resource_type='policies', limit=50). "
+                "To OPEN a firewall port, do NOT use this tool — that goes through the "
+                "approval-gated open-firewall-port workflow."
+            ),
+            args_schema=QueryFortiGateArgs,
+        ))
+        logging.info(f"Added FortiGate tool for user {user_id}")
 
     # Add New Relic tool if connected
     if is_newrelic_connected(user_id):

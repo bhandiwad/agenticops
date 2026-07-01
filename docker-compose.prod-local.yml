@@ -115,6 +115,8 @@ x-common-env: &common-env
   RCA_MODEL: ${RCA_MODEL}
   MAIN_MODEL: ${MAIN_MODEL}
   FALLBACK_MODEL: ${FALLBACK_MODEL:-}
+  # Operator-trusted private CIDRs the SSRF guard may reach (on-prem infra connectors: FortiGate, Zabbix, VMs). Blank = strict public-only.
+  AURORA_SSRF_ALLOWED_CIDRS: ${AURORA_SSRF_ALLOWED_CIDRS:-}
   RCA_ORCHESTRATOR_MODEL: ${RCA_ORCHESTRATOR_MODEL}
   RCA_SUBAGENT_MODEL: ${RCA_SUBAGENT_MODEL}
   VISION_MODEL: ${VISION_MODEL}
