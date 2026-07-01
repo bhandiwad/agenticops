@@ -132,9 +132,14 @@ def update_visualization(
         # discovered cloud graph → LLM-only fallback. The LLM only overlays statuses.
         updated_viz = llm_viz
         try:
-            from chat.background.graph_topology import build_topology_from_cfx, build_topology_from_graph
+            from chat.background.graph_topology import (
+                build_topology_from_cfx, build_topology_from_cmdb, build_topology_from_graph,
+            )
             base = build_topology_from_cfx(incident_id, user_id)
             base_src = "cfx"
+            if not (base and base.nodes):
+                base = build_topology_from_cmdb(incident_id, user_id)
+                base_src = "cmdb"
             if not (base and base.nodes):
                 affected = _get_affected_service(incident_id, user_id)
                 base = build_topology_from_graph(user_id, affected, incident_id)

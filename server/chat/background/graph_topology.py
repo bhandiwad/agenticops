@@ -131,6 +131,64 @@ def build_topology_from_cfx(incident_id: str, user_id: str) -> Optional[Visualiz
         return None
 
 
+def build_topology_from_cmdb(incident_id: str, user_id: str) -> Optional[VisualizationData]:
+    """Render topology from the ServiceNow CMDB (cmdb_ci + cmdb_rel_ci) for the incident's
+    affected CI + its 1-hop relationships. Used where CloudFabrix isn't enabled. Returns None
+    when ServiceNow isn't connected or the CI isn't found."""
+    try:
+        from utils.auth.token_management import get_token_data
+        from routes.servicenow.snow_client import ServiceNowClient
+        from utils.db.connection_pool import db_pool
+        from utils.auth.stateless_auth import set_rls_context
+    except Exception:  # noqa: BLE001
+        return None
+    try:
+        data = get_token_data(user_id, "servicenow")
+        if not data:
+            return None
+        client = ServiceNowClient.from_token_data(data)
+        dv = ServiceNowClient.display_val
+
+        with db_pool.get_user_connection() as conn:
+            cur = conn.cursor()
+            set_rls_context(cur, conn, user_id, log_prefix="[GraphViz]")
+            cur.execute("SELECT alert_service, alert_title FROM incidents WHERE id = %s", (incident_id,))
+            row = cur.fetchone()
+        seed_name = ((row[0] or row[1] or "") if row else "").strip()
+        if not seed_name:
+            return None
+
+        ci = client.get_ci_by_name(seed_name)
+        if not ci:
+            return None
+        ci_sysid = str(dv(ci.get("sys_id")) or "")
+        ci_name = str(dv(ci.get("name")) or seed_name)
+        ci_type = str(dv(ci.get("sys_class_name")) or "ci").lower()
+        seed_id = _nid(ci_name)
+
+        nodes = {ci_name: InfraNode(id=seed_id, label=_label(ci_name), type=ci_type,
+                                    status="failed", source="cmdb", confidence=1.0)}
+        edges = []
+        for rel in (client.get_ci_relationships(ci_sysid) if ci_sysid else []):
+            parent = str(dv(rel.get("parent")) or "").strip()
+            child = str(dv(rel.get("child")) or "").strip()
+            rtype = str(dv(rel.get("type")) or "related")[:24]
+            for other in (parent, child):
+                if other and other not in nodes:
+                    nodes[other] = InfraNode(id=_nid(other), label=_label(other), type="ci",
+                                             status="unknown", source="cmdb", confidence=0.9)
+            if parent and child:
+                edges.append(InfraEdge(source=_nid(parent), target=_nid(child), type="dependency",
+                                       label=rtype, provenance="cmdb", confidence=0.9))
+
+        logger.info("[GraphViz] built CMDB topology for '%s' (incident %s): %d nodes, %d edges",
+                    ci_name, incident_id, len(nodes), len(edges))
+        return VisualizationData(nodes=list(nodes.values()), edges=edges, affectedIds=[seed_id])
+    except Exception:  # noqa: BLE001
+        logger.warning("[GraphViz] build_topology_from_cmdb failed", exc_info=True)
+        return None
+
+
 def build_topology_from_graph(user_id: str, affected_service: str, incident_id: str = "") -> Optional[VisualizationData]:
     """Return a discovered-topology VisualizationData for the incident, or None."""
     try:

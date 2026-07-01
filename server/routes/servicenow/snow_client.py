@@ -134,6 +134,25 @@ class ServiceNowClient:
             raise ServiceNowAPIError(f"No ticket found for sys_id {sys_id}")
         return self.format_ticket(record, table=tbl)
 
+    def get_ci_by_name(self, name: str) -> dict[str, Any] | None:
+        """Look up a Configuration Item in the CMDB by name (cmdb_ci)."""
+        q = urllib.parse.quote(f"name={name}")
+        payload = self._request(
+            "GET",
+            f"/api/now/table/cmdb_ci?sysparm_query={q}&sysparm_display_value=all&sysparm_limit=1",
+        )
+        result = payload.get("result") or []
+        return result[0] if result else None
+
+    def get_ci_relationships(self, ci_sys_id: str, limit: int = 30) -> list[dict[str, Any]]:
+        """Return cmdb_rel_ci rows where the CI is the parent or child (its topology neighbors)."""
+        q = urllib.parse.quote(f"parent={ci_sys_id}^ORchild={ci_sys_id}")
+        payload = self._request(
+            "GET",
+            f"/api/now/table/cmdb_rel_ci?sysparm_query={q}&sysparm_display_value=all&sysparm_limit={limit}",
+        )
+        return payload.get("result") or []
+
     def resolve_ticket(self, sys_id: str, *, table: str | None = None, close_notes: str = "") -> dict[str, Any]:
         tbl = table or self.table
         get_path = (
