@@ -150,14 +150,18 @@ export default function Navigation({
               />
               <div className="flex flex-col items-start min-w-0">
                 {wordmark && <h1 className="text-lg font-bold text-foreground">{wordmark}</h1>}
-                {user?.orgName ? (
-                  <span className="text-xs text-muted-foreground truncate max-w-[120px]">
-                    {user.orgName}
-                  </span>
-                ) : (
-                  <span className="px-1.5 py-0.5 text-xs font-semibold tracking-wider text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200 mt-0.5">
-                    BETA
-                  </span>
+                {/* Org name / BETA badge — suppressed under a custom brand logo, where the
+                    product + company logos already convey identity (avoids redundant text). */}
+                {!brandLogo && (
+                  user?.orgName ? (
+                    <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+                      {user.orgName}
+                    </span>
+                  ) : (
+                    <span className="px-1.5 py-0.5 text-xs font-semibold tracking-wider text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200 mt-0.5">
+                      BETA
+                    </span>
+                  )
                 )}
               </div>
             </div>
