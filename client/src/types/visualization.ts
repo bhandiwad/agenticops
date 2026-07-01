@@ -2,12 +2,16 @@ export type NodeType = string;
 export type NodeStatus = 'healthy' | 'degraded' | 'failed' | 'investigating' | 'unknown';
 export type EdgeType = 'dependency' | 'communication' | 'causation' | 'hosts';
 
+export type Provenance = 'cfx' | 'cmdb' | 'discovered' | 'inferred';
+
 export interface InfraNode {
   id: string;
   label: string;
   type: NodeType;
   status: NodeStatus;
   parentId?: string | null;
+  source?: Provenance;
+  confidence?: number;
 }
 
 export interface InfraEdge {
@@ -15,6 +19,8 @@ export interface InfraEdge {
   target: string;
   label: string;
   type: EdgeType;
+  provenance?: Provenance;
+  confidence?: number;
 }
 
 export interface VisualizationData {

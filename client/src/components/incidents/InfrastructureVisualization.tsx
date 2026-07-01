@@ -200,12 +200,27 @@ function CustomNode({ data, id, selected }: { data: InfraNode & { isRootCause?: 
               }}
             />
           ) : (
-            <div 
+            <div
               style={{ fontSize: '13px', fontWeight: 500, cursor: selected ? 'text' : 'default' }}
               onDoubleClick={handleLabelDoubleClick}
               title={selected ? 'Double-click to edit label' : ''}
             >
               {data.label}
+            </div>
+          )}
+          {data.source && (
+            <div
+              style={{
+                fontSize: '8px',
+                fontWeight: 600,
+                marginTop: '2px',
+                letterSpacing: '0.3px',
+                color: data.source === 'inferred' ? '#d97706' : '#71717a',
+                fontStyle: data.source === 'inferred' ? 'italic' : 'normal',
+              }}
+              title={`Source: ${data.source}${data.confidence != null ? ` (confidence ${Math.round((data.confidence ?? 0) * 100)}%)` : ''}`}
+            >
+              {data.source === 'inferred' ? 'inferred' : `via ${data.source}`}
             </div>
           )}
         </div>
@@ -749,18 +764,27 @@ export default function InfrastructureVisualization({ incidentId, className }: P
         const edgeKey = `${edge.source}-${edge.target}`;
         return !parentChildEdges.has(edgeKey);
       })
-      .map((edge, idx) => ({
-        id: `e${idx}`,
-        source: edge.source,
-        target: edge.target,
-        ...(edge.label && { label: edge.label }),
-        type: 'smoothstep',
-        animated: edge.type === 'causation',
-        style: { stroke: '#52525b', strokeWidth: 2 },
-        labelStyle: { fill: '#71717a', fontSize: 10, fontWeight: 500 },
-        labelBgStyle: { fill: '#18181b', fillOpacity: 0.9 },
-        markerEnd: { type: 'arrowclosed', color: '#52525b' },
-      }));
+      .map((edge, idx) => {
+        // Provenance-aware styling: verified links (cfx/cmdb/discovered) are solid;
+        // inferred links are dashed + lighter + labeled, so guesses are never shown as fact.
+        const inferred = (edge.provenance ?? 'inferred') === 'inferred';
+        const stroke = inferred ? '#a1a1aa' : '#52525b';
+        const label = edge.label
+          ? (inferred ? `${edge.label} · inferred` : edge.label)
+          : (inferred ? 'inferred' : undefined);
+        return {
+          id: `e${idx}`,
+          source: edge.source,
+          target: edge.target,
+          ...(label && { label }),
+          type: 'smoothstep',
+          animated: edge.type === 'causation',
+          style: { stroke, strokeWidth: 2, ...(inferred && { strokeDasharray: '6 4' }) },
+          labelStyle: { fill: '#71717a', fontSize: 10, fontWeight: 500 },
+          labelBgStyle: { fill: '#18181b', fillOpacity: 0.9 },
+          markerEnd: { type: 'arrowclosed', color: stroke },
+        };
+      });
 
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(sortedFlowNodes, flowEdges);
     
@@ -920,7 +944,20 @@ export default function InfrastructureVisualization({ incidentId, className }: P
             <Maximize size={16} strokeWidth={2} style={{ stroke: '#fafafa', fill: 'none' }} />
           </ControlButton>
         </Controls>
-        
+
+        {/* Provenance legend: how topology is sourced + trusted */}
+        <Panel position="top-right" className="bg-zinc-900/90 border border-zinc-700 rounded-md" style={{ padding: '6px 8px', fontSize: '9px', color: '#a1a1aa' }}>
+          <div style={{ fontWeight: 700, color: '#d4d4d8', marginBottom: 3 }}>Topology source</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+            <svg width="22" height="6"><line x1="0" y1="3" x2="22" y2="3" stroke="#52525b" strokeWidth="2" /></svg>
+            <span>verified — CFX / CMDB / discovered</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <svg width="22" height="6"><line x1="0" y1="3" x2="22" y2="3" stroke="#a1a1aa" strokeWidth="2" strokeDasharray="4 3" /></svg>
+            <span style={{ fontStyle: 'italic' }}>inferred — unverified</span>
+          </div>
+        </Panel>
+
         {/* Side Panel for Node Controls */}
         {selectedNode && (() => {
           const node = nodes.find(n => n.id === selectedNode);
