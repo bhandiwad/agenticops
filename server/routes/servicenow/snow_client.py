@@ -153,6 +153,26 @@ class ServiceNowClient:
         )
         return payload.get("result") or []
 
+    def add_work_note(self, sys_id: str, note: str, *, table: str | None = None,
+                      state: str | None = None) -> dict[str, Any]:
+        """Append a work note to a ticket (ServiceNow journals the ``work_notes`` field),
+        optionally moving the ticket to a new state. Used by automation workflows to record
+        what they did on the associated ticket."""
+        tbl = table or self.table
+        if not (note or "").strip():
+            raise ValueError("note is required")
+        patch_body: dict[str, Any] = {"work_notes": note.strip()[:4000]}
+        if state:
+            patch_body["state"] = str(state)
+        patch_path = f"/api/now/table/{urllib.parse.quote(tbl, safe='')}/{sys_id}"
+        updated = self._request("PATCH", patch_path, patch_body).get("result", {})
+        return {
+            "status": "updated",
+            "snow_sys_id": sys_id,
+            "snow_number": self.display_val(updated.get("number")),
+            "new_state": self.display_val(updated.get("state")),
+        }
+
     def resolve_ticket(self, sys_id: str, *, table: str | None = None, close_notes: str = "") -> dict[str, Any]:
         tbl = table or self.table
         get_path = (

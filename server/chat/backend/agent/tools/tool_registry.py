@@ -77,7 +77,7 @@ KNOWN_CONNECTORS: FrozenSet[str] = frozenset({
     "slack", "jenkins", "cloudbees", "spinnaker", "splunk", "incidentio",
     "dynatrace", "datadog", "newrelic", "sentry", "opsgenie", "confluence",
     "sharepoint", "coroot", "thousandeyes", "cloudflare", "flyio", "jira",
-    "notion",
+    "notion", "fortigate", "zabbix", "servicenow",
 })
 
 
@@ -336,6 +336,18 @@ _CATALOG: List[ToolSpec] = [
     _spec("notion_list_custom_emojis", Risk.READ, {"meta"}, "notion"),
     _spec("notion_export_postmortem", Risk.WRITE, {"postmortem", "knowledge_base"}, "notion"),
     _spec("notion_create_action_items", Risk.WRITE, {"postmortem", "knowledge_base"}, "notion"),
+
+    # --- FortiGate firewall ---------------------------------------------- #
+    _spec("query_fortigate", Risk.READ, {"network", "security"}, "fortigate"),
+    _spec("fortigate_open_port", Risk.DESTRUCTIVE, {"network", "security"}, "fortigate",
+          notes="Creates a firewall service/address object and allow policy. Background/workflow only."),
+
+    # --- Zabbix monitoring ----------------------------------------------- #
+    _spec("query_zabbix", Risk.READ, {"observability", "metrics", "infra"}, "zabbix"),
+
+    # --- ServiceNow ITSM writes (automation ticket updates) -------------- #
+    _spec("update_servicenow_ticket", Risk.WRITE, {"incident_ops", "comments"}, "servicenow",
+          notes="Appends a work note (optionally resolves) to a ServiceNow ticket."),
 ]
 
 

@@ -80,15 +80,13 @@ FIREWALL_OPEN_PORT = {
                        "{{ $context.dstaddr }} ({{ $context.srcintf }} -> {{ $context.dstintf }}, "
                        "src {{ $context.srcaddr }}, NAT {{ $context.nat }}) on FortiGate.",
         }},
-        {"id": "apply", "type": "agent", "ref": "runbook_executor_agent", "config": {
+        {"id": "apply", "type": "agent", "ref": "firewall_change_agent", "config": {
             "purpose": (
-                "A human has APPROVED this firewall change. Apply it EXACTLY once by calling "
-                "fortigate_open_port with these approved parameters and nothing else: "
-                "protocol={{ $context.protocol }}, port={{ $context.port }}, "
+                "APPROVED firewall change to apply, verify, and record on the ServiceNow "
+                "ticket (incident_id={{ $context.incident_id }}, ticket={{ $context.ticket_number }}). "
+                "Approved parameters: protocol={{ $context.protocol }}, port={{ $context.port }}, "
                 "dstaddr={{ $context.dstaddr }}, srcintf={{ $context.srcintf }}, "
-                "dstintf={{ $context.dstintf }}, srcaddr={{ $context.srcaddr }}, "
-                "nat={{ $context.nat }}. Then confirm by calling query_fortigate("
-                "resource_type='policies') and report the created policy. Do not make any other changes."
+                "dstintf={{ $context.dstintf }}, srcaddr={{ $context.srcaddr }}, nat={{ $context.nat }}."
             ),
         }},
         {"id": "result", "type": "set", "config": {

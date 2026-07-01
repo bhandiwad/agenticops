@@ -142,6 +142,11 @@ from .zabbix_tool import (
     is_zabbix_connected,
     QueryZabbixArgs,
 )
+from .servicenow_tool import (
+    update_servicenow_ticket,
+    is_servicenow_connected,
+    UpdateServiceNowTicketArgs,
+)
 from .opsgenie_tool import query_opsgenie, is_opsgenie_connected, QueryOpsGenieArgs
 from .newrelic_tool import (
     query_newrelic,
@@ -2079,6 +2084,25 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
             args_schema=QueryZabbixArgs,
         ))
         logging.info(f"Added Zabbix tool for user {user_id}")
+
+    # ServiceNow ticket-update tool: background/workflow execution only. Automation workflows
+    # use this to append a work note (optionally resolve) to the associated ServiceNow ticket.
+    if is_background and is_servicenow_connected(user_id):
+        context_wrapped_snu = with_user_context(update_servicenow_ticket)
+        notification_wrapped_snu = with_completion_notification(context_wrapped_snu)
+        final_snu_func = wrap_func_with_capture(notification_wrapped_snu, "update_servicenow_ticket") if tool_capture else notification_wrapped_snu
+
+        tools.append(StructuredTool.from_function(
+            func=final_snu_func,
+            name="update_servicenow_ticket",
+            description=(
+                "Append a work note to the associated ServiceNow ticket (optionally resolve it) "
+                "to record what this workflow did and its outcome. Identify the ticket by "
+                "incident_id or ticket_number."
+            ),
+            args_schema=UpdateServiceNowTicketArgs,
+        ))
+        logging.info(f"Added ServiceNow update tool for user {user_id} (background)")
 
     # Add New Relic tool if connected
     if is_newrelic_connected(user_id):

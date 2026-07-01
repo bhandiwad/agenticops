@@ -166,11 +166,31 @@ def fortigate_open_port(
         return json.dumps({"ok": False, "steps": steps, "error": f"policy create failed: {exc}"})
 
     steps.append(f"created firewall policy '{name}'")
+    mkey = res.get("mkey") if isinstance(res, dict) else None
+
+    # Validation: read the policy back and confirm it exists and is enabled. The caller
+    # (and the ServiceNow work note) should reflect verified=false if this does not confirm.
+    verified = False
+    policy_status = None
+    verify_error = None
+    if mkey is not None:
+        try:
+            policy = client.get_policy(mkey)
+            policy_status = policy.get("status")
+            verified = bool(policy) and str(policy_status).lower() in ("enable", "enabled", "1")
+            steps.append(f"verified policy {mkey}: status={policy_status}")
+        except FortiGateAPIError as exc:
+            verify_error = str(exc)
+            steps.append(f"verification read-back failed: {exc}")
+
     return json.dumps({
         "ok": True,
+        "verified": verified,
         "policy": name,
+        "policy_id": mkey,
+        "policy_status": policy_status,
+        "verify_error": verify_error,
         "service": svc_name,
         "dstaddr": dst_name,
-        "mkey": res.get("mkey") if isinstance(res, dict) else None,
         "steps": steps,
     })

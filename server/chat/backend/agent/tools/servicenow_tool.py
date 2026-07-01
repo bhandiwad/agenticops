@@ -146,3 +146,59 @@ def resolve_servicenow_ticket(
             incident_id,
         )
     return json.dumps(result)
+
+
+class UpdateServiceNowTicketArgs(BaseModel):
+    note: str = Field(description="Work note to append to the ticket — what the workflow did and its outcome.")
+    ticket_number: str = Field(default="", description="ServiceNow ticket number (e.g. INC0012345). Provide this OR incident_id.")
+    incident_id: str = Field(default="", description="Aurora incident UUID whose linked ticket to update. Provide this OR ticket_number.")
+    resolve: bool = Field(default=False, description="Also move the ticket to its resolved state.")
+
+
+def update_servicenow_ticket(
+    note: str,
+    ticket_number: str = "",
+    incident_id: str = "",
+    resolve: bool = False,
+    user_id: str | None = None,
+    **kwargs,
+) -> str:
+    """Append a work note to a ServiceNow ticket (optionally resolving it) so an automation
+    workflow records what it did on the associated ticket. Identify the ticket by
+    ``incident_id`` (uses the incident's linked ticket) or by ``ticket_number``."""
+    from routes.servicenow.snow_client import load_client_for_user, load_client_from_env
+
+    if not (note or "").strip():
+        return json.dumps({"error": "note is required"})
+
+    client = (load_client_for_user(user_id) if user_id else None) or load_client_from_env()
+    if client is None:
+        return json.dumps({"error": "ServiceNow is not connected"})
+
+    sys_id: str | None = None
+    table: str | None = None
+    if incident_id:
+        link = _load_snow_link(incident_id, user_id)
+        if link.get("error"):
+            return json.dumps(link)
+        sys_id, table = link["snow_sys_id"], link.get("snow_table")
+    elif ticket_number:
+        try:
+            t = client.get_ticket_by_number(ticket_number)
+            sys_id, table = t.get("snow_sys_id"), t.get("snow_table")
+        except Exception as exc:  # noqa: BLE001
+            return json.dumps({"error": f"Ticket lookup failed: {exc}"})
+    else:
+        return json.dumps({"error": "Provide either ticket_number or incident_id"})
+
+    if not sys_id:
+        return json.dumps({"error": "Could not resolve the ticket sys_id"})
+
+    try:
+        result = client.add_work_note(sys_id, note, table=table)
+        if resolve:
+            result["resolve"] = client.resolve_ticket(sys_id, table=table, close_notes=note)
+        logger.info("[ServiceNowTool] Updated ticket %s (resolve=%s)", result.get("snow_number"), resolve)
+        return json.dumps({"ok": True, **result})
+    except Exception as exc:  # noqa: BLE001
+        return json.dumps({"error": str(exc)})
