@@ -53,6 +53,18 @@ class ConnectorRegistry {
     });
 
     this.register({
+      id: "fortigate",
+      name: "FortiGate",
+      description: "Connect a FortiGate (FortiOS) firewall to inspect policies, address/service objects and interfaces, and to run approval-gated firewall changes. Uses a FortiOS REST API token.",
+      iconPath: "/fortigate.svg",
+      iconBgColor: "bg-white dark:bg-white",
+      category: "Security",
+      path: "/fortigate/auth",
+      storageKey: "isFortiGateConnected",
+      useCustomConnection: true,
+    });
+
+    this.register({
       id: "netdata",
       name: "Netdata",
       description: "Real-time infrastructure monitoring with Netdata Cloud. Receive alerts and monitor system metrics across all your nodes.",
