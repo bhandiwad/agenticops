@@ -61,6 +61,11 @@ export default function Navigation({
   const lightLogo = brandLogo || "/arvologotransparent-modified.png"
   const darkLogo = getEnv("NEXT_PUBLIC_BRAND_LOGO_DARK") || brandLogo || "/arvologotransparent.png"
   const wordmark = brandName ?? (brandLogo ? "" : "Aurora")
+  // Custom brand logos are usually wide wordmarks — render them full-height with auto width
+  // so they read boldly; the built-in Aurora mark stays a compact square icon.
+  const logoClass = brandLogo
+    ? "h-10 w-auto max-w-[180px] object-contain"
+    : "w-10 h-10 object-contain"
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
@@ -130,12 +135,12 @@ export default function Navigation({
             <img
               src={lightLogo}
               alt={wordmark ? `${wordmark} Logo` : "Logo"}
-              className="w-10 h-10 block dark:hidden object-contain"
+              className={cn(logoClass, "block dark:hidden")}
             />
             <img
               src={darkLogo}
               alt={wordmark ? `${wordmark} Logo` : "Logo"}
-              className="w-10 h-10 hidden dark:block object-contain"
+              className={cn(logoClass, "hidden dark:block")}
             />
             <div className="flex flex-col items-start">
               {wordmark && <h1 className="text-lg font-bold text-foreground">{wordmark}</h1>}
