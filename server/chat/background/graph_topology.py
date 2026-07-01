@@ -189,6 +189,112 @@ def build_topology_from_cmdb(incident_id: str, user_id: str) -> Optional[Visuali
         return None
 
 
+def build_topology_from_iac(user_id: str, affected_service: str, incident_id: str = "") -> Optional[VisualizationData]:
+    """IaC (Terraform state) declared relationships. Honest connect-to-activate stub: this
+    deployment has no per-environment Terraform *state* ingestion (the terraform tooling here
+    provisions Aurora's own infra, not the user's), so there's nothing to read yet. Returns
+    None until a TF-state source is wired; slots into the resolver so it lights up then."""
+    try:
+        from utils.auth.token_management import get_token_data
+        state = get_token_data(user_id, "terraform_state")
+    except Exception:  # noqa: BLE001
+        state = None
+    if not state:
+        return None
+    # (When TF-state ingestion exists, parse resources + depends_on/references into nodes/edges
+    #  with source="iac", confidence high. Left unimplemented until that source is available.)
+    return None
+
+
+def build_topology_from_monitoring(user_id: str, affected_service: str, incident_id: str = "") -> Optional[VisualizationData]:
+    """Observed service dependencies from Datadog APM (/api/v1/service_dependencies). Returns
+    None when Datadog isn't connected. Edges are observed traffic (source='monitoring')."""
+    if not affected_service:
+        return None
+    try:
+        from utils.auth.token_management import get_token_data
+        from routes.datadog.datadog_routes import DatadogClient
+        import requests
+    except Exception:  # noqa: BLE001
+        return None
+    try:
+        creds = get_token_data(user_id, "datadog")
+        if not creds:
+            return None
+        client = DatadogClient(creds.get("api_key", ""), creds.get("app_key", ""), creds.get("site"))
+        resp = requests.get(
+            f"{client.base_url}/api/v1/service_dependencies",
+            headers={"DD-API-KEY": client.api_key, "DD-APPLICATION-KEY": client.app_key},
+            timeout=10,
+        )
+        if resp.status_code != 200:
+            return None
+        deps = resp.json() or {}
+        svc = next((k for k in deps if k.lower() == affected_service.lower()
+                    or affected_service.lower() in k.lower()), None)
+        if not svc:
+            return None
+        seed_id = _nid(svc)
+        nodes = {svc: InfraNode(id=seed_id, label=_label(svc), type="service", status="degraded",
+                                source="monitoring", confidence=0.85)}
+        edges = []
+        for callee in (deps.get(svc, {}).get("calls") or [])[:20]:
+            nid = _nid(callee)
+            nodes.setdefault(callee, InfraNode(id=nid, label=_label(callee), type="service",
+                                               status="unknown", source="monitoring", confidence=0.85))
+            edges.append(InfraEdge(source=seed_id, target=nid, type="communication",
+                                   label="calls", provenance="monitoring", confidence=0.85))
+        logger.info("[GraphViz] built monitoring topology for '%s': %d nodes", svc, len(nodes))
+        return VisualizationData(nodes=list(nodes.values()), edges=edges, affectedIds=[seed_id])
+    except Exception:  # noqa: BLE001
+        logger.warning("[GraphViz] build_topology_from_monitoring failed", exc_info=True)
+        return None
+
+
+def build_topology_from_kb(user_id: str, affected_service: str, incident_id: str = "") -> Optional[VisualizationData]:
+    """KB-derived, GROUNDED topology: search the Knowledge Base for the affected service, then
+    link only to entities that (a) appear in those docs AND (b) already exist as discovered
+    services — so it never invents entities. Edges are marked source='inferred' (dashed)."""
+    if not affected_service:
+        return None
+    try:
+        from routes.knowledge_base.weaviate_client import search_knowledge_base
+        from services.graph.memgraph_client import get_memgraph_client
+    except Exception:  # noqa: BLE001
+        return None
+    try:
+        results = search_knowledge_base(user_id, f"{affected_service} dependencies architecture related services", limit=6)
+        if not results:
+            return None
+        text = " ".join((r.get("content") or "") for r in results).lower()
+        related = []
+        try:
+            for s in get_memgraph_client().list_services(user_id):
+                n = s.get("name") or ""
+                if n and n.lower() != affected_service.lower() and len(n) > 2 and n.lower() in text:
+                    related.append(n)
+        except Exception:  # noqa: BLE001
+            pass
+        related = related[:12]
+        if not related:
+            return None
+        seed_id = _nid(affected_service)
+        nodes = {affected_service: InfraNode(id=seed_id, label=_label(affected_service), type="service",
+                                             status="degraded", source="inferred", confidence=0.4)}
+        edges = []
+        for n in related:
+            nid = _nid(n)
+            nodes.setdefault(n, InfraNode(id=nid, label=_label(n), type="service", status="unknown",
+                                          source="inferred", confidence=0.4))
+            edges.append(InfraEdge(source=seed_id, target=nid, type="dependency",
+                                   label="referenced in docs", provenance="inferred", confidence=0.4))
+        logger.info("[GraphViz] built KB-grounded topology for '%s': %d related", affected_service, len(related))
+        return VisualizationData(nodes=list(nodes.values()), edges=edges, affectedIds=[seed_id])
+    except Exception:  # noqa: BLE001
+        logger.warning("[GraphViz] build_topology_from_kb failed", exc_info=True)
+        return None
+
+
 def build_topology_from_graph(user_id: str, affected_service: str, incident_id: str = "") -> Optional[VisualizationData]:
     """Return a discovered-topology VisualizationData for the incident, or None."""
     try:

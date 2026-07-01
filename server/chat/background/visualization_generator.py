@@ -133,17 +133,26 @@ def update_visualization(
         updated_viz = llm_viz
         try:
             from chat.background.graph_topology import (
-                build_topology_from_cfx, build_topology_from_cmdb, build_topology_from_graph,
+                build_topology_from_cfx, build_topology_from_cmdb, build_topology_from_iac,
+                build_topology_from_graph, build_topology_from_monitoring, build_topology_from_kb,
             )
-            base = build_topology_from_cfx(incident_id, user_id)
-            base_src = "cfx"
-            if not (base and base.nodes):
-                base = build_topology_from_cmdb(incident_id, user_id)
-                base_src = "cmdb"
-            if not (base and base.nodes):
-                affected = _get_affected_service(incident_id, user_id)
-                base = build_topology_from_graph(user_id, affected, incident_id)
-                base_src = "discovered"
+            affected = _get_affected_service(incident_id, user_id)
+            # Trust order: CFX → CMDB → IaC (declared) → discovered cloud → monitoring (observed)
+            # → KB (inferred). First source with a topology wins; the LLM only overlays statuses.
+            resolvers = [
+                ("cfx", lambda: build_topology_from_cfx(incident_id, user_id)),
+                ("cmdb", lambda: build_topology_from_cmdb(incident_id, user_id)),
+                ("iac", lambda: build_topology_from_iac(user_id, affected, incident_id)),
+                ("discovered", lambda: build_topology_from_graph(user_id, affected, incident_id)),
+                ("monitoring", lambda: build_topology_from_monitoring(user_id, affected, incident_id)),
+                ("kb", lambda: build_topology_from_kb(user_id, affected, incident_id)),
+            ]
+            base, base_src = None, None
+            for name, fn in resolvers:
+                base = fn()
+                if base and base.nodes:
+                    base_src = name
+                    break
             if base and base.nodes:
                 updated_viz = _merge_graph_and_llm(base, llm_viz)
                 updated_viz.version = llm_viz.version

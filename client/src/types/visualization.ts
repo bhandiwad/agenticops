@@ -2,7 +2,7 @@ export type NodeType = string;
 export type NodeStatus = 'healthy' | 'degraded' | 'failed' | 'investigating' | 'unknown';
 export type EdgeType = 'dependency' | 'communication' | 'causation' | 'hosts';
 
-export type Provenance = 'cfx' | 'cmdb' | 'discovered' | 'inferred';
+export type Provenance = 'cfx' | 'cmdb' | 'iac' | 'discovered' | 'monitoring' | 'inferred';
 
 export interface InfraNode {
   id: string;
