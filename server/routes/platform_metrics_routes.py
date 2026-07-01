@@ -31,8 +31,17 @@ logger = logging.getLogger(__name__)
 
 platform_metrics_bp = Blueprint("platform_metrics", __name__)
 
-# prometheus_client is a declared dependency (see requirements.txt: prometheus_client).
-from prometheus_client import CONTENT_TYPE_LATEST, CollectorRegistry, Gauge, generate_latest
+# prometheus_client is declared in requirements.txt. Import defensively anyway so a
+# missing/optional metrics dependency degrades /metrics to a 503 instead of crashing the
+# whole app at blueprint-import time (this endpoint is peripheral to the core API).
+try:
+    from prometheus_client import CONTENT_TYPE_LATEST, CollectorRegistry, Gauge, generate_latest
+    _PROMETHEUS_AVAILABLE = True
+except ImportError:  # pragma: no cover - exercised only when the optional dep is absent
+    CONTENT_TYPE_LATEST = "text/plain; version=0.0.4; charset=utf-8"
+    CollectorRegistry = Gauge = generate_latest = None  # type: ignore[assignment]
+    _PROMETHEUS_AVAILABLE = False
+    logger.warning("prometheus_client not installed; GET /metrics will return 503")
 
 _CACHE_TTL_SECONDS = 30
 _cache_lock = threading.Lock()
@@ -170,6 +179,9 @@ def _render_metrics() -> bytes:
 @platform_metrics_bp.route("/metrics", methods=["GET"])
 def metrics_prometheus():
     """Prometheus scrape endpoint (internal-secret gated, ~30s cached)."""
+    if not _PROMETHEUS_AVAILABLE:
+        return Response("prometheus_client not installed\n", status=503, mimetype="text/plain")
+
     now = time.monotonic()
     with _cache_lock:
         if now < _cache["expires_at"] and _cache["payload"]:
