@@ -6,6 +6,7 @@ import { ChevronLeft, Settings, LogOut, User, Zap, Plug, Gauge, SquarePen, Workf
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { getEnv } from "@/lib/env"
 import ChatHistory from "@/components/ChatHistory"
 import { useState, useEffect, useRef } from "react"
 import { useUser } from "@/hooks/useAuthHooks"
@@ -49,6 +50,18 @@ export default function Navigation({
   const { resolvedTheme, setTheme } = useTheme()
   const router = useRouter()
   const { user } = useUser()
+
+  // White-label branding (durable via env, not source edits). When NEXT_PUBLIC_BRAND_LOGO
+  // is set the sidebar uses a single themed custom logo and defaults the wordmark off
+  // (custom logos usually embed their own wordmark); otherwise it falls back to the
+  // built-in Aurora dual logo + "Aurora" wordmark. Values are read at runtime from
+  // window.__ENV (docker-entrypoint.sh), so changing branding needs only a restart.
+  const brandLogo = getEnv("NEXT_PUBLIC_BRAND_LOGO")
+  const brandName = getEnv("NEXT_PUBLIC_BRAND_NAME")
+  const lightLogo = brandLogo || "/arvologotransparent-modified.png"
+  const darkLogo = getEnv("NEXT_PUBLIC_BRAND_LOGO_DARK") || brandLogo || "/arvologotransparent.png"
+  const wordmark = brandName ?? (brandLogo ? "" : "Aurora")
+
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
@@ -114,18 +127,18 @@ export default function Navigation({
       )}>
         <div className="p-3 flex items-center justify-between border-b border-border/30">
           <div className="flex items-center gap-2">
-            <img 
-              src="/arvologotransparent-modified.png" 
-              alt="Arvo Logo" 
-              className="w-10 h-10 block dark:hidden"
+            <img
+              src={lightLogo}
+              alt={wordmark ? `${wordmark} Logo` : "Logo"}
+              className="w-10 h-10 block dark:hidden object-contain"
             />
-            <img 
-              src="/arvologotransparent.png" 
-              alt="Arvo Logo" 
-              className="w-10 h-10 hidden dark:block"
+            <img
+              src={darkLogo}
+              alt={wordmark ? `${wordmark} Logo` : "Logo"}
+              className="w-10 h-10 hidden dark:block object-contain"
             />
             <div className="flex flex-col items-start">
-              <h1 className="text-lg font-bold text-foreground">Aurora</h1>
+              {wordmark && <h1 className="text-lg font-bold text-foreground">{wordmark}</h1>}
               {user?.orgName ? (
                 <span className="text-xs text-muted-foreground truncate max-w-[120px]">
                   {user.orgName}
