@@ -42,6 +42,12 @@ class ModelConfig:
     MAIN_MODEL = os.getenv("MAIN_MODEL") or _DEFAULT_MODEL
     VISION_MODEL = os.getenv("VISION_MODEL") or os.getenv("MAIN_MODEL") or _DEFAULT_MODEL
 
+    # Optional backup model for multi-provider failover. Empty = disabled (no fallback).
+    # When set (and different from the primary model), transient/availability errors
+    # (rate-limit, connection, timeout, 5xx) on the primary automatically fail over to
+    # this model. See providers.create_chat_model_with_fallback / bind_tools_with_fallback.
+    FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", "")
+
     # Background RCA model - configurable via RCA_MODEL env var, falls back to cost-based selection
     RCA_MODEL = os.getenv("RCA_MODEL") or (
         "anthropic/claude-haiku-4.5" if os.getenv("RCA_OPTIMIZE_COSTS", "true").lower() == "true"

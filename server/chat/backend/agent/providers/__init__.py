@@ -276,6 +276,143 @@ def create_chat_model(
     return provider.get_chat_model(model, temperature=temperature, **kwargs)
 
 
+def _transient_llm_exceptions() -> tuple:
+    """Build a tuple of provider exception classes that are safe to fail over on.
+
+    Targets *transient / availability* failures only — rate limits, connection
+    errors, timeouts, and 5xx server errors — NOT validation errors (400s such as
+    bad tool schemas), which would fail identically on any backup and should surface.
+
+    Provider SDKs are imported defensively: if one isn't installed, its errors are
+    simply omitted from the tuple.
+    """
+    exc: list = []
+
+    for mod_name in ("anthropic", "openai"):
+        try:
+            mod = __import__(mod_name)
+        except Exception:
+            continue
+        for cls_name in (
+            "RateLimitError",
+            "APIConnectionError",
+            "APITimeoutError",
+            "InternalServerError",
+        ):
+            cls = getattr(mod, cls_name, None)
+            if isinstance(cls, type):
+                exc.append(cls)
+
+    return tuple(exc)
+
+
+def create_chat_model_with_fallback(
+    model: str, temperature: float = 0.4, provider_mode: Optional[str] = None, **kwargs
+) -> BaseChatModel:
+    """Create a primary chat model, optionally attaching a backup for failover.
+
+    Behavior:
+    - Reads ``FALLBACK_MODEL`` from :class:`ModelConfig`. When it is empty (default) or
+      equal to ``model``, this returns exactly what :func:`create_chat_model` returns —
+      i.e. it is a strict no-op and preserves current behavior.
+    - When a distinct ``FALLBACK_MODEL`` is set, returns
+      ``primary.with_fallbacks([fallback], exceptions_to_handle=<transient errors>)``.
+
+    IMPORTANT — tool calling: LangChain's ``RunnableWithFallbacks`` does NOT expose
+    ``.bind_tools``. Only use this helper on code paths where tools are NOT bound onto
+    the returned object afterwards (e.g. plain ``.invoke`` / structured-output calls).
+    For tool-calling agents, bind tools first and use
+    :func:`bind_tools_with_fallback` instead so the fallback is applied AFTER
+    ``bind_tools`` on both models.
+    """
+    # Imported here (not at module top) to avoid a circular import: llm.py imports
+    # create_chat_model from this package.
+    from chat.backend.agent.llm import ModelConfig
+
+    primary = create_chat_model(
+        model, temperature=temperature, provider_mode=provider_mode, **kwargs
+    )
+
+    fallback_model = ModelConfig.FALLBACK_MODEL
+    if not fallback_model or fallback_model == model:
+        return primary
+
+    try:
+        fallback = create_chat_model(
+            fallback_model,
+            temperature=temperature,
+            provider_mode=provider_mode,
+            **kwargs,
+        )
+    except Exception as e:
+        # A misconfigured backup must never break the primary path.
+        logger.warning(
+            f"FALLBACK_MODEL='{fallback_model}' could not be created ({e}); "
+            "continuing without fallback."
+        )
+        return primary
+
+    exceptions = _transient_llm_exceptions()
+    logger.info(
+        f"LLM fallback enabled: primary={model} -> fallback={fallback_model} "
+        f"(failover on {len(exceptions)} transient error types)"
+    )
+    return primary.with_fallbacks([fallback], exceptions_to_handle=exceptions)
+
+
+def bind_tools_with_fallback(primary: BaseChatModel, tools, **bind_kwargs):
+    """Bind ``tools`` to the primary and attach a tool-bound backup for failover.
+
+    This is the tool-calling-safe fallback primitive. The fallback is applied AFTER
+    ``bind_tools`` on BOTH models, i.e.::
+
+        primary.bind_tools(tools).with_fallbacks([fallback.bind_tools(tools)])
+
+    so the resulting runnable is a valid tool-calling model (unlike wrapping the raw
+    model in ``with_fallbacks`` first, which would strip ``.bind_tools``).
+
+    No-op safety: when ``FALLBACK_MODEL`` is empty or equals the primary's model id,
+    this returns exactly ``primary.bind_tools(tools, **bind_kwargs)`` — identical to
+    current behavior.
+
+    Args:
+        primary: An already-constructed :class:`BaseChatModel` (the primary).
+        tools: Tools to bind (same value passed to both primary and fallback).
+        **bind_kwargs: Extra kwargs forwarded to ``bind_tools`` on both models
+            (e.g. ``tool_choice``). NOTE: a forced ``tool_choice`` computed for the
+            primary provider may not be valid for a different-provider fallback.
+    """
+    from chat.backend.agent.llm import ModelConfig
+
+    primary_bound = primary.bind_tools(tools, **bind_kwargs)
+
+    fallback_model = ModelConfig.FALLBACK_MODEL
+    primary_model_id = (
+        getattr(primary, "model_name", None)
+        or getattr(primary, "model", None)
+        or getattr(primary, "model_id", None)
+    )
+    if not fallback_model or fallback_model == primary_model_id:
+        return primary_bound
+
+    try:
+        fallback = create_chat_model(fallback_model)
+        fallback_bound = fallback.bind_tools(tools, **bind_kwargs)
+    except Exception as e:
+        logger.warning(
+            f"FALLBACK_MODEL='{fallback_model}' could not be prepared for tool "
+            f"binding ({e}); continuing without fallback."
+        )
+        return primary_bound
+
+    exceptions = _transient_llm_exceptions()
+    logger.info(
+        f"LLM tool-calling fallback enabled: fallback={fallback_model} "
+        f"(failover on {len(exceptions)} transient error types)"
+    )
+    return primary_bound.with_fallbacks([fallback_bound], exceptions_to_handle=exceptions)
+
+
 def get_available_providers() -> Dict[str, bool]:
     """
     Get status of all providers.
@@ -306,5 +443,7 @@ __all__ = [
     "ProviderRegistry",
     "get_registry",
     "create_chat_model",
+    "create_chat_model_with_fallback",
+    "bind_tools_with_fallback",
     "get_available_providers",
 ]
