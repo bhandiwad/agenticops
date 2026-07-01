@@ -114,7 +114,7 @@ const components = {
       return (
         <code
           className={cn(
-            "rounded-md bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 px-2 py-1 font-mono text-sm border border-gray-200 dark:border-gray-600",
+            "rounded-md bg-gray-100 text-gray-800 dark:bg-muted dark:text-foreground px-2 py-1 font-mono text-sm border border-gray-200 dark:border-border",
             className
           )}
           {...props}
@@ -131,7 +131,7 @@ const components = {
       return (
         <code
           className={cn(
-            "rounded-md bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 px-2 py-1 font-mono text-sm border border-gray-200 dark:border-gray-600",
+            "rounded-md bg-gray-100 text-gray-800 dark:bg-muted dark:text-foreground px-2 py-1 font-mono text-sm border border-gray-200 dark:border-border",
             className
           )}
           {...props}
@@ -403,31 +403,31 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       ? "text-red-600 dark:text-red-400 [&_p]:text-red-600 dark:[&_p]:text-red-400 [&_ul]:text-red-600 dark:[&_ul]:text-red-400 [&_ol]:text-red-600 dark:[&_ol]:text-red-400 [&_li]:text-red-600 dark:[&_li]:text-red-400 [&_h1]:text-red-600 dark:[&_h1]:text-red-400 [&_h2]:text-red-600 dark:[&_h2]:text-red-400 [&_h3]:text-red-600 dark:[&_h3]:text-red-400 [&_h4]:text-red-600 dark:[&_h4]:text-red-400 [&_h5]:text-red-600 dark:[&_h5]:text-red-400 [&_h6]:text-red-600 dark:[&_h6]:text-red-400 [&_strong]:text-red-600 dark:[&_strong]:text-red-400 [&_code]:text-red-600 dark:[&_code]:text-red-400 [&_blockquote]:text-red-600 dark:[&_blockquote]:text-red-400 [&_td]:text-red-600 dark:[&_td]:text-red-400 [&_th]:text-red-600 dark:[&_th]:text-red-400 [&_a]:text-red-600 dark:[&_a]:text-red-400 [&_a]:underline"
       : [
         // Body text
-        "text-zinc-300 [&_p]:text-zinc-300 [&_li]:text-zinc-300",
+        "text-foreground [&_p]:text-foreground [&_li]:text-foreground",
         // Headings — brighter white, heavier weight
-        "[&_h1]:text-zinc-100 [&_h1]:font-semibold [&_h1]:text-xl [&_h1]:mt-6 [&_h1]:mb-3",
-        "[&_h2]:text-zinc-100 [&_h2]:font-semibold [&_h2]:text-lg [&_h2]:mt-5 [&_h2]:mb-2",
-        "[&_h3]:text-zinc-100 [&_h3]:font-semibold [&_h3]:text-base [&_h3]:mt-4 [&_h3]:mb-2",
-        "[&_h4]:text-zinc-200 [&_h4]:font-medium [&_h4]:mt-3 [&_h4]:mb-1",
-        "[&_h5]:text-zinc-200 [&_h5]:font-medium [&_h6]:text-zinc-200 [&_h6]:font-medium",
+        "[&_h1]:text-foreground [&_h1]:font-semibold [&_h1]:text-xl [&_h1]:mt-6 [&_h1]:mb-3",
+        "[&_h2]:text-foreground [&_h2]:font-semibold [&_h2]:text-lg [&_h2]:mt-5 [&_h2]:mb-2",
+        "[&_h3]:text-foreground [&_h3]:font-semibold [&_h3]:text-base [&_h3]:mt-4 [&_h3]:mb-2",
+        "[&_h4]:text-foreground [&_h4]:font-medium [&_h4]:mt-3 [&_h4]:mb-1",
+        "[&_h5]:text-foreground [&_h5]:font-medium [&_h6]:text-foreground [&_h6]:font-medium",
         // Bold — pop brighter
-        "[&_strong]:text-zinc-100 [&_strong]:font-semibold",
+        "[&_strong]:text-foreground [&_strong]:font-semibold",
         // Inline code
-        "[&_code:not([class*='language-'])]:text-zinc-200 [&_code:not([class*='language-'])]:bg-zinc-800/60 [&_code:not([class*='language-'])]:px-1.5 [&_code:not([class*='language-'])]:py-0.5 [&_code:not([class*='language-'])]:rounded [&_code:not([class*='language-'])]:text-[0.9em]",
+        "[&_code:not([class*='language-'])]:text-foreground [&_code:not([class*='language-'])]:bg-muted/60 [&_code:not([class*='language-'])]:px-1.5 [&_code:not([class*='language-'])]:py-0.5 [&_code:not([class*='language-'])]:rounded [&_code:not([class*='language-'])]:text-[0.9em]",
         // Lists — slightly muted markers
-        "[&_ul]:text-zinc-300 [&_ol]:text-zinc-300 [&_li::marker]:text-zinc-500",
+        "[&_ul]:text-foreground [&_ol]:text-foreground [&_li::marker]:text-muted-foreground",
         // Spacing between list items
         "[&_li]:mb-1.5 [&_ol>li]:mb-2",
         // Blockquotes
-        "[&_blockquote]:text-zinc-400 [&_blockquote]:border-l-2 [&_blockquote]:border-zinc-600 [&_blockquote]:pl-4 [&_blockquote]:italic",
+        "[&_blockquote]:text-muted-foreground [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-4 [&_blockquote]:italic",
         // Tables
-        "[&_td]:text-zinc-300 [&_th]:text-zinc-100 [&_th]:font-medium [&_th]:border-b [&_th]:border-zinc-700 [&_td]:border-b [&_td]:border-zinc-800/50",
+        "[&_td]:text-foreground [&_th]:text-foreground [&_th]:font-medium [&_th]:border-b [&_th]:border-border [&_td]:border-b [&_td]:border-border/50",
         // Links
         "[&_a]:text-blue-400 [&_a]:underline [&_a:hover]:text-blue-300",
         // Horizontal rules
-        "[&_hr]:border-zinc-700",
+        "[&_hr]:border-border",
       ].join(" "),
-    "[&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:pl-0 [&_ol>li]:pl-1 [&_ol>li]:ml-0 [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:pl-0 [&_ul>li]:pl-0 [&_ul>li]:ml-0 [&_pre:not([class*='language-'])]:bg-gray-100 [&_pre:not([class*='language-'])]:text-gray-800 dark:[&_pre:not([class*='language-'])]:bg-zinc-900 dark:[&_pre:not([class*='language-'])]:text-gray-100",
+    "[&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:pl-0 [&_ol>li]:pl-1 [&_ol>li]:ml-0 [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:pl-0 [&_ul>li]:pl-0 [&_ul>li]:ml-0 [&_pre:not([class*='language-'])]:bg-gray-100 [&_pre:not([class*='language-'])]:text-gray-800 dark:[&_pre:not([class*='language-'])]:bg-card dark:[&_pre:not([class*='language-'])]:text-foreground",
     className
   );
 
