@@ -77,11 +77,11 @@ interface FileInfoProps {
 function FileInfo({ repository, filePath }: FileInfoProps): JSX.Element {
   return (
     <div className="flex items-center gap-4 text-sm">
-      <div className="flex items-center gap-2 text-zinc-400">
+      <div className="flex items-center gap-2 text-muted-foreground">
         <GitBranch className="w-4 h-4" />
-        <span className="font-mono text-zinc-300">{repository}</span>
+        <span className="font-mono text-foreground">{repository}</span>
       </div>
-      <div className="flex items-center gap-2 text-zinc-400">
+      <div className="flex items-center gap-2 text-muted-foreground">
         <FileCode className="w-4 h-4" />
         <span className="font-mono text-orange-300">{filePath}</span>
       </div>
@@ -135,7 +135,7 @@ function DiffView({ oldContent, newContent, fileName }: DiffViewProps): JSX.Elem
   }, [oldContent, newContent, fileName]);
 
   return (
-    <div className="rounded-lg border border-zinc-800 overflow-hidden max-h-[60vh] overflow-y-auto">
+    <div className="rounded-lg border border-border overflow-hidden max-h-[60vh] overflow-y-auto">
       <GitDiffView
         diffFile={diffFile}
         diffViewMode={DiffModeEnum.Unified}
@@ -162,7 +162,7 @@ function ContentEditor({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
           {viewMode === 'edit' ? 'Edit Fix' : viewMode === 'diff' ? 'Changes' : 'Suggested Fix'}
         </label>
         {!disabled && (
@@ -171,7 +171,7 @@ function ContentEditor({
               variant={viewMode === 'diff' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => onViewModeChange('diff')}
-              className={viewMode === 'diff' ? 'bg-zinc-700' : 'text-zinc-400 hover:text-white'}
+              className={viewMode === 'diff' ? 'bg-muted' : 'text-muted-foreground hover:text-white'}
             >
               <GitCompare className="w-4 h-4 mr-1" />
               Diff
@@ -180,7 +180,7 @@ function ContentEditor({
               variant={viewMode === 'suggested' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => onViewModeChange('suggested')}
-              className={viewMode === 'suggested' ? 'bg-zinc-700' : 'text-zinc-400 hover:text-white'}
+              className={viewMode === 'suggested' ? 'bg-muted' : 'text-muted-foreground hover:text-white'}
             >
               <Code className="w-4 h-4 mr-1" />
               Code
@@ -189,7 +189,7 @@ function ContentEditor({
               variant={viewMode === 'edit' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => onViewModeChange('edit')}
-              className={viewMode === 'edit' ? 'bg-zinc-700' : 'text-zinc-400 hover:text-white'}
+              className={viewMode === 'edit' ? 'bg-muted' : 'text-muted-foreground hover:text-white'}
             >
               <Edit3 className="w-4 h-4 mr-1" />
               Edit
@@ -202,22 +202,22 @@ function ContentEditor({
         <textarea
           value={suggestedContent}
           onChange={(e) => onContentChange(e.target.value)}
-          className="w-full h-80 p-4 rounded-lg bg-zinc-950 border border-zinc-800 text-sm font-mono text-zinc-300 focus:outline-none focus:border-orange-500 resize-none"
+          className="w-full h-80 p-4 rounded-lg bg-background border border-border text-sm font-mono text-foreground focus:outline-none focus:border-orange-500 resize-none"
           spellCheck={false}
         />
       ) : viewMode === 'diff' ? (
         <DiffView oldContent={originalContent} newContent={suggestedContent} fileName={filePath} />
       ) : (
-        <div className="relative h-80 overflow-auto rounded-lg bg-zinc-950 border border-zinc-800">
-          <pre className="p-4 text-sm font-mono text-zinc-300 whitespace-pre-wrap">
+        <div className="relative h-80 overflow-auto rounded-lg bg-background border border-border">
+          <pre className="p-4 text-sm font-mono text-foreground whitespace-pre-wrap">
             {suggestedContent}
           </pre>
         </div>
       )}
 
       {fileExtension && (
-        <div className="text-xs text-zinc-500">
-          File type: <span className="text-zinc-400">.{fileExtension}</span>
+        <div className="text-xs text-muted-foreground">
+          File type: <span className="text-muted-foreground">.{fileExtension}</span>
         </div>
       )}
     </div>
@@ -338,7 +338,7 @@ export default function FixSuggestionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-zinc-900 border-zinc-700">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-card border-border">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
             <FileCode className="w-5 h-5 text-green-400" />
@@ -347,7 +347,7 @@ export default function FixSuggestionModal({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-          <div className="text-sm text-zinc-300 prose prose-invert prose-sm max-w-none">
+          <div className="text-sm text-foreground prose prose-invert prose-sm max-w-none">
             <ReactMarkdown>{suggestion.description}</ReactMarkdown>
           </div>
 
@@ -403,12 +403,12 @@ export default function FixSuggestionModal({
           )}
         </div>
 
-        <DialogFooter className="flex gap-2 sm:gap-2 pt-4 border-t border-zinc-800">
+        <DialogFooter className="flex gap-2 sm:gap-2 pt-4 border-t border-border">
           {isEditing && hasChanges && (
             <Button
               variant="outline"
               onClick={handleSaveEdit}
-              className="border-zinc-700 hover:bg-zinc-800"
+              className="border-border hover:bg-muted"
             >
               <Check className="w-4 h-4 mr-2" />
               Save Changes
@@ -417,7 +417,7 @@ export default function FixSuggestionModal({
           <Button
             variant="outline"
             onClick={onClose}
-            className="border-zinc-700 hover:bg-zinc-800"
+            className="border-border hover:bg-muted"
           >
             Close
           </Button>

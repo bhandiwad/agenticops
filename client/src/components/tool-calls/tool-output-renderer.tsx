@@ -64,7 +64,7 @@ export function RenderOutput({
   if (typeof output !== "string") {
     try {
       return (
-        <pre className="text-gray-700 dark:text-gray-300 text-xs leading-relaxed whitespace-pre-wrap">
+        <pre className="text-muted-foreground dark:text-foreground text-xs leading-relaxed whitespace-pre-wrap">
           {JSON.stringify(output, null, 2)}
         </pre>
       )
@@ -95,8 +95,8 @@ export function RenderOutput({
       const alreadyLoaded = output.includes('already loaded')
       return (
         <div className="flex items-center gap-2 py-1">
-          <span className={`inline-block w-1.5 h-1.5 rounded-full ${alreadyLoaded ? 'bg-gray-400 dark:bg-gray-500' : 'bg-teal-500 dark:bg-teal-400'}`} />
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className={`inline-block w-1.5 h-1.5 rounded-full ${alreadyLoaded ? 'bg-gray-400 dark:bg-muted' : 'bg-teal-500 dark:bg-teal-400'}`} />
+          <span className="text-xs text-muted-foreground dark:text-muted-foreground">
             {alreadyLoaded ? 'Already in context' : 'Integration guidance ready'}
           </span>
         </div>
@@ -162,7 +162,7 @@ export function RenderOutput({
         <div className="space-y-2 text-sm">
           <div className={`font-medium ${firstColor}`}>{first}</div>
           {rest.length > 0 && (
-            <div className="space-y-2 text-gray-700 dark:text-gray-300">
+            <div className="space-y-2 text-muted-foreground dark:text-foreground">
               {rest.map((p, idx) => {
                 // If a paragraph looks like a list, render as list
                 const lines = p.split(/\n+/)
@@ -197,7 +197,7 @@ export function RenderOutput({
 
     // Fallback: plain text
     return (
-      <pre className="text-gray-700 dark:text-gray-300 text-xs leading-relaxed whitespace-pre-wrap">{output}</pre>
+      <pre className="text-muted-foreground dark:text-foreground text-xs leading-relaxed whitespace-pre-wrap">{output}</pre>
     )
   }
 
@@ -206,7 +206,7 @@ export function RenderOutput({
     const message = (parsed as any).message || "Response is too large, retrying with filtered command"
     return (
       <div className="space-y-2">
-        <div className="text-gray-500 dark:text-gray-500 text-sm whitespace-pre-wrap">{message}</div>
+        <div className="text-muted-foreground dark:text-muted-foreground text-sm whitespace-pre-wrap">{message}</div>
       </div>
     )
   }
@@ -263,24 +263,24 @@ export function RenderOutput({
   if (resourcesArray) {
     return (
       <div className="space-y-3">
-        <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">
+        <div className="text-xs text-muted-foreground dark:text-muted-foreground uppercase tracking-wider font-medium">
           Resources ({(parsed.total_count ?? (parsed as any).data?.total_count ?? resourcesArray.length)})
         </div>
         <div className="space-y-2">
           {resourcesArray.map((res: any, idx: number) => (
             <div
               key={idx}
-              className="border border-gray-200 dark:border-gray-700 rounded-md p-3 bg-white/5 dark:bg-gray-800/40"
+              className="border border-gray-200 dark:border-border rounded-md p-3 bg-white/5 dark:bg-muted/40"
             >
               <div className="flex items-center justify-between text-sm font-semibold mb-1">
                 <span>{res.name || res.id || `Resource ${idx + 1}`}</span>
                 {res.status && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                  <span className="text-xs text-muted-foreground dark:text-muted-foreground">
                     {typeof res.status === 'object' ? JSON.stringify(res.status) : res.status}
                   </span>
                 )}
               </div>
-              <div className="text-xs text-gray-600 dark:text-gray-300 grid grid-cols-2 gap-x-4 gap-y-1">
+              <div className="text-xs text-muted-foreground dark:text-foreground grid grid-cols-2 gap-x-4 gap-y-1">
                 {Object.entries(res)
                   .filter(([key]) => key !== "name" && key !== "status")
                   .map(([key, value]) => (
@@ -312,7 +312,7 @@ export function RenderOutput({
     
     if (status === 'skipped') {
       return (
-        <div className="text-gray-600 dark:text-gray-400 text-sm">
+        <div className="text-muted-foreground dark:text-muted-foreground text-sm">
           {(parsed as any).message || 'Search skipped'}
         </div>
       )
@@ -321,14 +321,14 @@ export function RenderOutput({
     if (Array.isArray(results) && results.length > 0) {
       return (
         <div className="space-y-3">
-          <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">
+          <div className="text-xs text-muted-foreground dark:text-muted-foreground uppercase tracking-wider font-medium">
             Search Results ({results.length})
           </div>
           <div className="space-y-3">
             {results.map((result: any, idx: number) => (
               <div
                 key={idx}
-                className="border border-gray-200 dark:border-gray-700 rounded-md p-3 bg-white/5 dark:bg-gray-800/40"
+                className="border border-gray-200 dark:border-border rounded-md p-3 bg-white/5 dark:bg-muted/40"
               >
                 <div className="flex items-start justify-between mb-2">
                   <a 
@@ -339,17 +339,17 @@ export function RenderOutput({
                   >
                     {result.title || result.url}
                   </a>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                  <span className="text-xs text-muted-foreground dark:text-muted-foreground ml-2">
                     {result.domain}
                   </span>
                 </div>
                 {result.summary && (
-                  <div className="text-xs text-gray-600 dark:text-gray-300 mb-2">
+                  <div className="text-xs text-muted-foreground dark:text-foreground mb-2">
                     {result.summary}
                   </div>
                 )}
                 {result.key_points && Array.isArray(result.key_points) && result.key_points.length > 0 && (
-                  <ul className="text-xs text-gray-600 dark:text-gray-300 list-disc pl-4 space-y-1">
+                  <ul className="text-xs text-muted-foreground dark:text-foreground list-disc pl-4 space-y-1">
                     {result.key_points.slice(0, 3).map((point: string, pointIdx: number) => (
                       <li key={pointIdx}>{point}</li>
                     ))}
@@ -401,7 +401,7 @@ export function RenderOutput({
 
   // Fallback: pretty json
   return (
-    <pre className="text-gray-700 dark:text-gray-300 text-xs leading-relaxed whitespace-pre-wrap">
+    <pre className="text-muted-foreground dark:text-foreground text-xs leading-relaxed whitespace-pre-wrap">
       {JSON.stringify(parsed, null, 2)}
     </pre>
   )

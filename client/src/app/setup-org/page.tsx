@@ -133,20 +133,20 @@ export default function SetupOrgPage() {
           <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
             Get started with Aurora
           </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          <p className="mt-2 text-sm text-muted-foreground dark:text-foreground">
             Welcome{userName ? `, ${userName}` : ""}! Create a new organization or join an existing one.
           </p>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
+        <div className="flex rounded-lg bg-gray-100 dark:bg-muted p-1">
           <button
             type="button"
             onClick={() => setActiveTab("create")}
             className={`flex-1 rounded-md py-2.5 text-sm font-medium transition-all ${
               activeTab === "create"
-                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                ? "bg-white dark:bg-muted text-gray-900 dark:text-white shadow-sm"
+                : "text-muted-foreground dark:text-muted-foreground hover:text-muted-foreground dark:hover:text-foreground"
             }`}
           >
             Create Organization
@@ -156,8 +156,8 @@ export default function SetupOrgPage() {
             onClick={() => setActiveTab("join")}
             className={`flex-1 rounded-md py-2.5 text-sm font-medium transition-all ${
               activeTab === "join"
-                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                ? "bg-white dark:bg-muted text-gray-900 dark:text-white shadow-sm"
+                : "text-muted-foreground dark:text-muted-foreground hover:text-muted-foreground dark:hover:text-foreground"
             }`}
           >
             Join Organization
@@ -165,20 +165,20 @@ export default function SetupOrgPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl">
+        <div className="bg-white dark:bg-muted p-8 rounded-lg shadow-xl">
           {activeTab === "create" ? (
             <>
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Create a new organization
                 </h3>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">
                   Set up a fresh workspace for your team. You can always change the name later.
                 </p>
               </div>
               <form className="space-y-6" onSubmit={handleCreate}>
                 <div>
-                  <label htmlFor="org-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label htmlFor="org-name" className="block text-sm font-medium text-muted-foreground dark:text-foreground mb-1">
                     Organization name
                   </label>
                   <input
@@ -188,7 +188,7 @@ export default function SetupOrgPage() {
                     required
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
-                    className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700"
+                    className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-border placeholder-muted-foreground dark:placeholder-muted-foreground text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-muted"
                     placeholder="e.g. Acme Corp"
                     autoFocus
                     disabled={isCreating}
@@ -216,7 +216,7 @@ export default function SetupOrgPage() {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Join an existing organization
                 </h3>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">
                   Accept a pending invitation from your organization admin.
                 </p>
               </div>
@@ -224,19 +224,19 @@ export default function SetupOrgPage() {
               {/* Pending invitations */}
               {!loadingInvitations && pendingInvitations.length > 0 && (
                 <div className="mb-6 space-y-3">
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <p className="text-sm font-medium text-muted-foreground dark:text-foreground">
                     Pending invitations
                   </p>
                   {pendingInvitations.map((inv) => (
                     <div
                       key={inv.id}
-                      className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50"
+                      className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-border bg-gray-50 dark:bg-muted/50"
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {inv.orgName}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                           {inv.invitedBy ? `Invited by ${inv.invitedBy}` : "Invitation"} &middot; Role: {inv.role}
                         </p>
                       </div>
@@ -266,8 +266,8 @@ export default function SetupOrgPage() {
               )}
 
               {!loadingInvitations && pendingInvitations.length === 0 && !joinSuccess && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-6">
-                  No pending invitations. Ask your organization admin to send an invite to <span className="font-medium text-gray-700 dark:text-gray-200">{session?.user?.email || "your email"}</span>.
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground text-center py-6">
+                  No pending invitations. Ask your organization admin to send an invite to <span className="font-medium text-muted-foreground dark:text-foreground">{session?.user?.email || "your email"}</span>.
                 </p>
               )}
             </>

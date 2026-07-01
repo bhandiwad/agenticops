@@ -333,7 +333,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
           <strong className="text-orange-300 font-semibold">{processChildren(children)}</strong>
         ),
         p: ({ children }) => (
-          <p className="mb-2 text-zinc-300 text-sm leading-normal">{processChildren(children)}</p>
+          <p className="mb-2 text-foreground text-sm leading-normal">{processChildren(children)}</p>
         ),
         ul: ({ children }) => (
           <ul className="list-disc list-outside ml-4 mb-2 space-y-1">{children}</ul>
@@ -350,7 +350,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
           const execStatus = matchingSuggestion?.executionStatus;
 
           return (
-            <li className="text-zinc-300 text-sm">
+            <li className="text-foreground text-sm">
               {processChildren(children)}
               {canShowAction && matchingSuggestion && (
                 <button
@@ -406,7 +406,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
           );
         },
         code: ({ children }) => (
-          <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-orange-300 text-xs font-mono">
+          <code className="bg-muted px-1.5 py-0.5 rounded text-orange-300 text-xs font-mono">
             {children}
           </code>
         ),
@@ -461,13 +461,13 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
                   href={alert.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors"
+                  className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-white transition-colors"
                 >
                   {sourceDisplayName(alert.source)} Alert
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               ) : (
-                <span className="inline-flex items-center gap-1.5 text-zinc-400">
+                <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                   {sourceDisplayName(alert.source)} Alert
                 </span>
               )}
@@ -484,12 +484,12 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
         </h1>
 
         {/* Metadata row with Raw Alert */}
-        <div className="flex items-center text-sm text-zinc-500">
+        <div className="flex items-center text-sm text-muted-foreground">
           <div className="flex flex-wrap items-center gap-4">
             {alert.service !== 'unknown' && (
               <div className="flex items-center gap-1.5">
                 <Server className="w-4 h-4" />
-                <span className="text-zinc-300">{alert.service}</span>
+                <span className="text-foreground">{alert.service}</span>
               </div>
             )}
             <div className="flex items-center gap-1.5">
@@ -499,31 +499,31 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
             {/* Provider-specific metadata fields */}
             {alert.metadata?.hostname && (
               <>
-                <span className="text-zinc-700">•</span>
-                <span className="text-zinc-300">{alert.metadata.hostname}</span>
+                <span className="text-muted-foreground">•</span>
+                <span className="text-foreground">{alert.metadata.hostname}</span>
               </>
             )}
             {alert.metadata?.chart && (
               <>
-                <span className="text-zinc-700">•</span>
+                <span className="text-muted-foreground">•</span>
                 <span className="font-mono text-orange-300">{alert.metadata.chart}</span>
               </>
             )}
             {alert.metadata?.metric && (
               <>
-                <span className="text-zinc-700">•</span>
+                <span className="text-muted-foreground">•</span>
                 <span className="font-mono text-orange-300">{alert.metadata.metric}</span>
               </>
             )}
             {alert.metadata?.value && (
               <>
-                <span className="text-zinc-700">•</span>
+                <span className="text-muted-foreground">•</span>
                 <span className="text-red-400">{alert.metadata.value}</span>
               </>
             )}
             {alert.metadata?.priority && (
               <>
-                <span className="text-zinc-700">•</span>
+                <span className="text-muted-foreground">•</span>
                 <span className="text-yellow-400">{alert.metadata.priority}</span>
               </>
             )}
@@ -559,7 +559,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
             )}
             <button
               onClick={() => setShowRawPayload(!showRawPayload)}
-              className="inline-flex items-center text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors"
               aria-label={showRawPayload ? "Hide raw alert" : "Show raw alert"}
               aria-expanded={showRawPayload}
             >
@@ -583,13 +583,13 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
                   Runbook Link
                 </a>
               ) : (
-                <span className="text-zinc-500" title="Invalid runbook URL">
+                <span className="text-muted-foreground" title="Invalid runbook URL">
                   Runbook (invalid URL)
                 </span>
               )
             ) : (
               alert.source === 'pagerduty' && (
-                <span className="text-zinc-600" title="No runbook configured">
+                <span className="text-muted-foreground" title="No runbook configured">
                   Runbook: none
                 </span>
               )
@@ -599,20 +599,20 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
 
         {/* Raw payload (collapsible) */}
         {showRawPayload && (
-          <div className="mt-3 p-4 rounded-lg bg-zinc-900 border border-zinc-800">
+          <div className="mt-3 p-4 rounded-lg bg-card border border-border">
             {alert.rawPayload ? (
-              <pre className="text-xs font-mono text-zinc-400 overflow-x-auto">
+              <pre className="text-xs font-mono text-muted-foreground overflow-x-auto">
                 {alert.rawPayload}
               </pre>
             ) : (
-              <p className="text-xs text-zinc-500 italic">No raw payload available</p>
+              <p className="text-xs text-muted-foreground italic">No raw payload available</p>
             )}
           </div>
         )}
       </div>
 
       {/* Separator */}
-      <div className="border-t border-zinc-800" />
+      <div className="border-t border-border" />
 
       {/* Summary Section - hide for merged incidents */}
       {incident.status !== 'merged' ? (
@@ -631,7 +631,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
               className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors ${
                 showThoughts 
                   ? 'text-orange-300 bg-orange-500/10' 
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
               aria-label={showThoughts ? "Hide thoughts panel" : "Show thoughts panel"}
               aria-expanded={showThoughts}
@@ -659,7 +659,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
           />
         </div>
       ) : (
-        <div className="text-center py-8 text-zinc-500">
+        <div className="text-center py-8 text-muted-foreground">
           <p className="text-sm">This incident&apos;s investigation was merged into another incident.</p>
           <p className="text-xs mt-2">View the main incident for the combined analysis.</p>
         </div>
@@ -667,12 +667,12 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
 
       {/* Action bar — Waterfall and SRE Metrics live here independently of
           chatSessionId so legacy incidents (no RCA session) still get them. */}
-      <div className="mt-6 pt-6 border-t border-zinc-800/50 flex items-center gap-3">
+      <div className="mt-6 pt-6 border-t border-border/50 flex items-center gap-3">
         {incident.chatSessionId && (
           incident.auroraStatus === 'complete' && incident.status !== 'merged' ? (
             <Link
               href={`/chat?sessionId=${incident.chatSessionId}`}
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
             >
               <span>Root Cause Analysis</span>
               <ExternalLink className="w-3 h-3" />
@@ -685,7 +685,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
                   ? "This incident was merged into another investigation"
                   : "RCA report will be available only when RCA is complete"
               }
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors text-zinc-600 cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors text-muted-foreground cursor-not-allowed"
             >
               <span>Root Cause Analysis</span>
             </button>
@@ -698,7 +698,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
               className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors ${
                 showVisualization
                   ? 'text-orange-300 bg-orange-500/10'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
             >
               <span>Visualization</span>
@@ -725,7 +725,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
               className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors ${
                 showPostmortem
                   ? 'text-orange-300 bg-orange-500/10'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
             >
               <FileText className="w-3 h-3" />
@@ -740,7 +740,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
               className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors ${
                 showTokenUsage
                   ? 'text-orange-300 bg-orange-500/10'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
             >
               <Coins className="w-3 h-3" />
@@ -756,7 +756,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
               className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors ${
                 showWaterfall
                   ? 'text-orange-300 bg-orange-500/10'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
             >
               <Activity className="w-3 h-3" />
@@ -771,7 +771,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
             className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors ${
               showActions
                 ? 'text-orange-300 bg-orange-500/10'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
             }`}
           >
             <Play className="w-3 h-3" />
@@ -783,7 +783,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
 
       {/* Feedback Section - only show when analysis is complete */}
       {incident.auroraStatus === 'complete' && (
-        <div className="mt-6 pt-6 border-t border-zinc-800/50">
+        <div className="mt-6 pt-6 border-t border-border/50">
           <IncidentFeedback incidentId={incident.id} readOnly={!canWrite} />
         </div>
       )}
@@ -791,7 +791,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
       {/* Action Runs linked to this incident (collapsible, lazy-loaded) */}
       <div className="collapsible-panel" data-open={showActions}>
         <div>
-          <div className="border-t border-zinc-800 mt-4" />
+          <div className="border-t border-border mt-4" />
           <div className="mt-4">
             {showActions && <IncidentActionRuns incidentId={incident.id} />}
           </div>
@@ -802,30 +802,30 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
       {incident.tokenUsage && (
         <div className="collapsible-panel" data-open={showTokenUsage}>
           <div>
-            <div className="border-t border-zinc-800 mt-4" />
-            <div className="rounded-lg bg-zinc-900/50 border border-zinc-800 p-4 mt-4">
-              <h3 className="text-sm font-medium text-zinc-300 mb-3">Investigation Token Usage</h3>
+            <div className="border-t border-border mt-4" />
+            <div className="rounded-lg bg-card/50 border border-border p-4 mt-4">
+              <h3 className="text-sm font-medium text-foreground mb-3">Investigation Token Usage</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-[11px] text-zinc-500 uppercase tracking-wider">Input Tokens</p>
-                  <p className="text-sm font-mono text-zinc-200 mt-0.5">
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Input Tokens</p>
+                  <p className="text-sm font-mono text-foreground mt-0.5">
                     {(incident.tokenUsage.totalInputTokens ?? 0).toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[11px] text-zinc-500 uppercase tracking-wider">Output Tokens</p>
-                  <p className="text-sm font-mono text-zinc-200 mt-0.5">
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Output Tokens</p>
+                  <p className="text-sm font-mono text-foreground mt-0.5">
                     {(incident.tokenUsage.totalOutputTokens ?? 0).toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[11px] text-zinc-500 uppercase tracking-wider">Total Tokens</p>
-                  <p className="text-sm font-mono text-zinc-200 mt-0.5">
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Total Tokens</p>
+                  <p className="text-sm font-mono text-foreground mt-0.5">
                     {(incident.tokenUsage.totalTokens ?? 0).toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[11px] text-zinc-500 uppercase tracking-wider">Estimated Cost</p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Estimated Cost</p>
                   <p className="text-sm font-mono text-green-400 mt-0.5">
                     ${(incident.tokenUsage.totalCost ?? 0).toFixed(4)}
                   </p>
@@ -834,19 +834,19 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
 
               {/* Per-model breakdown */}
               {incident.tokenUsage.models && incident.tokenUsage.models.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-zinc-800/50">
-                  <p className="text-[11px] text-zinc-500 uppercase tracking-wider mb-2">By Model</p>
+                <div className="mt-3 pt-3 border-t border-border/50">
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">By Model</p>
                   <div className="space-y-1.5">
                     {incident.tokenUsage.models.map((m) => {
                       const shortName = m.model.includes('/') ? m.model.split('/').pop() : m.model;
                       return (
                         <div key={m.model} className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-zinc-300 truncate" title={m.model}>{shortName}</span>
-                            <span className="text-zinc-600">x{m.requestCount ?? 0}</span>
+                            <span className="text-foreground truncate" title={m.model}>{shortName}</span>
+                            <span className="text-muted-foreground">x{m.requestCount ?? 0}</span>
                           </div>
                           <div className="flex items-center gap-3 shrink-0 ml-2">
-                            <span className="font-mono tabular-nums text-zinc-500">
+                            <span className="font-mono tabular-nums text-muted-foreground">
                               {(m.inputTokens ?? 0).toLocaleString()} in / {(m.outputTokens ?? 0).toLocaleString()} out
                             </span>
                             <span className="font-mono tabular-nums text-green-400/80 w-16 text-right">
@@ -860,7 +860,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
                 </div>
               )}
 
-              <p className="text-[11px] text-zinc-600 mt-3">
+              <p className="text-[11px] text-muted-foreground mt-3">
                 {incident.tokenUsage.requestCount ?? 0} LLM request{(incident.tokenUsage.requestCount ?? 0) !== 1 ? 's' : ''} during investigation
               </p>
             </div>
@@ -872,7 +872,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
           incident page doesn't pay the fetch cost upfront. */}
       <div className="collapsible-panel" data-open={showWaterfall}>
         <div>
-          <div className="border-t border-zinc-800 mt-4" />
+          <div className="border-t border-border mt-4" />
           <div className="mt-4">
             {showWaterfall && <ExecutionWaterfall incidentId={incident.id} />}
           </div>
@@ -891,7 +891,7 @@ export default function IncidentCard({ incident, duration, showThoughts, onToggl
       {/* Infrastructure Visualization */}
       {showVisualization && (incident.auroraStatus === 'complete' || incident.auroraStatus === 'running' || incident.auroraStatus === 'summarizing') && (
         <>
-          <div className="border-t border-zinc-800" />
+          <div className="border-t border-border" />
           <div>
             <h2 className="text-lg font-medium text-white mb-4">Infrastructure Analysis</h2>
             <ReactFlowProvider>

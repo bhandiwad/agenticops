@@ -34,7 +34,7 @@ function PostmortemContent({ postmortem, regenerating, postmortemNotFound, regen
 }) {
   if (postmortem === null && regenerating) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-zinc-500 gap-2">
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
         <RefreshCw className="w-5 h-5 animate-spin" />
         <p className="text-xs">{prevContent ? 'Regenerating postmortem...' : 'Generating postmortem...'}</p>
       </div>
@@ -42,7 +42,7 @@ function PostmortemContent({ postmortem, regenerating, postmortemNotFound, regen
   }
   if (postmortem === null && postmortemNotFound) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-zinc-500 gap-2">
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
         <FileText className="w-5 h-5" />
         <p className="text-xs">No postmortem generated yet.</p>
         <button
@@ -58,7 +58,7 @@ function PostmortemContent({ postmortem, regenerating, postmortemNotFound, regen
   }
   if (postmortem === null) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-zinc-500 gap-2">
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
         <RefreshCw className="w-5 h-5 animate-spin" />
         <p className="text-xs">Loading...</p>
       </div>
@@ -69,7 +69,7 @@ function PostmortemContent({ postmortem, regenerating, postmortemNotFound, regen
       <textarea
         value={editContent}
         onChange={e => onEditChange(e.target.value)}
-        className="w-full h-96 px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-700 text-sm text-zinc-300 font-mono focus:outline-none focus:border-zinc-500 resize-y"
+        className="w-full h-96 px-4 py-3 rounded-lg bg-card border border-border text-sm text-foreground font-mono focus:outline-none focus:border-border resize-y"
         placeholder="Postmortem content in markdown..."
       />
     );
@@ -287,16 +287,16 @@ export default function PostmortemPanel({ incidentId, incidentTitle, isVisible, 
   if (!isVisible) return null;
 
   return (
-    <div className="mt-6 pt-6 border-t border-zinc-800">
+    <div className="mt-6 pt-6 border-t border-border">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-zinc-400" />
+          <FileText className="w-4 h-4 text-muted-foreground" />
           <h2 className="text-base font-medium text-white">Postmortem</h2>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={loadPostmortem}
-            className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
+            className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Refresh postmortem"
           >
             <RefreshCw className="w-3 h-3" />
@@ -315,7 +315,7 @@ export default function PostmortemPanel({ incidentId, incidentTitle, isVisible, 
               <button
                 onClick={handleLoadVersions}
                 disabled={loadingVersions}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 title="View version history"
               >
                 <History className="w-3 h-3" />
@@ -323,14 +323,14 @@ export default function PostmortemPanel({ incidentId, incidentTitle, isVisible, 
               </button>
               <button
                 onClick={() => setEditing(true)}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <Edit2 className="w-3 h-3" />
                 Edit
               </button>
               <button
                 onClick={handleDownload}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <Download className="w-3 h-3" />
                 Download
@@ -339,7 +339,7 @@ export default function PostmortemPanel({ incidentId, incidentTitle, isVisible, 
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                   >
                     <Upload className="w-3 h-3" />
                     Export
@@ -371,7 +371,7 @@ export default function PostmortemPanel({ incidentId, incidentTitle, isVisible, 
               </button>
               <button
                 onClick={() => { setEditing(false); setEditContent(postmortem?.content || ''); }}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <X className="w-3 h-3" />
                 Cancel
@@ -383,29 +383,29 @@ export default function PostmortemPanel({ incidentId, incidentTitle, isVisible, 
 
       {/* Confluence export form */}
       {activeExport === 'confluence' && (
-        <div className="mb-4 p-4 rounded-lg bg-zinc-900 border border-zinc-800">
-          <p className="text-xs text-zinc-400 mb-3">Export postmortem to Confluence</p>
+        <div className="mb-4 p-4 rounded-lg bg-card border border-border">
+          <p className="text-xs text-muted-foreground mb-3">Export postmortem to Confluence</p>
           <div className="space-y-2">
             <div>
-              <label htmlFor="postmortem-confluence-space-key" className="text-xs text-zinc-500 block mb-1">Space Key *</label>
+              <label htmlFor="postmortem-confluence-space-key" className="text-xs text-muted-foreground block mb-1">Space Key *</label>
               <input
                 id="postmortem-confluence-space-key"
                 type="text"
                 value={confluenceSpaceKey}
                 onChange={e => setConfluenceSpaceKey(e.target.value)}
                 placeholder="e.g. ENG"
-                className="w-full px-3 py-1.5 rounded bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                className="w-full px-3 py-1.5 rounded bg-muted border border-border text-sm text-white placeholder-muted-foreground focus:outline-none focus:border-border"
               />
             </div>
             <div>
-              <label htmlFor="postmortem-confluence-parent-page-id" className="text-xs text-zinc-500 block mb-1">Parent Page ID (optional)</label>
+              <label htmlFor="postmortem-confluence-parent-page-id" className="text-xs text-muted-foreground block mb-1">Parent Page ID (optional)</label>
               <input
                 id="postmortem-confluence-parent-page-id"
                 type="text"
                 value={confluenceParentPageId}
                 onChange={e => setConfluenceParentPageId(e.target.value)}
                 placeholder="e.g. 123456"
-                className="w-full px-3 py-1.5 rounded bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                className="w-full px-3 py-1.5 rounded bg-muted border border-border text-sm text-white placeholder-muted-foreground focus:outline-none focus:border-border"
               />
             </div>
             <div className="flex gap-2 pt-1">
@@ -418,7 +418,7 @@ export default function PostmortemPanel({ incidentId, incidentTitle, isVisible, 
               </button>
               <button
                 onClick={() => setActiveExport(null)}
-                className="px-3 py-1.5 rounded text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                className="px-3 py-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 Cancel
               </button>
@@ -445,33 +445,33 @@ export default function PostmortemPanel({ incidentId, incidentTitle, isVisible, 
 
       {/* Version history panel */}
       {showVersionHistory && (
-        <div className="mb-4 p-4 rounded-lg bg-zinc-900 border border-zinc-800">
+        <div className="mb-4 p-4 rounded-lg bg-card border border-border">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-zinc-400 font-medium">Version History</p>
+            <p className="text-xs text-muted-foreground font-medium">Version History</p>
             <button
               onClick={() => setShowVersionHistory(false)}
-              className="text-xs text-zinc-500 hover:text-zinc-300"
+              className="text-xs text-muted-foreground hover:text-foreground"
             >
               <X className="w-3 h-3" />
             </button>
           </div>
           {versions.length === 0 ? (
-            <p className="text-xs text-zinc-500">No version history available.</p>
+            <p className="text-xs text-muted-foreground">No version history available.</p>
           ) : (
             <div className="space-y-1 max-h-56 overflow-y-auto">
               {versions.map((v) => (
                 <div
                   key={v.id}
-                  className="flex items-center justify-between py-2 px-3 rounded-md bg-zinc-800/40 border border-zinc-800 hover:border-zinc-700 transition-colors"
+                  className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/40 border border-border hover:border-border transition-colors"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-700/60 text-[10px] font-mono text-zinc-300">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-muted/60 text-[10px] font-mono text-foreground">
                       v{v.versionNumber}
                     </span>
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-700/40 text-[10px] text-zinc-400 capitalize">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-muted/40 text-[10px] text-muted-foreground capitalize">
                       {v.source}
                     </span>
-                    <span className="text-[10px] text-zinc-500">
+                    <span className="text-[10px] text-muted-foreground">
                       {new Date(v.createdAt).toLocaleString(undefined, {
                         month: 'short',
                         day: 'numeric',
@@ -484,7 +484,7 @@ export default function PostmortemPanel({ incidentId, incidentTitle, isVisible, 
                     {v.generationSessionId && (
                       <a
                         href={`/chat?sessionId=${v.generationSessionId}`}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] text-zinc-400 hover:text-zinc-200 bg-zinc-700/40 hover:bg-zinc-700/70 border border-zinc-700 transition-colors"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border transition-colors"
                       >
                         <MessageSquare className="w-3 h-3" />
                         Log

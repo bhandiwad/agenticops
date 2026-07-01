@@ -270,7 +270,7 @@ const logos = {
   ),
   postmortem: (
     <svg
-      className="w-4 h-4 min-w-4 min-h-4 text-zinc-400"
+      className="w-4 h-4 min-w-4 min-h-4 text-muted-foreground"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"

@@ -169,8 +169,8 @@ export default function GoogleChatSetupPage() {
       <ConnectorAuthGuard connectorName="Google Chat">
         <div className="min-h-screen bg-black flex items-center justify-center">
           <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-6 text-gray-600" />
-            <p className="text-slate-300 text-lg">
+            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-6 text-muted-foreground" />
+            <p className="text-foreground text-lg">
               {isConnecting ? "Redirecting to Google..." : "Checking Google Chat configuration..."}
             </p>
           </div>

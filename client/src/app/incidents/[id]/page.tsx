@@ -104,10 +104,10 @@ export default function IncidentDetailPage() {
     return (
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-4xl mx-auto space-y-6">
-          <Skeleton className="h-8 w-48 bg-zinc-800" />
-          <Skeleton className="h-32 w-full bg-zinc-800 rounded-xl" />
-          <Skeleton className="h-64 w-full bg-zinc-800 rounded-xl" />
-          <Skeleton className="h-48 w-full bg-zinc-800 rounded-xl" />
+          <Skeleton className="h-8 w-48 bg-muted" />
+          <Skeleton className="h-32 w-full bg-muted rounded-xl" />
+          <Skeleton className="h-64 w-full bg-muted rounded-xl" />
+          <Skeleton className="h-48 w-full bg-muted rounded-xl" />
         </div>
       </div>
     );
@@ -150,9 +150,9 @@ export default function IncidentDetailPage() {
     <div className="min-h-screen bg-background">
       {/* Merged incident banner */}
       {incident.status === 'merged' && incident.mergedIntoIncidentId && (
-        <div className="bg-zinc-900/50 border-b border-zinc-800 px-6 py-4">
-          <div className="max-w-5xl mx-auto flex items-center gap-3 text-zinc-400">
-            <GitMerge className="w-5 h-5 text-zinc-500" />
+        <div className="bg-card/50 border-b border-border px-6 py-4">
+          <div className="max-w-5xl mx-auto flex items-center gap-3 text-muted-foreground">
+            <GitMerge className="w-5 h-5 text-muted-foreground" />
             <div>
               <p className="text-sm">
                 This incident was merged into{' '}
@@ -163,7 +163,7 @@ export default function IncidentDetailPage() {
                   "{incident.mergedIntoTitle || 'another incident'}"
                 </Link>
               </p>
-              <p className="text-xs text-zinc-600 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Its RCA investigation has been stopped. View the main incident to see the combined analysis.
               </p>
             </div>
@@ -172,9 +172,9 @@ export default function IncidentDetailPage() {
       )}
 
       {/* Sticky header with back button - full width, always on top */}
-      <div className="border-b border-zinc-800/50 bg-background/95 backdrop-blur-sm sticky top-0 z-30">
+      <div className="border-b border-border/50 bg-background/95 backdrop-blur-sm sticky top-0 z-30">
         <div className="px-6 py-3">
-          <Link href="/incidents" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">
+          <Link href="/incidents" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-white transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Back to incidents
           </Link>

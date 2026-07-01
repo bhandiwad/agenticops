@@ -40,8 +40,8 @@ export default function SlashCommandMenu({ input, actions, onSelect, onCommandSe
   }, [highlightedIndex, stage]);
 
   return (
-    <div ref={listRef} className="absolute bottom-full left-0 right-0 mb-2 bg-zinc-900 border border-zinc-700/60 rounded-lg shadow-xl overflow-hidden z-50 max-h-48 overflow-y-auto">
-      <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-zinc-500 font-medium border-b border-zinc-800/60">
+    <div ref={listRef} className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-border/60 rounded-lg shadow-xl overflow-hidden z-50 max-h-48 overflow-y-auto">
+      <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-medium border-b border-border/60">
         {stage === 'command' ? 'Commands' : 'Actions'}
       </div>
       {stage === 'command' ? (
@@ -49,13 +49,13 @@ export default function SlashCommandMenu({ input, actions, onSelect, onCommandSe
           type="button"
           onMouseDown={e => { e.preventDefault(); onCommandSelect(); }}
           className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors text-left ${
-            highlightedIndex === 0 ? 'bg-zinc-800' : 'hover:bg-zinc-800/50'
+            highlightedIndex === 0 ? 'bg-muted' : 'hover:bg-muted/50'
           }`}
         >
-          <Workflow className="h-3.5 w-3.5 text-zinc-500 flex-shrink-0" />
+          <Workflow className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
           <div>
-            <span className="text-zinc-200 font-medium">/action</span>
-            <span className="text-zinc-500 ml-2">Run a configured action</span>
+            <span className="text-foreground font-medium">/action</span>
+            <span className="text-muted-foreground ml-2">Run a configured action</span>
           </div>
         </button>
       ) : (
@@ -72,10 +72,10 @@ function ActionsList({ actions, filtered, highlightedIndex, onSelect }: {
   readonly onSelect: (action: ActionItem) => void;
 }) {
   if (actions.length === 0) {
-    return <div className="px-3 py-3 text-xs text-zinc-500">No actions configured. Create one in Settings.</div>;
+    return <div className="px-3 py-3 text-xs text-muted-foreground">No actions configured. Create one in Settings.</div>;
   }
   if (filtered.length === 0) {
-    return <div className="px-3 py-3 text-xs text-zinc-500">No matching actions</div>;
+    return <div className="px-3 py-3 text-xs text-muted-foreground">No matching actions</div>;
   }
   return (
     <>
@@ -84,11 +84,11 @@ function ActionsList({ actions, filtered, highlightedIndex, onSelect }: {
           key={action.id}
           type="button"
           onMouseDown={e => { e.preventDefault(); onSelect(action); }}
-          className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 transition-colors text-left ${
-            i === highlightedIndex ? 'bg-zinc-800' : 'hover:bg-zinc-800/50'
+          className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground transition-colors text-left ${
+            i === highlightedIndex ? 'bg-muted' : 'hover:bg-muted/50'
           }`}
         >
-          <Workflow className="h-3.5 w-3.5 text-zinc-500 flex-shrink-0" />
+          <Workflow className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
           <span className="truncate">{action.name}</span>
         </button>
       ))}

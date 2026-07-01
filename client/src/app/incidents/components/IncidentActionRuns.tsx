@@ -34,7 +34,7 @@ function StatusIcon({ status }: { readonly status: string }) {
         </span>
       );
     default:
-      return <Clock className="w-3.5 h-3.5 text-zinc-500" />;
+      return <Clock className="w-3.5 h-3.5 text-muted-foreground" />;
   }
 }
 
@@ -96,7 +96,7 @@ export default function IncidentActionRuns({ incidentId }: IncidentActionRunsPro
 
   if (loading) {
     return (
-      <div className="py-4 text-center text-xs text-zinc-500">Loading actions...</div>
+      <div className="py-4 text-center text-xs text-muted-foreground">Loading actions...</div>
     );
   }
 
@@ -108,7 +108,7 @@ export default function IncidentActionRuns({ incidentId }: IncidentActionRunsPro
 
   if (runs.length === 0) {
     return (
-      <div className="py-4 text-center text-xs text-zinc-500">No actions have run for this incident.</div>
+      <div className="py-4 text-center text-xs text-muted-foreground">No actions have run for this incident.</div>
     );
   }
 
@@ -117,18 +117,18 @@ export default function IncidentActionRuns({ incidentId }: IncidentActionRunsPro
       {runs.map((run) => (
         <div
           key={run.id}
-          className="flex items-center justify-between gap-3 px-3 py-2 rounded-md bg-zinc-900/50 border border-zinc-800/50"
+          className="flex items-center justify-between gap-3 px-3 py-2 rounded-md bg-card/50 border border-border/50"
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <StatusIcon status={run.status} />
-            <span className="text-sm text-zinc-200 truncate">{run.action_name}</span>
+            <span className="text-sm text-foreground truncate">{run.action_name}</span>
             {run.duration_ms != null && (
-              <span className="text-[11px] text-zinc-500 shrink-0">
+              <span className="text-[11px] text-muted-foreground shrink-0">
                 {formatDuration(run.duration_ms)}
               </span>
             )}
             {run.started_at && (
-              <span className="text-[11px] text-zinc-600 shrink-0">
+              <span className="text-[11px] text-muted-foreground shrink-0">
                 {formatTime(run.started_at)}
               </span>
             )}
@@ -142,7 +142,7 @@ export default function IncidentActionRuns({ incidentId }: IncidentActionRunsPro
             {run.chat_session_id && (
               <Link
                 href={`/chat?sessionId=${encodeURIComponent(run.chat_session_id)}`}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 View
                 <ExternalLink className="w-2.5 h-2.5" />

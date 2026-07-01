@@ -131,7 +131,7 @@ export default function SuggestionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl bg-zinc-900 border-zinc-700">
+      <DialogContent className="max-w-2xl bg-card border-border">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
             <TypeIcon className="w-5 h-5 text-orange-400" />
@@ -140,7 +140,7 @@ export default function SuggestionModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          <p className="text-sm text-zinc-300">{suggestion.description}</p>
+          <p className="text-sm text-foreground">{suggestion.description}</p>
 
           <div className="flex items-center gap-3">
             <span className={`px-2 py-1 text-xs rounded border ${badgeStyles}`}>
@@ -155,10 +155,10 @@ export default function SuggestionModal({
 
           {suggestion.command && (
             <div className="space-y-2">
-              <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Command
               </span>
-              <div className="relative p-4 rounded-lg bg-zinc-950 border border-zinc-800">
+              <div className="relative p-4 rounded-lg bg-background border border-border">
                 <code className="text-sm font-mono text-orange-300 whitespace-pre-wrap break-all">
                   {suggestion.command}
                 </code>
@@ -175,7 +175,7 @@ export default function SuggestionModal({
                 </p>
               </div>
               <div className="space-y-2">
-                <label htmlFor="suggestion-confirm-input" className="text-xs font-medium text-zinc-400">
+                <label htmlFor="suggestion-confirm-input" className="text-xs font-medium text-muted-foreground">
                   Type <span className="font-mono text-orange-400">CONFIRM</span> to enable execution
                 </label>
                 <input
@@ -184,7 +184,7 @@ export default function SuggestionModal({
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
                   placeholder="CONFIRM"
-                  className="w-full px-3 py-2 text-sm bg-zinc-950 border border-zinc-700 rounded-md text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3 py-2 text-sm bg-background border border-border rounded-md text-white placeholder:text-muted-foreground focus:outline-none focus:border-orange-500"
                 />
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function SuggestionModal({
             variant="outline"
             onClick={handleCopy}
             disabled={!suggestion.command}
-            className="border-zinc-700 hover:bg-zinc-800"
+            className="border-border hover:bg-muted"
           >
             {copied ? (
               <>
@@ -226,7 +226,7 @@ export default function SuggestionModal({
             <Button
               variant="outline"
               onClick={handleViewOutput}
-              className="border-zinc-700 hover:bg-zinc-800 text-green-400"
+              className="border-border hover:bg-muted text-green-400"
             >
               <MessageSquare className="w-4 h-4 mr-2" />
               View Output

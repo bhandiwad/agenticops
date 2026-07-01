@@ -41,13 +41,13 @@ function SignInForm() {
   }
 
   return (
-    <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-md w-full space-y-8 p-8 rounded-lg shadow-xl bg-white dark:bg-gray-800">
+    <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 min-h-screen bg-gray-50 dark:bg-card">
+      <div className="max-w-md w-full space-y-8 p-8 rounded-lg shadow-xl bg-white dark:bg-muted">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
             Sign in to Aurora
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
+          <p className="mt-2 text-center text-sm text-muted-foreground dark:text-foreground">
             Or{" "}
             <Link
               href="/sign-up"
@@ -71,7 +71,7 @@ function SignInForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-800"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-border placeholder-muted-foreground dark:placeholder-muted-foreground text-gray-900 dark:text-white rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm bg-white dark:bg-muted"
                 placeholder="Email address"
                 disabled={isLoading}
               />
@@ -88,7 +88,7 @@ function SignInForm() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-800"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-border placeholder-muted-foreground dark:placeholder-muted-foreground text-gray-900 dark:text-white rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm bg-white dark:bg-muted"
                 placeholder="Password"
                 disabled={isLoading}
               />
@@ -119,9 +119,9 @@ function SignInForm() {
 export default function SignInPage() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-md w-full space-y-8 p-8 rounded-lg shadow-xl bg-white dark:bg-gray-800">
-          <div className="text-center text-gray-600 dark:text-gray-300">Loading...</div>
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 min-h-screen bg-gray-50 dark:bg-card">
+        <div className="max-w-md w-full space-y-8 p-8 rounded-lg shadow-xl bg-white dark:bg-muted">
+          <div className="text-center text-muted-foreground dark:text-foreground">Loading...</div>
         </div>
       </div>
     }>

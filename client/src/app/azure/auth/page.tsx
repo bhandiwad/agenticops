@@ -895,14 +895,14 @@ export default function AzureAuthPage() {
                   </Button>
                 </div>
                 
-                <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-3">
+                <div className="bg-gray-50 dark:bg-muted border border-gray-200 dark:border-border rounded-md p-3">
                   <div className="flex items-start space-x-2">
                     <div className="flex-shrink-0 mt-0.5">
                       <svg className="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                    <div className="text-sm text-muted-foreground dark:text-foreground">
                       <strong>How to use:</strong> Click "Copy Command" then paste it into Cloud Shell and press Enter. The automated command will run the full setup script.
                     </div>
                   </div>
@@ -1033,23 +1033,23 @@ export default function AzureAuthPage() {
               {/* Step 1: Login */}
               <div>
                 <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">Step 1: Log in to Azure CLI</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-muted-foreground dark:text-muted-foreground mb-4">
                   If you haven't already logged in to Azure CLI, run the following command in your terminal:
                 </p>
-                <div className="bg-gray-100 dark:bg-gray-700 rounded-md p-4 mb-4">
-                  <code className="text-gray-800 dark:text-gray-200">az login --use-device-code</code>
+                <div className="bg-gray-100 dark:bg-muted rounded-md p-4 mb-4">
+                  <code className="text-gray-800 dark:text-foreground">az login --use-device-code</code>
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-muted-foreground dark:text-muted-foreground mb-4">
                   This will open a browser window where you can authenticate with your Azure account. After authentication, you should see a table like this:
                 </p>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-4 mb-4">
-                  <pre className="text-gray-800 dark:text-gray-200 text-sm">
+                <div className="bg-gray-50 dark:bg-muted rounded-md p-4 mb-4">
+                  <pre className="text-gray-800 dark:text-foreground text-sm">
 {`No     Subscription name     Subscription ID                       Tenant
 -----  --------------------  ------------------------------------  -------------
 [1] *  Azure subscription 1  7634d823-3d86-498d-9cc2-e0612e906566  Geo Betus`}
                   </pre>
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-muted-foreground dark:text-muted-foreground mb-4">
                   Pick the subscription where your information is located and where your clusters are running.
                 </p>
               </div>
@@ -1057,19 +1057,19 @@ export default function AzureAuthPage() {
               {/* Step 2: Create Service Principal */}
               <div>
                 <h3 className="text-lg font-medium mb-4">Step 2: Create the Aurora Service Principal</h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   <span className="underline">Run the following command</span> in your terminal to create an account for Aurora in your subscription:
                 </p>
                 <div className="bg-gray-100 rounded-md p-4 mb-4">
                   <code className="text-gray-800">az ad sp create-for-rbac -n "aurora"</code>
                 </div>
-                <p className="text-gray-600 mb-4">This command will create a service principal and output credentials similar to the following:</p>
+                <p className="text-muted-foreground mb-4">This command will create a service principal and output credentials similar to the following:</p>
                 <div className="rounded-md p-4 mb-4">
                   <pre className="text-gray-800 text-sm">
 {'{\n  "appId": "2d2233f5-7ad5-4a12-abc7-bad2889d6407",\n  "displayName": "aurora",\n  "password": "8zkj3~yswKd433fsdf2SHrvp22UoA6tOOOkZ_BYar2",\n  "tenant": "1050a480-ef60-43d7-b8db-2123dcd100b60"\n}'}
                   </pre>
                 </div>
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Paste the entire JSON output below:
                 </p>
                 <div className="mb-4">
@@ -1078,7 +1078,7 @@ export default function AzureAuthPage() {
                     id="jsonInput"
                     value={jsonInput}
                     onChange={handleJsonPaste}
-                    className="w-full h-32 p-2 border border-gray-300 dark:border-gray-600 rounded-md font-mono text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="w-full h-32 p-2 border border-gray-300 dark:border-border rounded-md font-mono text-sm bg-white dark:bg-muted text-gray-900 dark:text-white placeholder-muted-foreground dark:placeholder-muted-foreground"
                     placeholder="Paste the JSON output here"
                   />
                 </div>
@@ -1105,7 +1105,7 @@ export default function AzureAuthPage() {
                   </>
                 )}
 
-                <div className="mt-6 border border-dashed border-gray-300 dark:border-gray-600 rounded-md p-4">
+                <div className="mt-6 border border-dashed border-gray-300 dark:border-border rounded-md p-4">
                   <button
                     type="button"
                     onClick={() => setIsReadOnlySectionExpanded(!isReadOnlySectionExpanded)}
@@ -1122,7 +1122,7 @@ export default function AzureAuthPage() {
                         id="readOnlyJsonInput"
                         value={readOnlyJsonInput}
                         onChange={handleReadOnlyJsonPaste}
-                        className="w-full h-28 p-2 border border-gray-300 dark:border-gray-600 rounded-md font-mono text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                        className="w-full h-28 p-2 border border-gray-300 dark:border-border rounded-md font-mono text-sm bg-white dark:bg-muted text-gray-900 dark:text-white placeholder-muted-foreground dark:placeholder-muted-foreground"
                         placeholder={'{\n  "tenantId": "optional-tenant-id",\n  "clientId": "ask-mode-client-id", \n  "clientSecret": "ask-mode-secret",\n  "subscriptionId": "optional-subscription-id"\n}'}
                       />
                       {readOnlyError && (
@@ -1194,10 +1194,10 @@ export default function AzureAuthPage() {
                             </svg>
             </div>
                           <div className="ml-3">
-                            <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                            <h3 className="text-sm font-medium text-gray-800 dark:text-foreground">
                               Success!
                             </h3>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                            <p className="text-sm text-muted-foreground dark:text-foreground">
                               These credentials have been saved for the following subscription: <strong>{subscription_name || "your subscription"}</strong>
                             </p>
                           </div>
@@ -1208,8 +1208,8 @@ export default function AzureAuthPage() {
                         <h4 className="text-lg font-medium text-foreground mb-4">
                           Step 3: Assign Reader and AKS Permissions
                         </h4>
-                        <div className="bg-blue-50 dark:bg-gray-700 p-2 rounded mb-4">
-                          <span className="text-gray-800 dark:text-gray-300 text-sm font-medium">Clusters found: </span>
+                        <div className="bg-blue-50 dark:bg-muted p-2 rounded mb-4">
+                          <span className="text-gray-800 dark:text-foreground text-sm font-medium">Clusters found: </span>
                           <span className="text-blue-700 dark:text-blue-400 text-sm font-medium">
                             {backendClusters.length > 0 ? backendClusters.map(c => c.name).join(', ') : 'XCLUSTERX'}
                           </span>
@@ -1218,7 +1218,7 @@ export default function AzureAuthPage() {
                           Copy and run these commands in your terminal to assign the required roles:
                         </p>
                         <div className="bg-muted rounded-md p-4 mb-4">
-                          <pre className="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap overflow-x-auto">
+                          <pre className="text-gray-800 dark:text-foreground text-sm whitespace-pre-wrap overflow-x-auto">
 {`az role assignment create --assignee ${credentials.appId} --role Reader --scope "/subscriptions/${subscriptionId}"
 
 az role assignment create --assignee ${credentials.appId} --role "Cost Management Reader" --scope "/subscriptions/${subscriptionId}"
@@ -1312,8 +1312,8 @@ kubectl create clusterrolebinding aurora-sp-admin-binding --clusterrole=cluster-
                     key={cred.subscriptionId || index}
                     className={`w-full p-4 border rounded-lg cursor-pointer transition-all text-left bg-transparent ${
                       subscriptionId === cred.subscriptionId
-                        ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-gray-700'
-                        : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-400'
+                        ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-muted'
+                        : 'border-gray-200 dark:border-border hover:border-blue-300 dark:hover:border-blue-400'
                     }`}
                     onClick={() => handleSubscriptionSelect(
                       cred.subscriptionId,
@@ -1326,8 +1326,8 @@ kubectl create clusterrolebinding aurora-sp-admin-binding --clusterrole=cluster-
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="font-medium text-foreground">{cred.subscriptionName}</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Subscription ID: {cred.subscriptionId}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Tenant ID: {cred.tenantId}</p>
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground">Subscription ID: {cred.subscriptionId}</p>
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground">Tenant ID: {cred.tenantId}</p>
                       </div>
                       {subscriptionId === cred.subscriptionId && (
                         <div className="text-blue-500">

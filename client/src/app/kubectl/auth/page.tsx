@@ -42,16 +42,16 @@ function CommandRow({ label, command, copyKey, copied, onCopy }: Readonly<{
 }>) {
   return (
     <div className="space-y-2">
-      <Label className="text-sm text-zinc-300">{label}</Label>
+      <Label className="text-sm text-foreground">{label}</Label>
       <div className="relative">
-        <pre className="overflow-auto rounded-lg bg-zinc-900 border border-zinc-800 p-2 pr-12 text-xs leading-relaxed font-mono text-zinc-100">
+        <pre className="overflow-auto rounded-lg bg-card border border-border p-2 pr-12 text-xs leading-relaxed font-mono text-foreground">
           {command}
         </pre>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onCopy(command, copyKey)}
-          className={`absolute right-1 text-zinc-400 hover:text-zinc-100 hover:bg-transparent ${command.includes('\n') ? 'top-1' : 'top-1/2 -translate-y-1/2'}`}
+          className={`absolute right-1 text-muted-foreground hover:text-foreground hover:bg-transparent ${command.includes('\n') ? 'top-1' : 'top-1/2 -translate-y-1/2'}`}
         >
           {copied === copyKey ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
         </Button>
@@ -203,7 +203,7 @@ export default function KubectlAuthPage() {
               variant="outline"
               size="sm"
               onClick={() => router.push('/kubectl/manage')}
-              className="border-zinc-700 hover:bg-zinc-900"
+              className="border-border hover:bg-card"
             >
               Manage Clusters
             </Button>
@@ -211,33 +211,33 @@ export default function KubectlAuthPage() {
 
           <div className="mb-8 flex flex-col items-center text-center">
             <img src="/kubernetes_text.png" alt="Kubernetes" className="h-32 w-auto mb-4" />
-            <p className="text-sm text-zinc-400 max-w-xl mb-1">
+            <p className="text-sm text-muted-foreground max-w-xl mb-1">
               Connect your Kubernetes clusters to Aurora for intelligent incident investigation.
             </p>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-muted-foreground">
               All connections are secure and encrypted
             </p>
           </div>
 
           <Tabs defaultValue="agent" className="w-full">
-            <TabsList className="w-full bg-zinc-900 border border-zinc-800 h-auto p-1">
-              <TabsTrigger value="agent" className="data-[state=active]:bg-zinc-800 flex-1 py-2.5">
+            <TabsList className="w-full bg-card border border-border h-auto p-1">
+              <TabsTrigger value="agent" className="data-[state=active]:bg-muted flex-1 py-2.5">
                 Deploy Agent
-                <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0 bg-zinc-700 text-zinc-300">
+                <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0 bg-muted text-foreground">
                   Recommended
                 </Badge>
               </TabsTrigger>
-              <TabsTrigger value="kubeconfig" className="data-[state=active]:bg-zinc-800 flex-1 py-2.5">
+              <TabsTrigger value="kubeconfig" className="data-[state=active]:bg-muted flex-1 py-2.5">
                 Upload Kubeconfig
               </TabsTrigger>
             </TabsList>
 
             {/* === Agent Tab === */}
             <TabsContent value="agent" className="mt-6 space-y-6">
-              <Card className="bg-zinc-950 border-zinc-800">
+              <Card className="bg-background border-border">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-white text-lg tracking-tight">1. Generate Agent Token</CardTitle>
-                  <CardDescription className="text-zinc-400 text-sm">
+                  <CardDescription className="text-muted-foreground text-sm">
                     Create an authentication token for your kubernetes agent.
                   </CardDescription>
                 </CardHeader>
@@ -258,29 +258,29 @@ export default function KubectlAuthPage() {
                           placeholder="e.g., production-k8s-cluster"
                           value={clusterName}
                           onChange={(e) => setClusterName(e.target.value)}
-                          className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500 focus-visible:ring-zinc-700"
+                          className="bg-card border-border text-white placeholder:text-muted-foreground focus-visible:ring-ring"
                         />
-                        <p className="text-xs text-zinc-500 mt-1.5">
+                        <p className="text-xs text-muted-foreground mt-1.5">
                           Use the same cluster name as in your alerting system for seamless incident correlation
                         </p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="clusterMetadata" className="text-white text-sm">
-                          Cluster Context <span className="text-zinc-500 text-xs">(Optional)</span>
+                          Cluster Context <span className="text-muted-foreground text-xs">(Optional)</span>
                         </Label>
                         <textarea
                           id="clusterMetadata"
                           placeholder="e.g., Production environment, US-East region"
                           value={clusterMetadata}
                           onChange={(e) => setClusterMetadata(e.target.value)}
-                          className="w-full h-20 px-3 py-2 rounded-md bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-700 text-sm resize-none"
+                          className="w-full h-20 px-3 py-2 rounded-md bg-card border border-border text-white placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-sm resize-none"
                         />
                       </div>
                       <div className="flex gap-3">
                         <Button onClick={generateToken} disabled={generatingToken || !clusterName.trim()} className="bg-white text-black hover:bg-zinc-200">
                           {generatingToken ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating...</> : "Generate Token"}
                         </Button>
-                        <Button variant="outline" onClick={() => setShowTokenForm(false)} className="border-zinc-700 text-zinc-300 hover:bg-zinc-800">
+                        <Button variant="outline" onClick={() => setShowTokenForm(false)} className="border-border text-foreground hover:bg-muted">
                           Cancel
                         </Button>
                       </div>
@@ -288,21 +288,21 @@ export default function KubectlAuthPage() {
                   )}
                   {generatedToken && (
                     <div className="space-y-4">
-                      <Alert className="bg-zinc-900 border-zinc-700">
-                        <AlertDescription className="text-zinc-300 text-sm">
+                      <Alert className="bg-card border-border">
+                        <AlertDescription className="text-foreground text-sm">
                           Save this token now - it will only be shown once!
                         </AlertDescription>
                       </Alert>
                       <div className="space-y-2">
                         <Label className="text-white text-sm">Your Agent Token</Label>
                         <div className="relative">
-                          <Input value={generatedToken} readOnly className="bg-zinc-900 border-zinc-800 text-white pr-12 font-mono text-xs" />
-                          <Button variant="ghost" size="sm" onClick={() => copyCommand(generatedToken, "token")} className="absolute top-1/2 -translate-y-1/2 right-1 text-zinc-400 hover:text-zinc-100 hover:bg-transparent">
+                          <Input value={generatedToken} readOnly className="bg-card border-border text-white pr-12 font-mono text-xs" />
+                          <Button variant="ghost" size="sm" onClick={() => copyCommand(generatedToken, "token")} className="absolute top-1/2 -translate-y-1/2 right-1 text-muted-foreground hover:text-foreground hover:bg-transparent">
                             {copied === "token" ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
                           </Button>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => { setGeneratedToken(null); setClusterName(""); }} className="border-zinc-700 text-zinc-300 hover:bg-zinc-800">
+                      <Button variant="outline" size="sm" onClick={() => { setGeneratedToken(null); setClusterName(""); }} className="border-border text-foreground hover:bg-muted">
                         Generate Another Token
                       </Button>
                     </div>
@@ -310,10 +310,10 @@ export default function KubectlAuthPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-zinc-950 border-zinc-800">
+              <Card className="bg-background border-border">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-white text-lg tracking-tight">2. Set your kubectl context</CardTitle>
-                  <CardDescription className="text-zinc-400 text-sm">
+                  <CardDescription className="text-muted-foreground text-sm">
                     Verify you're connected to the correct cluster.
                   </CardDescription>
                 </CardHeader>
@@ -323,18 +323,18 @@ export default function KubectlAuthPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-zinc-950 border-zinc-800">
+              <Card className="bg-background border-border">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-white text-lg tracking-tight">3. Install with Helm</CardTitle>
-                  <CardDescription className="text-zinc-400 text-sm">
+                  <CardDescription className="text-muted-foreground text-sm">
                     Deploy the agent with read-only RBAC into your cluster.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {!generatedToken && (
-                    <Alert className="bg-zinc-900 border-zinc-800">
+                    <Alert className="bg-card border-border">
                       <AlertCircle className="h-4 w-4 text-yellow-500" />
-                      <AlertDescription className="text-sm text-zinc-300">
+                      <AlertDescription className="text-sm text-foreground">
                         Generate a token in Step 1 first.
                       </AlertDescription>
                     </Alert>
@@ -343,10 +343,10 @@ export default function KubectlAuthPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-zinc-950 border-zinc-800">
+              <Card className="bg-background border-border">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-white text-lg tracking-tight">4. Verify connection</CardTitle>
-                  <CardDescription className="text-zinc-400 text-sm">
+                  <CardDescription className="text-muted-foreground text-sm">
                     Aurora will detect the agent automatically once deployed.
                   </CardDescription>
                 </CardHeader>
@@ -356,15 +356,15 @@ export default function KubectlAuthPage() {
                       <Check className="h-5 w-5 text-green-400" />
                       <div>
                         <p className="text-green-400 text-sm">Agent Connected</p>
-                        <p className="text-zinc-400 text-xs mt-0.5">Your kubernetes agent is connected and ready</p>
+                        <p className="text-muted-foreground text-xs mt-0.5">Your kubernetes agent is connected and ready</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-3 p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
-                      <Loader2 className="h-5 w-5 text-zinc-400 animate-spin" />
+                    <div className="flex items-center gap-3 p-4 bg-card border border-border rounded-lg">
+                      <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
                       <div>
-                        <p className="text-zinc-300 text-sm">Waiting for agent...</p>
-                        <p className="text-zinc-500 text-xs mt-0.5">Deploy the agent using Step 3</p>
+                        <p className="text-foreground text-sm">Waiting for agent...</p>
+                        <p className="text-muted-foreground text-xs mt-0.5">Deploy the agent using Step 3</p>
                       </div>
                     </div>
                   )}
@@ -374,10 +374,10 @@ export default function KubectlAuthPage() {
 
             {/* === Kubeconfig Upload Tab === */}
             <TabsContent value="kubeconfig" className="mt-6 space-y-6">
-              <Card className="bg-zinc-950 border-zinc-800">
+              <Card className="bg-background border-border">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-white text-lg tracking-tight">Upload Kubeconfig Files</CardTitle>
-                  <CardDescription className="text-zinc-400 text-sm">
+                  <CardDescription className="text-muted-foreground text-sm">
                     Use this when you cannot deploy the Aurora agent inside your cluster (e.g., restricted RBAC, air-gapped environments).
                     Aurora will execute kubectl commands directly using these credentials.
                   </CardDescription>
@@ -394,22 +394,22 @@ export default function KubectlAuthPage() {
                     />
                     <label
                       htmlFor="kubeconfig-upload"
-                      className="flex items-center justify-center w-full py-8 border border-dashed border-zinc-700 rounded-md cursor-pointer hover:bg-zinc-900 transition-colors"
+                      className="flex items-center justify-center w-full py-8 border border-dashed border-border rounded-md cursor-pointer hover:bg-card transition-colors"
                     >
-                      <Upload className="h-5 w-5 mr-2 text-zinc-400" />
-                      <span className="text-zinc-300">Select kubeconfig files (.yaml, .yml)</span>
+                      <Upload className="h-5 w-5 mr-2 text-muted-foreground" />
+                      <span className="text-foreground">Select kubeconfig files (.yaml, .yml)</span>
                     </label>
 
                     {pendingFiles.length > 0 && (
                       <div className="space-y-2">
                         {pendingFiles.map(f => (
-                          <div key={f.filename} className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-lg">
+                          <div key={f.filename} className="flex items-center justify-between p-3 bg-card border border-border rounded-lg">
                             <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4 text-zinc-400" />
-                              <span className="text-sm text-zinc-200">{f.filename}</span>
-                              <span className="text-xs text-zinc-500">{(f.content.length / 1024).toFixed(1)}KB</span>
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-foreground">{f.filename}</span>
+                              <span className="text-xs text-muted-foreground">{(f.content.length / 1024).toFixed(1)}KB</span>
                             </div>
-                            <Button variant="ghost" size="sm" onClick={() => removePendingFile(f.filename)} className="text-zinc-400 hover:text-red-400 h-7 w-7 p-0">
+                            <Button variant="ghost" size="sm" onClick={() => removePendingFile(f.filename)} className="text-muted-foreground hover:text-red-400 h-7 w-7 p-0">
                               <X className="h-4 w-4" />
                             </Button>
                           </div>
@@ -432,9 +432,9 @@ export default function KubectlAuthPage() {
                     )}
                   </div>
 
-                  <Alert className="bg-zinc-900 border-zinc-800">
-                    <AlertCircle className="h-4 w-4 text-zinc-400" />
-                    <AlertDescription className="text-xs text-zinc-400">
+                  <Alert className="bg-card border-border">
+                    <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                    <AlertDescription className="text-xs text-muted-foreground">
                       Kubeconfigs with auth-provider authentication are not supported.
                       Exec-based (gcloud, aws), certificate, and token auth all work.
                     </AlertDescription>

@@ -789,7 +789,7 @@ export default function AWSOnboardingPage() {
         <div className="min-h-screen bg-black flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-12 h-12 animate-spin mx-auto mb-6 text-blue-400" />
-            <p className="text-slate-300 text-lg">Loading AWS onboarding...</p>
+            <p className="text-foreground text-lg">Loading AWS onboarding...</p>
           </div>
         </div>
       </ConnectorAuthGuard>
@@ -980,7 +980,7 @@ make dev`}</pre>
     return (
       <ConnectorAuthGuard connectorName="AWS">
         <div className="min-h-screen bg-black flex items-center justify-center p-6">
-        <Card className="w-full max-w-2xl bg-slate-900 border-slate-700">
+        <Card className="w-full max-w-2xl bg-card border-border">
           <CardHeader>
             <CardTitle className="text-red-400 flex items-center space-x-2">
               <AlertCircle className="w-5 h-5" />
@@ -990,12 +990,12 @@ make dev`}</pre>
           <CardContent>
             {formattedError.isDetailed ? (
               <div className="space-y-4">
-                <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-                  <pre className="text-slate-300 text-sm whitespace-pre-wrap font-mono leading-relaxed">
+                <div className="bg-muted rounded-lg p-4 border border-border">
+                  <pre className="text-foreground text-sm whitespace-pre-wrap font-mono leading-relaxed">
                     {formattedError.description}
                   </pre>
                 </div>
-                <div className="text-slate-400 text-sm space-y-2">
+                <div className="text-muted-foreground text-sm space-y-2">
                   <p>Need help? Check the AWS IAM console to verify your trust policy configuration.</p>
                   <Alert className="bg-blue-500/10 border-blue-500/20">
                     <Info className="h-4 w-4 text-blue-400" />
@@ -1006,7 +1006,7 @@ make dev`}</pre>
                 </div>
               </div>
             ) : (
-              <p className="text-slate-300 mb-6">{formattedError.description}</p>
+              <p className="text-foreground mb-6">{formattedError.description}</p>
             )}
             <Button 
               onClick={() => {
@@ -1028,7 +1028,7 @@ make dev`}</pre>
     return (
       <ConnectorAuthGuard connectorName="AWS">
         <div className="min-h-screen bg-black flex items-center justify-center">
-          <p className="text-slate-400">No onboarding data available.</p>
+          <p className="text-muted-foreground">No onboarding data available.</p>
         </div>
       </ConnectorAuthGuard>
     );

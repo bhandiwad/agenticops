@@ -59,7 +59,7 @@ export default function CitationModal({ citation, isOpen, onClose }: CitationMod
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col bg-zinc-900 border-zinc-700">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col bg-card border-border">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2 text-white">
             <span className="inline-flex items-center justify-center w-6 h-6 text-sm font-medium rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
@@ -72,12 +72,12 @@ export default function CitationModal({ citation, isOpen, onClose }: CitationMod
         <div className="flex-1 overflow-y-auto space-y-4">
           {/* Tool info */}
           <div className="flex flex-wrap items-center gap-4 text-sm">
-            <div className="flex items-center gap-2 text-zinc-300">
+            <div className="flex items-center gap-2 text-foreground">
               <Terminal className="w-4 h-4 text-orange-400" />
               <span className="font-medium">{citation.toolName}</span>
             </div>
             {citation.executedAt && (
-              <div className="flex items-center gap-2 text-zinc-500">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="w-4 h-4" />
                 <span>{formatTimestamp(citation.executedAt)}</span>
               </div>
@@ -87,10 +87,10 @@ export default function CitationModal({ citation, isOpen, onClose }: CitationMod
           {/* Command */}
           {citation.command && citation.command !== 'Command not available' && (
             <div className="space-y-1">
-              <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Command
               </span>
-              <div className="p-3 rounded-lg bg-zinc-800 border border-zinc-700">
+              <div className="p-3 rounded-lg bg-muted border border-border">
                 <code className="text-sm font-mono text-orange-300 break-all">
                   {citation.command}
                 </code>
@@ -101,12 +101,12 @@ export default function CitationModal({ citation, isOpen, onClose }: CitationMod
           {/* Output */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Output
               </span>
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 px-2 py-1 text-xs rounded bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+                className="flex items-center gap-1.5 px-2 py-1 text-xs rounded bg-muted text-muted-foreground hover:text-white hover:bg-muted transition-colors"
                 title="Copy output"
               >
                 {copied ? (
@@ -122,7 +122,7 @@ export default function CitationModal({ citation, isOpen, onClose }: CitationMod
                 )}
               </button>
             </div>
-            <div className="p-4 rounded-lg bg-zinc-950 border border-zinc-800 max-h-[40vh] overflow-auto">
+            <div className="p-4 rounded-lg bg-background border border-border max-h-[40vh] overflow-auto">
               {citation.output ? (
                 <RenderOutput
                   output={citation.output}
@@ -137,7 +137,7 @@ export default function CitationModal({ citation, isOpen, onClose }: CitationMod
                   hasSavedEdit={false}
                 />
               ) : (
-                <div className="text-sm text-zinc-400">No output available</div>
+                <div className="text-sm text-muted-foreground">No output available</div>
               )}
             </div>
           </div>

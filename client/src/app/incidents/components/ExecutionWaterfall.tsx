@@ -58,21 +58,21 @@ function LifecycleTimeline({ events }: { events: LifecycleEvent[] }) {
 
   return (
     <div className="mb-6">
-      <p className="text-[11px] text-zinc-500 uppercase tracking-wider mb-3">Lifecycle</p>
+      <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-3">Lifecycle</p>
       <div className="flex items-center gap-0 overflow-x-auto pb-2">
         {events.map((event, i) => (
           <React.Fragment key={i}>
             <div className="flex flex-col items-center shrink-0">
               <div className="w-3 h-3 rounded-full bg-orange-500/80 border-2 border-orange-400/40" />
-              <p className="text-[11px] text-zinc-300 mt-1.5 whitespace-nowrap">
+              <p className="text-[11px] text-foreground mt-1.5 whitespace-nowrap">
                 {LIFECYCLE_LABELS[event.eventType] || event.eventType}
               </p>
-              <p className="text-[10px] text-zinc-600 mt-0.5 font-mono whitespace-nowrap">
+              <p className="text-[10px] text-muted-foreground mt-0.5 font-mono whitespace-nowrap">
                 {event.timestamp ? new Date(event.timestamp).toLocaleTimeString() : 'N/A'}
               </p>
             </div>
             {i < events.length - 1 && (
-              <div className="flex-1 min-w-[40px] h-px bg-zinc-700 mx-2 mt-[-20px]" />
+              <div className="flex-1 min-w-[40px] h-px bg-muted mx-2 mt-[-20px]" />
             )}
           </React.Fragment>
         ))}
@@ -96,13 +96,13 @@ function StepRow({ step, baseTime }: { step: ExecutionStep; baseTime: Date }) {
       {/* Timeline rail */}
       <div className="flex flex-col items-center shrink-0 pt-1">
         <div className={`w-2 h-2 rounded-full ${isThought ? 'bg-blue-500' : 'bg-green-500'}`} />
-        <div className="w-px flex-1 bg-zinc-800 mt-1" />
+        <div className="w-px flex-1 bg-muted mt-1" />
       </div>
 
       {/* Content */}
       <div className="pb-4 min-w-0 flex-1">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-[11px] font-mono text-zinc-600 shrink-0">
+          <span className="text-[11px] font-mono text-muted-foreground shrink-0">
             {stepTime ? formatRelativeTime(baseTime, stepTime) : 'N/A'}
           </span>
           <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium ${
@@ -113,12 +113,12 @@ function StepRow({ step, baseTime }: { step: ExecutionStep; baseTime: Date }) {
             {isThought ? <Brain className="w-3 h-3" /> : <Terminal className="w-3 h-3" />}
             {isThought ? 'thought' : 'tool_call'}
           </span>
-          <span className="text-xs text-zinc-300 truncate">{step.toolName ?? '(unknown)'}</span>
+          <span className="text-xs text-foreground truncate">{step.toolName ?? '(unknown)'}</span>
         </div>
 
         {/* Command line for tool_calls */}
         {!isThought && step.command && (
-          <div className="mt-1 px-2 py-1 rounded bg-zinc-900 border border-zinc-800">
+          <div className="mt-1 px-2 py-1 rounded bg-card border border-border">
             <code className="text-[11px] font-mono text-green-300 break-all">{step.command}</code>
           </div>
         )}
@@ -133,17 +133,17 @@ function StepRow({ step, baseTime }: { step: ExecutionStep; baseTime: Date }) {
               >
                 <div className="flex items-start gap-1">
                   {expanded ? (
-                    <ChevronDown className="w-3 h-3 text-zinc-600 mt-0.5 shrink-0" />
+                    <ChevronDown className="w-3 h-3 text-muted-foreground mt-0.5 shrink-0" />
                   ) : (
-                    <ChevronRight className="w-3 h-3 text-zinc-600 mt-0.5 shrink-0" />
+                    <ChevronRight className="w-3 h-3 text-muted-foreground mt-0.5 shrink-0" />
                   )}
-                  <p className="text-xs text-zinc-500 break-words">
+                  <p className="text-xs text-muted-foreground break-words">
                     {expanded ? content : truncatedContent}
                   </p>
                 </div>
               </button>
             ) : (
-              <p className="text-xs text-zinc-500 break-words pl-4">{content}</p>
+              <p className="text-xs text-muted-foreground break-words pl-4">{content}</p>
             )}
           </div>
         )}
@@ -190,8 +190,8 @@ export default function ExecutionWaterfall({ incidentId }: { incidentId: string 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-4 h-4 text-zinc-500 animate-spin" />
-        <span className="text-xs text-zinc-500 ml-2">Loading execution trace...</span>
+        <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
+        <span className="text-xs text-muted-foreground ml-2">Loading execution trace...</span>
       </div>
     );
   }
@@ -199,7 +199,7 @@ export default function ExecutionWaterfall({ incidentId }: { incidentId: string 
   if (error) {
     return (
       <div className="py-6 text-center">
-        <p className="text-xs text-zinc-500">{error}</p>
+        <p className="text-xs text-muted-foreground">{error}</p>
       </div>
     );
   }
@@ -207,7 +207,7 @@ export default function ExecutionWaterfall({ incidentId }: { incidentId: string 
   if (!data || (!data.steps.length && !data.lifecycle.length)) {
     return (
       <div className="py-6 text-center">
-        <p className="text-xs text-zinc-500">No execution data available</p>
+        <p className="text-xs text-muted-foreground">No execution data available</p>
       </div>
     );
   }
@@ -220,8 +220,8 @@ export default function ExecutionWaterfall({ incidentId }: { incidentId: string 
   const baseTime = baseTimestamp ? new Date(baseTimestamp) : new Date();
 
   return (
-    <div className="rounded-lg bg-zinc-900/50 border border-zinc-800 p-4">
-      <h3 className="text-sm font-medium text-zinc-300 mb-4">Agent Execution Waterfall</h3>
+    <div className="rounded-lg bg-card/50 border border-border p-4">
+      <h3 className="text-sm font-medium text-foreground mb-4">Agent Execution Waterfall</h3>
 
       {/* Lifecycle timeline */}
       <LifecycleTimeline events={data.lifecycle} />
@@ -229,7 +229,7 @@ export default function ExecutionWaterfall({ incidentId }: { incidentId: string 
       {/* Steps timeline */}
       {data.steps.length > 0 && (
         <div>
-          <p className="text-[11px] text-zinc-500 uppercase tracking-wider mb-3">
+          <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-3">
             Steps ({data.steps.length})
           </p>
           <div>

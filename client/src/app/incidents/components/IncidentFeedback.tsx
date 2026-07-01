@@ -61,7 +61,7 @@ function FeedbackButton({
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="bg-zinc-800 text-zinc-100 border-zinc-700">
+        <TooltipContent side="bottom" className="bg-muted text-foreground border-border">
           {tooltip}
         </TooltipContent>
       </Tooltip>
@@ -193,7 +193,7 @@ export default function IncidentFeedback({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="incident-feedback-comment" className="text-xs text-zinc-400">
+          <label htmlFor="incident-feedback-comment" className="text-xs text-muted-foreground">
             Optional: What could be improved?
           </label>
           <Textarea
@@ -201,7 +201,7 @@ export default function IncidentFeedback({
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="The root cause was incorrect because..."
-            className="min-h-[80px] bg-zinc-900 border-zinc-700 text-sm"
+            className="min-h-[80px] bg-card border-border text-sm"
             maxLength={2000}
           />
           <div className="flex items-center justify-end gap-2">
@@ -210,7 +210,7 @@ export default function IncidentFeedback({
               size="sm"
               onClick={() => handleSubmit(undefined, true)}
               disabled={isLoading}
-              className="text-zinc-400"
+              className="text-muted-foreground"
             >
               Skip
             </Button>
@@ -259,7 +259,7 @@ export default function IncidentFeedback({
         variant="not_helpful"
       />
       {readOnly && (
-        <span className="text-xs text-zinc-500 ml-1">Read-only</span>
+        <span className="text-xs text-muted-foreground ml-1">Read-only</span>
       )}
     </div>
   );

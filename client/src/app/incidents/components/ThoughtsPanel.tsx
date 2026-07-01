@@ -459,7 +459,7 @@ export default function ThoughtsPanel({ thoughts, incident, isVisible, canIntera
 
   return (
     <div
-      className="fixed top-[49px] right-0 h-[calc(100vh-49px)] bg-background z-20 border-l border-zinc-800/50 flex flex-col"
+      className="fixed top-[49px] right-0 h-[calc(100vh-49px)] bg-background z-20 border-l border-border/50 flex flex-col"
       style={{ width: panelWidth }}
     >
       <div
@@ -470,12 +470,12 @@ export default function ThoughtsPanel({ thoughts, incident, isVisible, canIntera
         className="absolute left-0 top-0 h-full w-1.5 -translate-x-1/2 cursor-col-resize bg-transparent hover:bg-orange-500/40 transition-colors z-30"
       />
       {/* Tab Bar */}
-      <div className="flex items-center border-b border-zinc-800/50 bg-zinc-900/50 px-2 h-10 shrink-0 overflow-x-auto">
+      <div className="flex items-center border-b border-border/50 bg-card/50 px-2 h-10 shrink-0 overflow-x-auto">
         {/* Thoughts tab */}
         <button
           onClick={() => handleTabChange('thoughts')}
           className={`px-3 py-1.5 text-sm rounded-t-md transition-colors whitespace-nowrap ${
-            activeTab === 'thoughts' ? 'bg-background text-white border-b-2 border-orange-500' : 'text-zinc-400 hover:text-zinc-200'
+            activeTab === 'thoughts' ? 'bg-background text-white border-b-2 border-orange-500' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           Thoughts
@@ -488,7 +488,7 @@ export default function ThoughtsPanel({ thoughts, incident, isVisible, canIntera
             key={session.id}
             onClick={() => handleTabChange(session.id)}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-t-md transition-colors whitespace-nowrap ${
-              activeTab === session.id ? 'bg-background text-white border-b-2 border-orange-500' : 'text-zinc-400 hover:text-zinc-200'
+              activeTab === session.id ? 'bg-background text-white border-b-2 border-orange-500' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5" />
@@ -504,16 +504,16 @@ export default function ThoughtsPanel({ thoughts, incident, isVisible, canIntera
           <div className="absolute inset-0 overflow-y-auto p-5 pb-32">
             <div className="space-y-4">
               {thoughts.map((thought) => (
-                <div key={thought.id} className="pl-4 border-l-2 border-zinc-700 hover:border-orange-500/50 transition-colors">
-                  <div className="text-xs text-zinc-500 mb-1">
+                <div key={thought.id} className="pl-4 border-l-2 border-border hover:border-orange-500/50 transition-colors">
+                  <div className="text-xs text-muted-foreground mb-1">
                     {new Date(thought.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </div>
-                  <p className="text-sm text-zinc-300">{thought.content}</p>
+                  <p className="text-sm text-foreground">{thought.content}</p>
                 </div>
               ))}
               {(incident.auroraStatus === 'running' || incident.auroraStatus === 'summarizing') && (
                 <div className="pl-4 border-l-2 border-orange-500/50">
-                  <div className="flex items-center gap-2 text-sm text-zinc-400">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <div className="flex gap-1">
                       <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                       <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '100ms' }} />
@@ -524,7 +524,7 @@ export default function ThoughtsPanel({ thoughts, incident, isVisible, canIntera
                 </div>
               )}
               {thoughts.length === 0 && !hasSubAgentFindings && incident.auroraStatus !== 'running' && incident.auroraStatus !== 'summarizing' && (
-                <p className="text-center text-zinc-500 text-sm py-8">No investigation thoughts yet</p>
+                <p className="text-center text-muted-foreground text-sm py-8">No investigation thoughts yet</p>
               )}
               <SubAgentInvestigationsSection
                 incidentId={incident.id}
@@ -546,19 +546,19 @@ export default function ThoughtsPanel({ thoughts, incident, isVisible, canIntera
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Ask about this investigation..."
-                    className="w-full bg-zinc-800 border-0 rounded-md pl-3 pr-10 py-2 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-700 transition-colors"
+                    className="w-full bg-muted border-0 rounded-md pl-3 pr-10 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
                     disabled={isLoading}
                   />
                   <button
                     onClick={handleSend}
                     disabled={!inputValue.trim() || isLoading}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 disabled:text-zinc-700 transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground disabled:text-muted-foreground transition-colors"
                   >
                     <Send className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ) : (
-                <p className="text-xs text-zinc-500 text-center py-2">Read-only access. Editors and admins can interact with investigations.</p>
+                <p className="text-xs text-muted-foreground text-center py-2">Read-only access. Editors and admins can interact with investigations.</p>
               )}
             </div>
           </div>
@@ -574,19 +574,19 @@ export default function ThoughtsPanel({ thoughts, incident, isVisible, canIntera
                 <div key={msg.id} className={
                   msg.role === 'user'
                     ? 'pl-4 border-l-2 border-blue-500/50'
-                    : 'pl-4 border-l-2 border-zinc-700 hover:border-orange-500/50 transition-colors'
+                    : 'pl-4 border-l-2 border-border hover:border-orange-500/50 transition-colors'
                 }>
-                  <div className="text-xs text-zinc-500 mb-1">
+                  <div className="text-xs text-muted-foreground mb-1">
                     {msg.role === 'user' ? 'You' : 'Aurora'}
                   </div>
-                  <div className="text-sm text-zinc-300 break-words leading-relaxed min-w-0 overflow-hidden">
+                  <div className="text-sm text-foreground break-words leading-relaxed min-w-0 overflow-hidden">
                     <MarkdownRenderer content={msg.content} />
                   </div>
                 </div>
               ))}
               {isLoading && pollingSessionId === activeTab && (
                 <div className="pl-4 border-l-2 border-orange-500/50">
-                  <div className="flex items-center gap-2 text-sm text-zinc-400">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <div className="flex gap-1">
                       <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                       <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '100ms' }} />
@@ -597,7 +597,7 @@ export default function ThoughtsPanel({ thoughts, incident, isVisible, canIntera
                 </div>
               )}
               {currentMessages.length === 0 && !isLoading && (
-                <p className="text-center text-zinc-500 text-sm py-8">No messages in this chat yet</p>
+                <p className="text-center text-muted-foreground text-sm py-8">No messages in this chat yet</p>
               )}
             </div>
           </div>
@@ -614,19 +614,19 @@ export default function ThoughtsPanel({ thoughts, incident, isVisible, canIntera
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Ask a follow-up..."
-                    className="w-full bg-zinc-800 border-0 rounded-md pl-3 pr-10 py-2 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-700 transition-colors"
+                    className="w-full bg-muted border-0 rounded-md pl-3 pr-10 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
                     disabled={isLoading}
                   />
                   <button
                     onClick={handleSend}
                     disabled={!inputValue.trim() || isLoading}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 disabled:text-zinc-700 transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground disabled:text-muted-foreground transition-colors"
                   >
                     <Send className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ) : (
-                <p className="text-xs text-zinc-500 text-center py-2">Read-only access. Editors and admins can interact with investigations.</p>
+                <p className="text-xs text-muted-foreground text-center py-2">Read-only access. Editors and admins can interact with investigations.</p>
               )}
             </div>
           </div>
