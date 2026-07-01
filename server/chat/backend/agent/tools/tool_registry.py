@@ -361,6 +361,17 @@ _CATALOG: List[ToolSpec] = [
     # --- Windows (WinRM) execution --------------------------------------- #
     _spec("winrm_exec", Risk.DESTRUCTIVE, {"runtime_state", "infra"}, "winrm",
           notes="Runs PowerShell on a Windows host over WinRM. Background/workflow only."),
+
+    # --- Topology graph curation ----------------------------------------- #
+    _spec("topology_upsert_service", Risk.WRITE, {"discovery", "infra"},
+          notes="Upserts a Service node in the Memgraph topology. Background/workflow only."),
+    _spec("topology_add_dependency", Risk.WRITE, {"discovery", "infra"},
+          notes="Adds a dependency edge in the Memgraph topology. Background/workflow only."),
+
+    # --- Active Directory (over WinRM to a DC) --------------------------- #
+    _spec("ad_replication_health", Risk.READ, {"users", "infra"}, "winrm"),
+    _spec("ad_bulk_create_users", Risk.DESTRUCTIVE, {"users", "infra"}, "winrm",
+          notes="Bulk-creates AD users via New-ADUser. Background/workflow only."),
 ]
 
 

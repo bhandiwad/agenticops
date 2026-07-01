@@ -131,3 +131,154 @@ BACKUP_VM = {
         {"source": "backup", "target": "result"},
     ],
 }
+
+
+# --- #5 Windows patch/upgrade (approval-gated) --------------------------------------------- #
+# context: {"host": "<win-host>", "patch_scope": "security|all|<KBs>"}
+WINDOWS_PATCH = {
+    "key": "windows_patch_update",
+    "name": "Windows patch / upgrade (with approval)",
+    "nodes": [
+        {"id": "approve", "type": "approval", "config": {
+            "summary": "Approve applying Windows updates ({{ $context.patch_scope }}) to "
+                       "{{ $context.host }}.",
+        }},
+        {"id": "patch", "type": "agent", "ref": "windows_ops_agent", "config": {
+            "purpose": (
+                "APPROVED Windows patch to apply, verify, and record on the ServiceNow ticket "
+                "(incident_id={{ $context.incident_id }}, ticket={{ $context.ticket_number }}). "
+                "Host={{ $context.host }}, scope={{ $context.patch_scope }}. Use winrm_exec to "
+                "install the approved updates (PSWindowsUpdate if available, else the Windows "
+                "Update COM API), then verify installed state and whether a reboot is pending."
+            ),
+        }},
+        {"id": "result", "type": "set", "config": {
+            "approved_by": "{{ $node.approve.output.decision }}",
+            "patch_summary": "{{ $node.patch.output.summary }}",
+        }},
+    ],
+    "edges": [{"source": "approve", "target": "patch"}, {"source": "patch", "target": "result"}],
+}
+
+
+# --- #6 VM hang / unreachable troubleshooting (read-only diagnosis, no approval) ----------- #
+# context: {"host": "<vm>", "os": "linux|windows"}
+VM_TROUBLESHOOT = {
+    "key": "vm_troubleshoot",
+    "name": "Troubleshoot a hung / unreachable VM",
+    "nodes": [
+        {"id": "diagnose", "type": "agent", "ref": "vm_troubleshooter_agent", "config": {
+            "purpose": (
+                "Diagnose the hung/unreachable VM host={{ $context.host }} (os={{ $context.os }}) "
+                "read-only, then record findings on the ServiceNow ticket "
+                "(incident_id={{ $context.incident_id }}, ticket={{ $context.ticket_number }})."
+            ),
+        }},
+        {"id": "result", "type": "set", "config": {
+            "findings": "{{ $node.diagnose.output.summary }}",
+        }},
+    ],
+    "edges": [{"source": "diagnose", "target": "result"}],
+}
+
+
+# --- #8 Active Directory bulk user add (approval-gated) ------------------------------------ #
+# context: {"dc_host": "<dc>", "users": [ {sam_account_name, name, password, ...}, ... ]}
+AD_BULK_USER_ADD = {
+    "key": "ad_bulk_user_add",
+    "name": "Active Directory: bulk add users (with approval)",
+    "nodes": [
+        {"id": "approve", "type": "approval", "config": {
+            "summary": "Approve bulk-creating AD users on {{ $context.dc_host }}.",
+        }},
+        {"id": "add", "type": "agent", "ref": "ad_admin_agent", "config": {
+            "purpose": (
+                "APPROVED AD bulk user add on dc_host={{ $context.dc_host }}. Create exactly the "
+                "approved users (from context 'users'), verify per-user results, and record the "
+                "outcome on the ServiceNow ticket (incident_id={{ $context.incident_id }}, "
+                "ticket={{ $context.ticket_number }})."
+            ),
+        }},
+        {"id": "result", "type": "set", "config": {
+            "approved_by": "{{ $node.approve.output.decision }}",
+            "add_summary": "{{ $node.add.output.summary }}",
+        }},
+    ],
+    "edges": [{"source": "approve", "target": "add"}, {"source": "add", "target": "result"}],
+}
+
+
+# --- #8 Active Directory replication health (read-only, no approval) ----------------------- #
+# context: {"dc_host": "<dc>"}
+AD_REPLICATION_HEALTH = {
+    "key": "ad_replication_health",
+    "name": "Active Directory: replication health check",
+    "nodes": [
+        {"id": "check", "type": "agent", "ref": "ad_admin_agent", "config": {
+            "purpose": (
+                "Run an AD replication-health check on dc_host={{ $context.dc_host }} and record "
+                "the summary on the ServiceNow ticket (incident_id={{ $context.incident_id }}, "
+                "ticket={{ $context.ticket_number }})."
+            ),
+        }},
+        {"id": "result", "type": "set", "config": {
+            "replication": "{{ $node.check.output.summary }}",
+        }},
+    ],
+    "edges": [{"source": "check", "target": "result"}],
+}
+
+
+# --- #9 VM threshold-breach remediation (diagnose -> approval -> remediate) ---------------- #
+# context: {"host": "<vm>", "os": "linux|windows", "breach": "<what breached, e.g. CPU>90%>"}
+VM_THRESHOLD_REMEDIATION = {
+    "key": "vm_threshold_remediation",
+    "name": "VM threshold breach: diagnose, approve, remediate",
+    "nodes": [
+        {"id": "diagnose", "type": "agent", "ref": "vm_troubleshooter_agent", "config": {
+            "purpose": (
+                "A monitoring threshold breached on host={{ $context.host }} "
+                "(os={{ $context.os }}, breach={{ $context.breach }}). Diagnose read-only and "
+                "recommend a specific remediation."
+            ),
+        }},
+        {"id": "approve", "type": "approval", "config": {
+            "summary": "Approve remediation for {{ $context.breach }} on {{ $context.host }} "
+                       "(see diagnosis).",
+        }},
+        {"id": "remediate", "type": "agent", "ref": "remediation_agent", "config": {
+            "purpose": (
+                "APPROVED remediation for the threshold breach on host={{ $context.host }} "
+                "(os={{ $context.os }}, breach={{ $context.breach }}). Apply the approved fix, "
+                "verify the signal recovered, and record it on the ServiceNow ticket "
+                "(incident_id={{ $context.incident_id }}, ticket={{ $context.ticket_number }})."
+            ),
+        }},
+        {"id": "result", "type": "set", "config": {
+            "diagnosis": "{{ $node.diagnose.output.summary }}",
+            "remediation": "{{ $node.remediate.output.summary }}",
+        }},
+    ],
+    "edges": [
+        {"source": "diagnose", "target": "approve"},
+        {"source": "approve", "target": "remediate"},
+        {"source": "remediate", "target": "result"},
+    ],
+}
+
+
+# --- #7 Topology refresh (unattended; run on demand or on a schedule) ---------------------- #
+TOPOLOGY_REFRESH = {
+    "key": "topology_refresh",
+    "name": "Refresh the network topology graph",
+    "nodes": [
+        {"id": "curate", "type": "agent", "ref": "topology_curator_agent", "config": {
+            "purpose": "Enumerate the connected infrastructure and update the topology graph "
+                       "(upsert services + dependencies). Idempotent.",
+        }},
+        {"id": "result", "type": "set", "config": {
+            "topology_summary": "{{ $node.curate.output.summary }}",
+        }},
+    ],
+    "edges": [{"source": "curate", "target": "result"}],
+}

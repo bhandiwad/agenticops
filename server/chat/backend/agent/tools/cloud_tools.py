@@ -164,6 +164,19 @@ from .winrm_tool import (
     is_winrm_connected,
     WinRMExecArgs,
 )
+from .topology_tool import (
+    topology_upsert_service,
+    topology_add_dependency,
+    TopologyUpsertServiceArgs,
+    TopologyAddDependencyArgs,
+)
+from .ad_tool import (
+    ad_replication_health,
+    ad_bulk_create_users,
+    is_ad_available,
+    ADReplicationHealthArgs,
+    ADBulkCreateUsersArgs,
+)
 from .opsgenie_tool import query_opsgenie, is_opsgenie_connected, QueryOpsGenieArgs
 from .newrelic_tool import (
     query_newrelic,
@@ -2187,6 +2200,42 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
             args_schema=WinRMExecArgs,
         ))
         logging.info(f"Added WinRM exec tool for user {user_id} (background)")
+
+    # Topology-graph write tools: background/workflow only (topology-curator agent keeps the
+    # Memgraph topology current).
+    if is_background:
+        for _fn, _name, _schema, _desc in (
+            (topology_upsert_service, "topology_upsert_service", TopologyUpsertServiceArgs,
+             "Create/update a Service node in the topology graph."),
+            (topology_add_dependency, "topology_add_dependency", TopologyAddDependencyArgs,
+             "Add a dependency edge between two services in the topology graph."),
+        ):
+            _ctx = with_user_context(_fn)
+            _notif = with_completion_notification(_ctx)
+            _final = wrap_func_with_capture(_notif, _name) if tool_capture else _notif
+            tools.append(StructuredTool.from_function(func=_final, name=_name, description=_desc, args_schema=_schema))
+        logging.info(f"Added topology write tools for user {user_id} (background)")
+
+    # Active Directory tools (over WinRM to a DC): replication health (read) always in
+    # background; bulk user creation (write) background only.
+    if is_background and is_ad_available(user_id):
+        _ctx_adr = with_user_context(ad_replication_health)
+        _notif_adr = with_completion_notification(_ctx_adr)
+        _final_adr = wrap_func_with_capture(_notif_adr, "ad_replication_health") if tool_capture else _notif_adr
+        tools.append(StructuredTool.from_function(
+            func=_final_adr, name="ad_replication_health",
+            description="Check Active Directory replication health on a Domain Controller (repadmin).",
+            args_schema=ADReplicationHealthArgs,
+        ))
+        _ctx_adb = with_user_context(ad_bulk_create_users)
+        _notif_adb = with_completion_notification(_ctx_adb)
+        _final_adb = wrap_func_with_capture(_notif_adb, "ad_bulk_create_users") if tool_capture else _notif_adb
+        tools.append(StructuredTool.from_function(
+            func=_final_adb, name="ad_bulk_create_users",
+            description="Bulk-create Active Directory users (New-ADUser) on a Domain Controller from a list.",
+            args_schema=ADBulkCreateUsersArgs,
+        ))
+        logging.info(f"Added Active Directory tools for user {user_id} (background)")
 
     # Add New Relic tool if connected
     if is_newrelic_connected(user_id):

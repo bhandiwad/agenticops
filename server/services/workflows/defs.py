@@ -116,10 +116,14 @@ def seed_builtin_defs(user_id: str, org_id: str) -> None:
     appear automatically without a migration.
     """
     try:
-        from workflows_v2.sample_graphs import FIREWALL_OPEN_PORT, BACKUP_VM
+        from workflows_v2.sample_graphs import (
+            FIREWALL_OPEN_PORT, BACKUP_VM, WINDOWS_PATCH, VM_TROUBLESHOOT,
+            AD_BULK_USER_ADD, AD_REPLICATION_HEALTH, VM_THRESHOLD_REMEDIATION, TOPOLOGY_REFRESH,
+        )
     except Exception:  # noqa: BLE001 - never block listing on a template import
         return
-    for tmpl in (FIREWALL_OPEN_PORT, BACKUP_VM):
+    for tmpl in (FIREWALL_OPEN_PORT, BACKUP_VM, WINDOWS_PATCH, VM_TROUBLESHOOT,
+                 AD_BULK_USER_ADD, AD_REPLICATION_HEALTH, VM_THRESHOLD_REMEDIATION, TOPOLOGY_REFRESH):
         try:
             if get_def(user_id, org_id, tmpl["key"]) is None:
                 upsert_def(user_id, org_id, key=tmpl["key"], name=tmpl["name"], graph=tmpl)
