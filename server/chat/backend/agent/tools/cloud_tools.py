@@ -137,6 +137,11 @@ from .fortigate_tool import (
     fortigate_open_port,
     FortiGateOpenPortArgs,
 )
+from .zabbix_tool import (
+    query_zabbix,
+    is_zabbix_connected,
+    QueryZabbixArgs,
+)
 from .opsgenie_tool import query_opsgenie, is_opsgenie_connected, QueryOpsGenieArgs
 from .newrelic_tool import (
     query_newrelic,
@@ -2057,6 +2062,23 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
                 args_schema=FortiGateOpenPortArgs,
             ))
             logging.info(f"Added FortiGate open-port (write) tool for user {user_id} (background)")
+
+    # Add Zabbix tool if connected (read-only monitoring)
+    if is_zabbix_connected(user_id):
+        context_wrapped_zbx = with_user_context(query_zabbix)
+        notification_wrapped_zbx = with_completion_notification(context_wrapped_zbx)
+        final_zbx_func = wrap_func_with_capture(notification_wrapped_zbx, "query_zabbix") if tool_capture else notification_wrapped_zbx
+
+        tools.append(StructuredTool.from_function(
+            func=final_zbx_func,
+            name="query_zabbix",
+            description=(
+                "Query Zabbix monitoring (read-only). Set resource_type to 'hosts', 'problems', "
+                "'triggers', 'items', or 'hostgroups'. Example: query_zabbix(resource_type='problems', limit=50)."
+            ),
+            args_schema=QueryZabbixArgs,
+        ))
+        logging.info(f"Added Zabbix tool for user {user_id}")
 
     # Add New Relic tool if connected
     if is_newrelic_connected(user_id):

@@ -49,6 +49,7 @@ CONNECTOR_DIRS: frozenset = frozenset({
     "teams",
     "terraform",
     "thousandeyes",
+    "zabbix",
 })
 
 # Auxiliary provider keys not backed by a routes/ directory but that do appear

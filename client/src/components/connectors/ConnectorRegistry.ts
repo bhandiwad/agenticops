@@ -65,6 +65,18 @@ class ConnectorRegistry {
     });
 
     this.register({
+      id: "zabbix",
+      name: "Zabbix",
+      description: "Connect a Zabbix monitoring server to bring hosts, active problems, firing triggers and metric values into Aurora. Uses a Zabbix API token or username/password.",
+      iconPath: "/zabbix.svg",
+      iconBgColor: "bg-white dark:bg-white",
+      category: "Monitoring",
+      path: "/zabbix/auth",
+      storageKey: "isZabbixConnected",
+      useCustomConnection: true,
+    });
+
+    this.register({
       id: "netdata",
       name: "Netdata",
       description: "Real-time infrastructure monitoring with Netdata Cloud. Receive alerts and monitor system metrics across all your nodes.",
