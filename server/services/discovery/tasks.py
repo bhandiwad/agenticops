@@ -16,45 +16,49 @@ logger = logging.getLogger(__name__)
 SUPPORTED_PROVIDERS = ('gcp', 'aws', 'azure', 'ovh', 'scaleway', 'tailscale')
 
 
-def _query_kubectl_orgs(cur):
+def _query_kubectl_orgs(cur, conn=None):
     """Return dict of org_id -> {user_id, clusters} for orgs with active kubectl clusters.
 
-    Uses a single query joining kubectl_agent_tokens and active_kubectl_connections
-    directly against the users table so no per-user RLS iteration is needed.
-    kubectl_agent_tokens has FORCE RLS; we opt in to the permissive
-    select_by_token_resolve policy (same pattern as agent_ws_handler) so the
-    cross-org scan can see all tokens without setting org context per row.
-    Also includes kubeconfig_clusters which are not RLS-protected by token.
+    Two sources: (1) agent-token clusters via the `select_by_token_resolve` permissive policy
+    (works cross-org without per-org context); (2) `kubeconfig_clusters`, which use the STANDARD
+    org RLS policy (the `kubectl_token_resolve` GUC does NOT bypass it), so we enumerate orgs
+    from the non-RLS `users` table and set RLS context per org — otherwise those rows are
+    silently invisible (0 rows).
     """
+    orgs: dict = {}
+
+    def _add(org_id, user_id, cluster_id, cluster_name):
+        if org_id not in orgs:
+            orgs[org_id] = {"user_id": user_id, "clusters": []}
+        orgs[org_id]["clusters"].append(
+            {"cluster_id": cluster_id, "cluster_name": cluster_name or cluster_id}
+        )
+
+    # 1. Agent-token clusters (token-resolve policy — cross-org safe).
     cur.execute("SET LOCAL myapp.kubectl_token_resolve = 'true'")
     cur.execute("""
         SELECT t.org_id, MIN(u.id) AS user_id, c.cluster_id, t.cluster_name
         FROM kubectl_agent_tokens t
         JOIN active_kubectl_connections c ON c.token = t.token
         JOIN users u ON u.org_id = t.org_id
-        WHERE t.status = 'active' AND c.status = 'active'
-          AND t.org_id IS NOT NULL
+        WHERE t.status = 'active' AND c.status = 'active' AND t.org_id IS NOT NULL
         GROUP BY t.org_id, c.cluster_id, t.cluster_name
-
-        UNION ALL
-
-        SELECT kc.org_id, MIN(u.id) AS user_id, kc.cluster_id, kc.cluster_name
-        FROM kubeconfig_clusters kc
-        JOIN users u ON u.org_id = kc.org_id
-        WHERE kc.is_active = TRUE AND kc.org_id IS NOT NULL
-        GROUP BY kc.org_id, kc.cluster_id, kc.cluster_name
-
-        ORDER BY 1
     """)
-    rows = cur.fetchall()
+    for org_id, user_id, cluster_id, cluster_name in cur.fetchall():
+        _add(org_id, user_id, cluster_id, cluster_name)
 
-    orgs: dict = {}
-    for org_id, user_id, cluster_id, cluster_name in rows:
-        if org_id not in orgs:
-            orgs[org_id] = {"user_id": user_id, "clusters": []}
-        orgs[org_id]["clusters"].append(
-            {"cluster_id": cluster_id, "cluster_name": cluster_name or cluster_id}
-        )
+    # 2. kubeconfig_clusters — standard org RLS; iterate orgs with per-org context.
+    if conn is not None:
+        cur.execute("SELECT org_id, MIN(id) AS uid FROM users WHERE org_id IS NOT NULL GROUP BY org_id")
+        for org_id, rep_user in cur.fetchall():
+            try:
+                set_rls_context(cur, conn, rep_user, log_prefix="[Discovery]")
+                cur.execute("SELECT cluster_id, cluster_name FROM kubeconfig_clusters WHERE is_active = TRUE")
+                for cluster_id, cluster_name in cur.fetchall():
+                    _add(org_id, rep_user, cluster_id, cluster_name)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("[Discovery] kubeconfig scan failed for org %s: %s", org_id, e)
+
     return orgs
 
 
@@ -86,32 +90,32 @@ def _query_connected_providers(cur, user_id=None, conn=None):
             """, (user_id, org_id, org_id, SUPPORTED_PROVIDERS, user_id, org_id, org_id, SUPPORTED_PROVIDERS))
         return [row[0] for row in cur.fetchall()]
     else:
-        # Single query: for each (org_id, provider) pair pick one representative
-        # user_id via MIN so the caller can route Vault / token lookups.
-        # user_connections / user_tokens are NOT RLS-protected when queried
-        # through an admin connection, so no per-user SET myapp.* is needed.
-        cur.execute("""
-            SELECT MIN(u.id) AS user_id, u.org_id, c.provider
-            FROM users u
-            JOIN user_connections c
-              ON (c.user_id = u.id OR c.org_id = u.org_id)
-             AND c.status = 'active'
-             AND c.provider = ANY(%s)
-            WHERE u.org_id IS NOT NULL
-            GROUP BY u.org_id, c.provider
-
-            UNION
-
-            SELECT MIN(u.id) AS user_id, u.org_id, t.provider
-            FROM users u
-            JOIN user_tokens t
-              ON (t.user_id = u.id OR t.org_id = u.org_id)
-             AND t.is_active = true
-             AND t.provider = ANY(%s)
-            WHERE u.org_id IS NOT NULL
-            GROUP BY u.org_id, t.provider
-        """, (list(SUPPORTED_PROVIDERS), list(SUPPORTED_PROVIDERS)))
-        return cur.fetchall()
+        # Cross-org enumeration. `user_connections`/`user_tokens` are FORCE-RLS, so a bare
+        # admin connection with no org context returns 0 rows (the earlier "not RLS-protected
+        # via admin connection" assumption was WRONG — the hourly beat silently discovered
+        # nothing). Correct pattern: enumerate orgs from the non-RLS `users` table, then set
+        # RLS context per org before reading its connections.
+        if conn is None:
+            logger.error("[Discovery] cross-org provider scan requires a conn for RLS context")
+            return []
+        cur.execute("SELECT org_id, MIN(id) AS uid FROM users WHERE org_id IS NOT NULL GROUP BY org_id")
+        org_rows = cur.fetchall()
+        results = []
+        for org_id, rep_user in org_rows:
+            try:
+                set_rls_context(cur, conn, rep_user, log_prefix="[Discovery]")
+                cur.execute("""
+                    SELECT DISTINCT provider FROM (
+                        SELECT provider FROM user_connections WHERE status = 'active' AND provider = ANY(%s)
+                        UNION
+                        SELECT provider FROM user_tokens WHERE is_active = true AND provider = ANY(%s)
+                    ) AS connected
+                """, (list(SUPPORTED_PROVIDERS), list(SUPPORTED_PROVIDERS)))
+                for (provider,) in cur.fetchall():
+                    results.append((rep_user, org_id, provider))
+            except Exception as e:  # noqa: BLE001
+                logger.warning("[Discovery] provider scan failed for org %s: %s", org_id, e)
+        return results
 
 
 def _clear_discovery_lock(user_id):
@@ -570,12 +574,11 @@ def run_full_discovery(self):
     try:
         with connect_to_db_as_admin() as conn:
             with conn.cursor() as cur:
-                rows = _query_connected_providers(cur)
+                rows = _query_connected_providers(cur, conn=conn)
 
                 # kubectl connections live in active_kubectl_connections / kubectl_agent_tokens,
                 # not user_connections / user_tokens, so _query_connected_providers misses them.
-                # _query_kubectl_orgs handles this with a single aggregated JOIN query.
-                kubectl_org_rows = _query_kubectl_orgs(cur)
+                kubectl_org_rows = _query_kubectl_orgs(cur, conn=conn)
 
         # Deduplicate by org: collect the union of active providers per org.
         # Record the connector owner per provider (the user_id from each row IS
@@ -726,7 +729,7 @@ def mark_stale_services(self):
     try:
         with connect_to_db_as_admin() as conn:
             with conn.cursor() as cur:
-                rows = _query_connected_providers(cur)
+                rows = _query_connected_providers(cur, conn=conn)
         # Deduplicate by org: one representative user per org is sufficient
         # since graph data is written per org credential owner.
         user_ids = list({org_id: user_id for user_id, org_id, _provider in rows}.values())
