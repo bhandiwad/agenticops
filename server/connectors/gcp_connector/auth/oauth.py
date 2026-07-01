@@ -247,7 +247,7 @@ def refresh_token_if_needed(token_data):
         
         response = requests.post(TOKEN_URL, data=refresh_data)
         if response.status_code != 200:
-            logger.error(f"Token refresh failed with status {response.status_code}: {response.text}")
+            logger.error(f"Token refresh failed with status {response.status_code}")
             return False, None
             
         # Parse response

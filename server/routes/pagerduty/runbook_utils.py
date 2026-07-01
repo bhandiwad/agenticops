@@ -85,8 +85,16 @@ def _fetch_public_runbook_content(url: str, timeout: int = 10) -> Optional[str]:
         )
         return None
 
+    # SSRF guard: this URL comes from incident data and its body is returned to the caller,
+    # so block private/loopback/link-local targets and don't follow redirects into them.
+    from utils.net.ssrf import is_safe_public_url
+    _ok, _why = is_safe_public_url(url)
+    if not _ok:
+        logger.warning("[PAGERDUTY][RUNBOOK] Blocked runbook URL (%s)", _why)
+        return None
+
     try:
-        response = requests.get(url, timeout=timeout, allow_redirects=True)
+        response = requests.get(url, timeout=timeout, allow_redirects=False)
 
         if response.status_code != 200:
             logger.error(

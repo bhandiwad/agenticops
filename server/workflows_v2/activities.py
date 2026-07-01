@@ -81,14 +81,11 @@ async def run_http(payload: dict) -> dict:
                 headers = _json.loads(headers)
             except Exception:
                 headers = {}
-        # SSRF guard: refuse cloud-metadata / link-local targets.
-        try:
-            host = urlparse(url).hostname or ""
-            ip = socket.gethostbyname(host) if host else ""
-            if ip and (ipaddress.ip_address(ip).is_link_local or ip == "169.254.169.254"):
-                return {"ok": False, "error": "blocked host (metadata/link-local)"}
-        except Exception:
-            pass
+        # SSRF guard: refuse private/loopback/link-local/metadata targets (all resolved IPs).
+        from utils.net.ssrf import is_safe_public_url
+        _ok, _why = is_safe_public_url(url)
+        if not _ok:
+            return {"ok": False, "error": f"blocked host ({_why})"}
         kw: dict = {"headers": headers, "timeout": int(cfg.get("timeout_s", 30))}
         body = cfg.get("body")
         if isinstance(body, (dict, list)):

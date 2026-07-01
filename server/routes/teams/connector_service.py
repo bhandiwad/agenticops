@@ -32,6 +32,13 @@ def post_teams_message(user_id: str, text: str, title: str | None = None) -> dic
     if not webhook_url:
         return {"ok": False, "error": "Teams is not connected"}
 
+    # SSRF guard: webhook_url is user-supplied; refuse if it resolves to an internal address.
+    from utils.net.ssrf import is_safe_public_url
+    _ok, _why = is_safe_public_url(webhook_url)
+    if not _ok:
+        logger.warning("[Teams] Blocked webhook URL for %s (%s)", sanitize(user_id), _why)
+        return {"ok": False, "error": "Teams webhook URL is not allowed"}
+
     payload = {
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",

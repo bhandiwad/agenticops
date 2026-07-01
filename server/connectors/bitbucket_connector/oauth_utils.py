@@ -106,7 +106,7 @@ def exchange_code_for_token(code):
         )
 
         if response.status_code != 200:
-            logger.error(f"Bitbucket token exchange failed: {response.status_code} {response.text}")
+            logger.error(f"Bitbucket token exchange failed: {response.status_code}")
             return None
 
         return response.json()
@@ -141,7 +141,7 @@ def refresh_access_token(refresh_token):
         )
 
         if response.status_code != 200:
-            logger.error(f"Bitbucket token refresh failed: {response.status_code} {response.text}")
+            logger.error(f"Bitbucket token refresh failed: {response.status_code}")
             return None
 
         return response.json()

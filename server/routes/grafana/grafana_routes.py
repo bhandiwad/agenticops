@@ -118,12 +118,11 @@ def alert_webhook(user_id: str):
     if not row_exists or (row_exists and not is_active):
         skip_rca = True
         if not row_exists:
-            logger.info("[GRAFANA] Auto-connecting user %s via webhook", sanitize(user_id))
-            try:
-                store_tokens_in_db(user_id, {}, "grafana")
-            except Exception:
-                logger.exception("[GRAFANA] Failed to auto-connect user %s", sanitize(user_id))
-                return jsonify({"error": "Failed to create Grafana connection"}), 500
+            # SECURITY: do NOT create a connection from an unauthenticated webhook. Anyone who
+            # learns the URL could otherwise provision a Grafana connection for any user_id.
+            # Require the user to connect Grafana explicitly first; ignore until then.
+            logger.warning("[GRAFANA] Webhook for unconnected user %s — ignoring (connect Grafana first)", sanitize(user_id))
+            return jsonify({"status": "ignored", "reason": "grafana_not_connected"}), 202
         else:
             reactivated = _set_grafana_active(user_id, True)
             if not reactivated:
