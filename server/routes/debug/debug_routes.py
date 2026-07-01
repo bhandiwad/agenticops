@@ -28,9 +28,12 @@ def debug_user_info(user_id):
 
 @debug_util_bp.route("/test-endpoint", methods=["GET"])
 def test_endpoint():
+    # Dev-only: this reflects request headers (incl. secrets), so it must never serve in prod.
+    import os
+    if os.getenv("AURORA_ENV", "production") != "dev":
+        return jsonify({"error": "not found"}), 404
     return jsonify({
         "message": "Test endpoint working",
         "method": request.method,
-        "headers": dict(request.headers),
         "args": dict(request.args),
     })

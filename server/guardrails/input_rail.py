@@ -233,8 +233,9 @@ def _classify_failure(exc: Exception) -> str:
 async def check_input(user_message: str) -> InputRailResult:
     """Run the NeMo input rail. Returns ``blocked=True`` on unsafe input.
 
-    Fails closed: if the rail itself errors (missing provider creds, model
-    unavailable, etc.) the request is blocked with a diagnostic reason.
+    Failure policy: fail OPEN on provider-availability errors (auth/credit/connectivity) so a
+    single LLM-provider outage can't hard-block the whole UI; fail CLOSED on generic/unexpected
+    errors. Unsafe-content detections always block.
     """
     from utils.security.config import config
 
@@ -253,8 +254,15 @@ async def check_input(user_message: str) -> InputRailResult:
         )
     except Exception as exc:
         latency_ms = (time.perf_counter() - t0) * 1000
-        logger.exception("[Guardrails:InputRail] Error running input rail; failing closed")
         reason = _classify_failure(exc)
+        # Fail OPEN on provider-availability errors (auth/credit/connectivity/rate-limit): if
+        # the guardrail LLM is unreachable the agent's LLM is almost certainly down too, so it
+        # can't act on unsafe input anyway — blocking here would just hard-block the entire UI
+        # on a provider outage (which we hit repeatedly). Stay fail-CLOSED on generic errors.
+        if reason in (_FAIL_CLOSED_AUTH, _FAIL_CLOSED_CONNECTIVITY):
+            logger.warning("[Guardrails:InputRail] provider unavailable (%s); failing OPEN", reason)
+            return InputRailResult(blocked=False, reason=f"{reason} (failed open)", latency_ms=latency_ms)
+        logger.exception("[Guardrails:InputRail] Error running input rail; failing closed")
         return InputRailResult(blocked=True, reason=reason, latency_ms=latency_ms)
 
     latency_ms = (time.perf_counter() - t0) * 1000
