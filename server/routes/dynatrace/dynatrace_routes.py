@@ -20,6 +20,7 @@ from utils.auth.stateless_auth import (
 from utils.auth.token_management import get_token_data, store_tokens_in_db
 from routes.dynatrace.config import DYNATRACE_TIMEOUT
 from utils.auth.rbac_decorators import require_permission
+from utils.net.ssrf import is_safe_public_url
 from utils.secrets.secret_ref_utils import delete_user_secret
 
 logger = logging.getLogger(__name__)
@@ -60,6 +61,10 @@ class DynatraceClient:
 
     def _request(self, method: str, path: str, **kwargs) -> requests.Response:
         url = f"{self.environment_url}{path}"
+        ok, reason = is_safe_public_url(url)
+        if not ok:
+            logger.warning("[DYNATRACE] Request blocked (SSRF guard): %s", reason)
+            raise DynatraceAPIError("Dynatrace environment URL is not allowed")
         try:
             resp = requests.request(method, url, headers=self.headers, timeout=DYNATRACE_TIMEOUT, **kwargs)
             resp.raise_for_status()

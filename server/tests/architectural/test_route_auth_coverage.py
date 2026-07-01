@@ -20,7 +20,7 @@ RBAC_DECORATORS = {"require_permission", "require_auth_only"}
 PUBLIC_NAME_SUFFIXES = ("callback", "webhook", "_script", "_script_ps1")
 PUBLIC_NAMES = {
     "health", "healthz", "health_check", "readiness", "readiness_check",
-    "liveness", "liveness_check", "home", "index",
+    "deep_readiness_check", "liveness", "liveness_check", "home", "index",
     "login", "register", "logout", "refresh", "verify_email", "reset_password",
 }
 
@@ -34,6 +34,9 @@ PUBLIC_ROUTES = {
     "registry/registry_routes.py::wf2_hook",
     # Dev-only debug endpoint — returns 404 in non-dev (see debug_routes.py):
     "debug/debug_routes.py::test_endpoint",
+    # Prometheus scrape endpoint — aggregate-only, no tenant data; protected by the
+    # global INTERNAL_API_SECRET before_request gate (not RBAC), scraped internally:
+    "platform_metrics_routes.py::metrics_prometheus",
 }
 
 

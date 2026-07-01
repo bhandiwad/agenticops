@@ -16,6 +16,8 @@ from urllib.parse import quote as url_quote
 import requests
 from requests.auth import HTTPBasicAuth
 
+from utils.net.ssrf import is_safe_public_url
+
 logger = logging.getLogger(__name__)
 
 
@@ -36,6 +38,10 @@ class JenkinsClient:
     ) -> Tuple[bool, Optional[Any], Optional[str]]:
         """Make an API request. Returns (success, data, error)."""
         url = f"{self.base_url}{path}"
+        ok, reason = is_safe_public_url(url)
+        if not ok:
+            logger.warning("Jenkins request blocked (SSRF guard): %s", reason)
+            return False, None, "Cannot connect to Jenkins. Verify the URL and network access."
         try:
             response = requests.request(
                 method=method, url=url, auth=self.auth,

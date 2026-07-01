@@ -20,6 +20,8 @@ from urllib.parse import quote
 
 import requests
 
+from utils.net.ssrf import is_safe_public_url
+
 logger = logging.getLogger(__name__)
 
 COROOT_TIMEOUT = 30
@@ -155,6 +157,11 @@ class CorootClient:
         """
         self._session.cookies.clear()
 
+        ok, reason = is_safe_public_url(self.url)
+        if not ok:
+            logger.warning("[COROOT] Login blocked (SSRF guard): %s", reason)
+            raise CorootAPIError("Coroot base URL is not allowed")
+
         try:
             resp = self._session.post(
                 f"{self.url}/api/login",
@@ -199,6 +206,11 @@ class CorootClient:
 
         kwargs.setdefault("timeout", COROOT_TIMEOUT)
         url = f"{self.url}{path}"
+
+        ok, reason = is_safe_public_url(url)
+        if not ok:
+            logger.warning("[COROOT] %s %s blocked (SSRF guard): %s", method, path, reason)
+            raise CorootAPIError("Coroot base URL is not allowed")
 
         try:
             resp = self._session.request(method, url, **kwargs)

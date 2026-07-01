@@ -10,6 +10,8 @@ from urllib.parse import parse_qs, urlparse
 
 import requests
 
+from utils.net.ssrf import is_safe_public_url
+
 logger = logging.getLogger(__name__)
 
 # V1 API (deprecated for some endpoints with granular scopes)
@@ -231,6 +233,10 @@ class ConfluenceClient:
         self, method: str, path: str, params: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         url = f"{self.api_base}{path}"
+        ok, reason = is_safe_public_url(url)
+        if not ok:
+            logger.warning("Confluence request blocked (SSRF guard): %s", reason)
+            raise ValueError("Confluence base URL is not allowed")
         try:
             response = requests.request(
                 method,
@@ -252,6 +258,10 @@ class ConfluenceClient:
         if not self.api_v2_base:
             raise ValueError("V2 API requires OAuth with cloud_id")
         url = f"{self.api_v2_base}{path}"
+        ok, reason = is_safe_public_url(url)
+        if not ok:
+            logger.warning("Confluence v2 request blocked (SSRF guard): %s", reason)
+            raise ValueError("Confluence base URL is not allowed")
         try:
             response = requests.request(
                 method,
@@ -273,6 +283,10 @@ class ConfluenceClient:
     ) -> Dict[str, Any]:
         """Make a POST request with JSON body to the v1 API."""
         url = f"{self.api_base}{path}"
+        ok, reason = is_safe_public_url(url)
+        if not ok:
+            logger.warning("Confluence request blocked (SSRF guard): %s", reason)
+            raise ValueError("Confluence base URL is not allowed")
         headers = {**self.headers, "Content-Type": "application/json"}
         try:
             response = requests.post(

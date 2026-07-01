@@ -18,6 +18,7 @@ from utils.auth.token_management import get_token_data, store_tokens_in_db
 from utils.auth.rbac_decorators import require_permission
 from utils.auth.stateless_auth import get_org_id_from_request, set_rls_context
 from utils.log_sanitizer import sanitize
+from utils.net.ssrf import is_safe_public_url
 from utils.secrets.secret_ref_utils import delete_user_secret
 
 logger = logging.getLogger(__name__)
@@ -77,6 +78,10 @@ def connect(user_id):
         return jsonify({"error": "CloudBees CI URL is required"}), 400
     if not base_url.startswith(("http://", "https://")):  # NOSONAR
         return jsonify({"error": "CloudBees CI URL must start with http:// or https://"}), 400
+    ssrf_ok, ssrf_reason = is_safe_public_url(base_url)
+    if not ssrf_ok:
+        logger.warning("[CLOUDBEES] Connect blocked (SSRF guard): %s", ssrf_reason)
+        return jsonify({"error": "CloudBees CI URL is not allowed"}), 400
     if not username:
         return jsonify({"error": "CloudBees CI username is required"}), 400
     if not api_token or not isinstance(api_token, str):
@@ -265,6 +270,10 @@ def connect_platform(user_id):
         return jsonify({"error": "Operations Center URL is required"}), 400
     if not oc_url.startswith(("http://", "https://")):  # NOSONAR
         return jsonify({"error": "Operations Center URL must start with http:// or https://"}), 400
+    ssrf_ok, ssrf_reason = is_safe_public_url(oc_url)
+    if not ssrf_ok:
+        logger.warning("[CLOUDBEES] Platform connect blocked (SSRF guard): %s", ssrf_reason)
+        return jsonify({"error": "Operations Center URL is not allowed"}), 400
     if not api_token or not isinstance(api_token, str):
         return jsonify({"error": "API token is required"}), 400
 

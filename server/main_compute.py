@@ -574,6 +574,10 @@ app.register_blueprint(artifact_bp)
 from routes.metrics_routes import metrics_bp
 app.register_blueprint(metrics_bp)
 
+# --- Platform Self-Monitoring: Prometheus /metrics (internal-secret gated) ---
+from routes.platform_metrics_routes import platform_metrics_bp
+app.register_blueprint(platform_metrics_bp)
+
 # --- Visualization Streaming Routes ---
 from routes.visualization_stream import visualization_bp
 app.register_blueprint(visualization_bp)

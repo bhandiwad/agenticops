@@ -7,6 +7,8 @@ from typing import Any, Dict, List, Optional
 
 import requests
 
+from utils.net.ssrf import is_safe_public_url
+
 logger = logging.getLogger(__name__)
 
 JIRA_OAUTH_API_BASE = "https://api.atlassian.com/ex/jira"
@@ -67,6 +69,10 @@ class JiraClient:
         json_body: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         url = f"{self.api_base}{path}"
+        ok, reason = is_safe_public_url(url)
+        if not ok:
+            logger.warning("Jira request blocked (SSRF guard): %s", reason)
+            raise ValueError("Jira base URL is not allowed")
         headers = {"Authorization": self._auth_header, "Accept": "application/json"}
         try:
             response = requests.request(

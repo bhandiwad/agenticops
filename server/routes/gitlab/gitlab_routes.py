@@ -16,6 +16,7 @@ from utils.auth.token_management import store_tokens_in_db
 from utils.auth.stateless_auth import get_credentials_from_db, set_rls_context
 from utils.secrets.secret_ref_utils import delete_user_secret
 from utils.db.connection_pool import db_pool
+from utils.net.ssrf import is_safe_public_url
 
 gitlab_bp = Blueprint("gitlab", __name__)
 logger = logging.getLogger(__name__)
@@ -95,6 +96,10 @@ def _fetch_all_accessible_projects(base_url: str, token: str) -> tuple[list[dict
     warning: Optional[str] = None
 
     while url:
+        ssrf_ok, ssrf_reason = is_safe_public_url(url)
+        if not ssrf_ok:
+            logger.warning("GitLab projects fetch blocked (SSRF guard): %s", ssrf_reason)
+            break
         try:
             resp = requests.get(url, headers=headers, params=params, timeout=GITLAB_TIMEOUT)
             params = None  # Only use params on the first request; subsequent use Link URL
@@ -225,6 +230,10 @@ def gitlab_connect(user_id):
             return jsonify({"error": "access_token is required"}), 400
         if not _is_valid_gitlab_base_url(base_url):
             return jsonify({"error": "Invalid base_url; must be an http(s) URL"}), 400
+        ssrf_ok, ssrf_reason = is_safe_public_url(base_url)
+        if not ssrf_ok:
+            logger.warning("GitLab connect blocked (SSRF guard): %s", ssrf_reason)
+            return jsonify({"error": "GitLab base_url is not allowed"}), 400
 
         token_info, validation_source = _validate_gitlab_token(base_url, access_token)
         if not token_info:

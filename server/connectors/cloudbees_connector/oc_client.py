@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 import httpx
 
 from connectors.jenkins_connector.api_client import JenkinsClient
+from utils.net.ssrf import is_safe_public_url
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +104,10 @@ class CloudBeesOCClient:
     ) -> Tuple[bool, Optional[Any], Optional[str]]:
         """Make an API request. Returns (success, data, error)."""
         url = f"{self.base_url}{path}"
+        ok, reason = is_safe_public_url(url)
+        if not ok:
+            logger.warning("Operations Center request blocked (SSRF guard): %s", reason)
+            return False, None, "Cannot connect to Operations Center. Verify the URL and network access."
         client = self._get_http_client()
         try:
             response = client.request(method=method, url=url, params=params)

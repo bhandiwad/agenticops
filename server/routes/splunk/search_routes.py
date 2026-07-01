@@ -11,6 +11,7 @@ from flask import Blueprint, Response, jsonify, request, stream_with_context
 from utils.auth.token_management import get_token_data
 from utils.auth.rbac_decorators import require_permission
 from utils.log_sanitizer import sanitize
+from utils.net.ssrf import is_safe_public_url
 
 SPLUNK_TIMEOUT = 30
 SPLUNK_SEARCH_TIMEOUT = 120
@@ -61,6 +62,14 @@ def _splunk_headers(api_token: str) -> Dict[str, str]:
     }
 
 
+def _guard_splunk_url(url: str) -> bool:
+    """Return True if the (user-supplied) Splunk URL is safe to fetch. Logs on block."""
+    ok, reason = is_safe_public_url(url)
+    if not ok:
+        logger.warning("[SPLUNK-SEARCH] Request blocked (SSRF guard): %s", sanitize(reason))
+    return ok
+
+
 @search_bp.route("/search", methods=["POST"])
 @require_permission("connectors", "read")
 def search_sync(user_id):
@@ -87,6 +96,8 @@ def search_sync(user_id):
     try:
         # Use export endpoint with oneshot mode for streaming results
         url = f"{creds['base_url']}/services/search/jobs/export"
+        if not _guard_splunk_url(url):
+            return jsonify({"error": "Splunk instance URL is not allowed"}), 400
         payload = {
             "search": search_query,
             "earliest_time": earliest_time,
@@ -173,6 +184,8 @@ def create_search_job(user_id):
 
     try:
         url = f"{creds['base_url']}/services/search/v2/jobs"
+        if not _guard_splunk_url(url):
+            return jsonify({"error": "Splunk instance URL is not allowed"}), 400
         payload = {
             "search": search_query,
             "earliest_time": earliest_time,
@@ -230,6 +243,8 @@ def get_job_status(user_id, sid: str):
 
     try:
         url = f"{creds['base_url']}/services/search/v2/jobs/{quote(sid, safe='')}"
+        if not _guard_splunk_url(url):
+            return jsonify({"error": "Splunk instance URL is not allowed"}), 400
         headers = _splunk_headers(creds["api_token"])
         headers["Accept"] = "application/json"
 
@@ -286,6 +301,8 @@ def get_job_results(user_id, sid: str):
 
     try:
         url = f"{creds['base_url']}/services/search/v2/jobs/{quote(sid, safe='')}/results"
+        if not _guard_splunk_url(url):
+            return jsonify({"error": "Splunk instance URL is not allowed"}), 400
         headers = _splunk_headers(creds["api_token"])
         headers["Accept"] = "application/json"
 
@@ -337,6 +354,8 @@ def cancel_job(user_id, sid: str):
 
     try:
         url = f"{creds['base_url']}/services/search/v2/jobs/{quote(sid, safe='')}/control"
+        if not _guard_splunk_url(url):
+            return jsonify({"error": "Splunk instance URL is not allowed"}), 400
         response = requests.post(
             url,
             headers=_splunk_headers(creds["api_token"]),
