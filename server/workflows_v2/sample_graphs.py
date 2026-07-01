@@ -99,3 +99,35 @@ FIREWALL_OPEN_PORT = {
         {"source": "apply", "target": "result"},
     ],
 }
+
+
+# Back up a VM (or subclient) via Commvault, with a human approval gate. Trigger context, e.g.:
+#   {"entity_type": "vm", "entity_id": "<vm-uuid>", "backup_level": "FULL"}
+# Flow: approval -> agent (backup_operator_agent triggers the backup, polls the job to validate
+# completion, updates the ServiceNow ticket) -> set (result summary).
+BACKUP_VM = {
+    "key": "commvault_backup_vm",
+    "name": "Back up a VM via Commvault (with approval)",
+    "nodes": [
+        {"id": "approve", "type": "approval", "config": {
+            "summary": "Approve a {{ $context.backup_level }} Commvault backup of "
+                       "{{ $context.entity_type }} {{ $context.entity_id }}.",
+        }},
+        {"id": "backup", "type": "agent", "ref": "backup_operator_agent", "config": {
+            "purpose": (
+                "APPROVED backup to run, validate, and record on the ServiceNow ticket "
+                "(incident_id={{ $context.incident_id }}, ticket={{ $context.ticket_number }}). "
+                "Approved parameters: entity_type={{ $context.entity_type }}, "
+                "entity_id={{ $context.entity_id }}, backup_level={{ $context.backup_level }}."
+            ),
+        }},
+        {"id": "result", "type": "set", "config": {
+            "approved_by": "{{ $node.approve.output.decision }}",
+            "backup_summary": "{{ $node.backup.output.summary }}",
+        }},
+    ],
+    "edges": [
+        {"source": "approve", "target": "backup"},
+        {"source": "backup", "target": "result"},
+    ],
+}

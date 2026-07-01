@@ -77,7 +77,7 @@ KNOWN_CONNECTORS: FrozenSet[str] = frozenset({
     "slack", "jenkins", "cloudbees", "spinnaker", "splunk", "incidentio",
     "dynatrace", "datadog", "newrelic", "sentry", "opsgenie", "confluence",
     "sharepoint", "coroot", "thousandeyes", "cloudflare", "flyio", "jira",
-    "notion", "fortigate", "zabbix", "servicenow",
+    "notion", "fortigate", "zabbix", "servicenow", "commvault",
 })
 
 
@@ -348,6 +348,11 @@ _CATALOG: List[ToolSpec] = [
     # --- ServiceNow ITSM writes (automation ticket updates) -------------- #
     _spec("update_servicenow_ticket", Risk.WRITE, {"incident_ops", "comments"}, "servicenow",
           notes="Appends a work note (optionally resolves) to a ServiceNow ticket."),
+
+    # --- Commvault backup ------------------------------------------------ #
+    _spec("query_commvault", Risk.READ, {"infra", "runtime_state"}, "commvault"),
+    _spec("commvault_backup", Risk.DESTRUCTIVE, {"infra"}, "commvault",
+          notes="Triggers a Commvault backup job. Background/workflow only."),
 ]
 
 

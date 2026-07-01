@@ -147,6 +147,13 @@ from .servicenow_tool import (
     is_servicenow_connected,
     UpdateServiceNowTicketArgs,
 )
+from .commvault_tool import (
+    query_commvault,
+    commvault_backup,
+    is_commvault_connected,
+    QueryCommvaultArgs,
+    CommvaultBackupArgs,
+)
 from .opsgenie_tool import query_opsgenie, is_opsgenie_connected, QueryOpsGenieArgs
 from .newrelic_tool import (
     query_newrelic,
@@ -2103,6 +2110,38 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
             args_schema=UpdateServiceNowTicketArgs,
         ))
         logging.info(f"Added ServiceNow update tool for user {user_id} (background)")
+
+    # Add Commvault tools if connected: read-only query always; backup trigger (write) only in
+    # background/workflow execution (approval-gated VM-backup workflow), never interactive chat.
+    if is_commvault_connected(user_id):
+        context_wrapped_cvq = with_user_context(query_commvault)
+        notification_wrapped_cvq = with_completion_notification(context_wrapped_cvq)
+        final_cvq_func = wrap_func_with_capture(notification_wrapped_cvq, "query_commvault") if tool_capture else notification_wrapped_cvq
+        tools.append(StructuredTool.from_function(
+            func=final_cvq_func,
+            name="query_commvault",
+            description=(
+                "Query Commvault (read-only). resource_type='clients'|'vms'|'job'. Use 'job' with "
+                "job_id to poll/validate a backup's status."
+            ),
+            args_schema=QueryCommvaultArgs,
+        ))
+        logging.info(f"Added Commvault query tool for user {user_id}")
+
+        if is_background:
+            context_wrapped_cvb = with_user_context(commvault_backup)
+            notification_wrapped_cvb = with_completion_notification(context_wrapped_cvb)
+            final_cvb_func = wrap_func_with_capture(notification_wrapped_cvb, "commvault_backup") if tool_capture else notification_wrapped_cvb
+            tools.append(StructuredTool.from_function(
+                func=final_cvb_func,
+                name="commvault_backup",
+                description=(
+                    "Trigger a Commvault backup (entity_type='vm'|'subclient', entity_id, backup_level). "
+                    "Returns job id(s); then poll query_commvault(resource_type='job', job_id=...) to validate."
+                ),
+                args_schema=CommvaultBackupArgs,
+            ))
+            logging.info(f"Added Commvault backup (write) tool for user {user_id} (background)")
 
     # Add New Relic tool if connected
     if is_newrelic_connected(user_id):

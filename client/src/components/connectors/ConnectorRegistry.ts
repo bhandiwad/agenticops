@@ -77,6 +77,18 @@ class ConnectorRegistry {
     });
 
     this.register({
+      id: "commvault",
+      name: "Commvault",
+      description: "Connect Commvault to inspect clients/VMs and run approval-gated VM backups that validate the job to completion and update the ServiceNow ticket. Uses the Commvault Web Service (username/password).",
+      iconPath: "/commvault.svg",
+      iconBgColor: "bg-white dark:bg-white",
+      category: "Backup",
+      path: "/commvault/auth",
+      storageKey: "isCommvaultConnected",
+      useCustomConnection: true,
+    });
+
+    this.register({
       id: "netdata",
       name: "Netdata",
       description: "Real-time infrastructure monitoring with Netdata Cloud. Receive alerts and monitor system metrics across all your nodes.",

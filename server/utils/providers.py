@@ -17,6 +17,7 @@ CONNECTOR_DIRS: frozenset = frozenset({
     "cloudbees",
     "cloudfabrix",
     "cloudflare",
+    "commvault",
     "confluence",
     "coroot",
     "datadog",
