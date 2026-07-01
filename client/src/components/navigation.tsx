@@ -66,6 +66,10 @@ export default function Navigation({
   const logoClass = brandLogo
     ? "h-10 w-auto max-w-[180px] object-contain"
     : "w-10 h-10 object-contain"
+  // Optional secondary/company logo (e.g. a parent-company mark), rendered smaller beneath
+  // the product logo and linked to the home page. Blank = not shown.
+  const secondaryLogo = getEnv("NEXT_PUBLIC_BRAND_LOGO_SECONDARY")
+  const secondaryLogoDark = getEnv("NEXT_PUBLIC_BRAND_LOGO_SECONDARY_DARK") || secondaryLogo
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
@@ -130,32 +134,54 @@ export default function Navigation({
         "bg-muted dark:bg-[#111111] h-full border-r border-border transition-[width] duration-300 overflow-hidden flex flex-col",
         isExpanded ? "w-56" : "w-0"
       )}>
-        <div className="p-3 flex items-center justify-between border-b border-border/30">
-          <div className="flex items-center gap-2">
-            <img
-              src={lightLogo}
-              alt={wordmark ? `${wordmark} Logo` : "Logo"}
-              className={cn(logoClass, "block dark:hidden")}
-            />
-            <img
-              src={darkLogo}
-              alt={wordmark ? `${wordmark} Logo` : "Logo"}
-              className={cn(logoClass, "hidden dark:block")}
-            />
-            <div className="flex flex-col items-start">
-              {wordmark && <h1 className="text-lg font-bold text-foreground">{wordmark}</h1>}
-              {user?.orgName ? (
-                <span className="text-xs text-muted-foreground truncate max-w-[120px]">
-                  {user.orgName}
-                </span>
-              ) : (
-                <span className="px-1.5 py-0.5 text-xs font-semibold tracking-wider text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200 mt-0.5">
-                  BETA
-                </span>
-              )}
+        <div className="p-3 flex items-start justify-between border-b border-border/30">
+          <div className="flex flex-col items-start gap-1.5 min-w-0">
+            {/* Product logo (hero) + org/BETA badge */}
+            <div className="flex items-center gap-2 min-w-0">
+              <img
+                src={lightLogo}
+                alt={wordmark ? `${wordmark} Logo` : "Logo"}
+                className={cn(logoClass, "block dark:hidden")}
+              />
+              <img
+                src={darkLogo}
+                alt={wordmark ? `${wordmark} Logo` : "Logo"}
+                className={cn(logoClass, "hidden dark:block")}
+              />
+              <div className="flex flex-col items-start min-w-0">
+                {wordmark && <h1 className="text-lg font-bold text-foreground">{wordmark}</h1>}
+                {user?.orgName ? (
+                  <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+                    {user.orgName}
+                  </span>
+                ) : (
+                  <span className="px-1.5 py-0.5 text-xs font-semibold tracking-wider text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200 mt-0.5">
+                    BETA
+                  </span>
+                )}
+              </div>
             </div>
+            {/* Company logo (secondary), linked to the home page */}
+            {secondaryLogo && (
+              <Link
+                href="/"
+                aria-label="Home"
+                className="opacity-90 hover:opacity-100 transition-opacity"
+              >
+                <img
+                  src={secondaryLogo}
+                  alt="Company Logo"
+                  className="h-6 w-auto max-w-[130px] object-contain block dark:hidden"
+                />
+                <img
+                  src={secondaryLogoDark}
+                  alt="Company Logo"
+                  className="h-6 w-auto max-w-[130px] object-contain hidden dark:block"
+                />
+              </Link>
+            )}
           </div>
-          <Button 
+          <Button
             variant="ghost" 
             size="sm" 
             className="h-7 w-7 p-0"
