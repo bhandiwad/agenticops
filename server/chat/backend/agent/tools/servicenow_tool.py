@@ -50,10 +50,12 @@ def _load_snow_link(incident_id: str, user_id: str | None) -> dict[str, Any]:
     from utils.auth.stateless_auth import set_rls_context
     from utils.db.connection_pool import db_pool
 
+    if not user_id:
+        return {"error": "User context required to look up incident."}
     with db_pool.get_admin_connection() as conn:
         with conn.cursor() as cursor:
-            if user_id:
-                set_rls_context(cursor, conn, user_id, log_prefix="[ServiceNowTool]")
+            # RLS-protected `incidents` — always scope by org (never query without context).
+            set_rls_context(cursor, conn, user_id, log_prefix="[ServiceNowTool]")
             cursor.execute(
                 "SELECT alert_metadata FROM incidents WHERE id = %s::uuid",
                 (incident_id,),

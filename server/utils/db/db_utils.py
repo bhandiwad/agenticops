@@ -2775,6 +2775,54 @@ def initialize_tables():
                 logging.warning(f"Error creating SRE metrics indexes: {e}")
                 conn.rollback()
 
+            # RLS-aware performance indexes. FORCE ROW LEVEL SECURITY injects an
+            # `org_id = current_setting('myapp.current_org_id')` predicate into EVERY query
+            # on protected tables, so hot tables need an org_id-LEADING composite index or
+            # they seq-scan as tenant data grows. Each runs independently (own commit) so a
+            # column mismatch on any one table is non-fatal.
+            _rls_perf_indexes = [
+                "CREATE INDEX IF NOT EXISTS idx_incidents_org_started ON incidents(org_id, started_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_incidents_org_resolved ON incidents(org_id, resolved_at) WHERE resolved_at IS NOT NULL",
+                "CREATE INDEX IF NOT EXISTS idx_incidents_org_service ON incidents(org_id, alert_service) WHERE alert_service IS NOT NULL",
+                "CREATE INDEX IF NOT EXISTS idx_workflow_runs_org_key ON workflow_runs(org_id, workflow_key, started_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_workflow_node_runs_org_created ON workflow_node_runs(org_id, created_at)",
+                "CREATE INDEX IF NOT EXISTS idx_action_runs_org_started ON action_runs(org_id, started_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_chat_sessions_org_updated ON chat_sessions(org_id, updated_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_llm_usage_org_created ON llm_usage_tracking(org_id, created_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_approvals_org_status ON approvals(org_id, status)",
+                "CREATE INDEX IF NOT EXISTS idx_deployments_org ON deployments(org_id)",
+                "CREATE INDEX IF NOT EXISTS idx_provider_metrics_org ON provider_metrics(org_id)",
+                "CREATE INDEX IF NOT EXISTS idx_cloud_billing_org ON cloud_billing_usage(org_id)",
+                # monitoring / deploy event tables (org-scoped; hot on received_at)
+                "CREATE INDEX IF NOT EXISTS idx_datadog_events_org_recv ON datadog_events(org_id, received_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_grafana_alerts_org_recv ON grafana_alerts(org_id, received_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_cloudwatch_alarms_org_recv ON cloudwatch_alarms(org_id, received_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_pagerduty_events_org_recv ON pagerduty_events(org_id, received_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_opsgenie_events_org_recv ON opsgenie_events(org_id, received_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_netdata_alerts_org_recv ON netdata_alerts(org_id, received_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_splunk_alerts_org_recv ON splunk_alerts(org_id, received_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_dynatrace_problems_org_recv ON dynatrace_problems(org_id, received_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_bigpanda_events_org_recv ON bigpanda_events(org_id, received_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_jenkins_deploy_org_recv ON jenkins_deployment_events(org_id, received_at DESC)",
+                "CREATE INDEX IF NOT EXISTS idx_spinnaker_deploy_org_recv ON spinnaker_deployment_events(org_id, received_at DESC)",
+                # k8s discovery tables (org-scoped; refreshed each discovery cycle)
+                "CREATE INDEX IF NOT EXISTS idx_k8s_pods_org ON k8s_pods(org_id, cluster_name)",
+                "CREATE INDEX IF NOT EXISTS idx_k8s_nodes_org ON k8s_nodes(org_id, cluster_name)",
+                "CREATE INDEX IF NOT EXISTS idx_k8s_services_org ON k8s_services(org_id, cluster_name)",
+                "CREATE INDEX IF NOT EXISTS idx_k8s_deployments_org ON k8s_deployments(org_id, cluster_name)",
+                "CREATE INDEX IF NOT EXISTS idx_k8s_ingresses_org ON k8s_ingresses(org_id, cluster_name)",
+            ]
+            _idx_ok = 0
+            for _ddl in _rls_perf_indexes:
+                try:
+                    cursor.execute(_ddl)
+                    conn.commit()
+                    _idx_ok += 1
+                except Exception as e:
+                    conn.rollback()
+                    logging.warning(f"RLS perf index skipped: {e}")
+            logging.info(f"RLS perf indexes ensured: {_idx_ok}/{len(_rls_perf_indexes)}")
+
             # View creation moved to after org_id migration (see below)
 
             # Early migration: ensure org_id column exists on all tables

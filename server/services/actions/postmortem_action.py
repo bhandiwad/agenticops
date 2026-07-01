@@ -17,8 +17,10 @@ logger = logging.getLogger(__name__)
 def _get_action_instructions(user_id: str) -> tuple:
     """Load instructions and action_id from the DB system action. Returns (instructions, action_id, org_id)."""
     try:
-        with db_pool.get_connection() as conn:
+        with db_pool.get_user_connection() as conn:
             with conn.cursor() as cur:
+                # RLS-protected `actions` — set org context (non-Flask path) or this returns 0 rows.
+                set_rls_context(cur, conn, user_id, log_prefix="[PostmortemAction]")
                 cur.execute(
                     """SELECT a.instructions, a.id, a.org_id FROM actions a
                        JOIN users u ON u.org_id = a.org_id

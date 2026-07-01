@@ -24,6 +24,9 @@ RLS_EXCLUSIONS: Set[str] = {
                                   # across users; webhook handlers and the install callback
                                   # both need to query it without an established org_id
                                   # (callback runs before login, webhook has no user ctx)
+    "wf2_webhook_triggers",       # resolved by secret token pre-org (like connector webhook
+                                  # secrets); all non-token queries filter by org_id explicitly
+                                  # in workflows_v2/webhooks.py. Token-as-secret is the auth.
 }
 
 

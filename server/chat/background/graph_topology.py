@@ -260,10 +260,15 @@ def build_topology_from_kb(user_id: str, affected_service: str, incident_id: str
     try:
         from routes.knowledge_base.weaviate_client import search_knowledge_base
         from services.graph.memgraph_client import get_memgraph_client
+        from utils.auth.stateless_auth import resolve_org_id
     except Exception:  # noqa: BLE001
         return None
     try:
-        results = search_knowledge_base(user_id, f"{affected_service} dependencies architecture related services", limit=6)
+        try:
+            org_id = resolve_org_id(user_id)
+        except Exception:  # noqa: BLE001
+            org_id = None
+        results = search_knowledge_base(user_id, f"{affected_service} dependencies architecture related services", limit=6, org_id=org_id)
         if not results:
             return None
         text = " ".join((r.get("content") or "") for r in results).lower()
