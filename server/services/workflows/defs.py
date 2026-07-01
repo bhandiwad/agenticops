@@ -107,6 +107,27 @@ def upsert_def(user_id: str, org_id: str, *, key: str, name: str, graph: dict) -
             conn.commit()
 
 
+def seed_builtin_defs(user_id: str, org_id: str) -> None:
+    """Seed built-in workflow templates for an org if they don't already exist.
+
+    Idempotent and non-destructive: a template is only inserted when its key is absent, so a
+    user's edits to a seeded workflow are never clobbered on re-seed. Called lazily when the
+    workflow list is fetched, so shipped templates (e.g. the FortiGate open-port workflow)
+    appear automatically without a migration.
+    """
+    try:
+        from workflows_v2.sample_graphs import FIREWALL_OPEN_PORT
+    except Exception:  # noqa: BLE001 - never block listing on a template import
+        return
+    for tmpl in (FIREWALL_OPEN_PORT,):
+        try:
+            if get_def(user_id, org_id, tmpl["key"]) is None:
+                upsert_def(user_id, org_id, key=tmpl["key"], name=tmpl["name"], graph=tmpl)
+                logger.info("wf2: seeded built-in workflow %r for org %s", tmpl["key"], org_id)
+        except Exception:  # noqa: BLE001 - a bad template must not break the list
+            logger.exception("wf2: failed to seed built-in workflow %r", tmpl.get("key"))
+
+
 def delete_def(user_id: str, org_id: str, key: str) -> bool:
     with db_pool.get_connection() as conn:
         with conn.cursor() as cur:

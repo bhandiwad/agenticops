@@ -531,7 +531,8 @@ def wf2_list_defs(user_id):
     if not org_id:
         return jsonify({"error": _ERR_NO_ORG}), 400
     try:
-        from services.workflows.defs import list_defs
+        from services.workflows.defs import list_defs, seed_builtin_defs
+        seed_builtin_defs(user_id, org_id)
         return jsonify({"defs": list_defs(user_id, org_id)})
     except Exception:
         logger.exception("registry: wf2 list_defs failed")
