@@ -77,7 +77,7 @@ KNOWN_CONNECTORS: FrozenSet[str] = frozenset({
     "slack", "jenkins", "cloudbees", "spinnaker", "splunk", "incidentio",
     "dynatrace", "datadog", "newrelic", "sentry", "opsgenie", "confluence",
     "sharepoint", "coroot", "thousandeyes", "cloudflare", "flyio", "jira",
-    "notion", "fortigate", "zabbix", "servicenow", "commvault", "whatsapp",
+    "notion", "fortigate", "zabbix", "servicenow", "commvault", "whatsapp", "winrm",
 })
 
 
@@ -357,6 +357,10 @@ _CATALOG: List[ToolSpec] = [
     # --- WhatsApp notifications ------------------------------------------ #
     _spec("send_whatsapp", Risk.WRITE, {"chat"}, "whatsapp",
           notes="Sends a WhatsApp text notification. Background/workflow only."),
+
+    # --- Windows (WinRM) execution --------------------------------------- #
+    _spec("winrm_exec", Risk.DESTRUCTIVE, {"runtime_state", "infra"}, "winrm",
+          notes="Runs PowerShell on a Windows host over WinRM. Background/workflow only."),
 ]
 
 

@@ -1,0 +1,31 @@
+import { NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
+
+const API_BASE_URL = process.env.BACKEND_URL;
+
+export async function DELETE() {
+  try {
+    const authResult = await getAuthenticatedUser();
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+    const { headers: authHeaders } = authResult;
+
+    const response = await fetch(`${API_BASE_URL}/winrm/disconnect`, {
+      method: 'DELETE',
+      headers: authHeaders,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      return NextResponse.json({ error: text || 'Failed to disconnect Windows/WinRM' }, { status: response.status });
+    }
+
+    const data = await response.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('[api/winrm/disconnect] Error:', error);
+    return NextResponse.json({ error: 'Failed to disconnect Windows/WinRM' }, { status: 500 });
+  }
+}

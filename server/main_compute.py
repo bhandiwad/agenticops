@@ -450,6 +450,9 @@ app.register_blueprint(commvault_bp, url_prefix="/commvault")
 from routes.whatsapp import bp as whatsapp_bp  # noqa: F401
 app.register_blueprint(whatsapp_bp, url_prefix="/whatsapp")
 
+from routes.winrm import bp as winrm_bp  # noqa: F401
+app.register_blueprint(winrm_bp, url_prefix="/winrm")
+
 # --- Netdata Integration Routes ---
 from routes.netdata import bp as netdata_bp  # noqa: F401
 import routes.netdata.tasks  # noqa: F401

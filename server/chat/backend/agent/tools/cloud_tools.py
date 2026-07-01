@@ -159,6 +159,11 @@ from .whatsapp_tool import (
     is_whatsapp_connected,
     SendWhatsAppArgs,
 )
+from .winrm_tool import (
+    winrm_exec,
+    is_winrm_connected,
+    WinRMExecArgs,
+)
 from .opsgenie_tool import query_opsgenie, is_opsgenie_connected, QueryOpsGenieArgs
 from .newrelic_tool import (
     query_newrelic,
@@ -2164,6 +2169,24 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
             args_schema=SendWhatsAppArgs,
         ))
         logging.info(f"Added WhatsApp notify tool for user {user_id} (background)")
+
+    # WinRM Windows-execution tool: background/workflow execution only (Windows patch,
+    # troubleshooting, AD, remediation workflows). Runs PowerShell on a target Windows host.
+    if is_background and is_winrm_connected(user_id):
+        context_wrapped_wr = with_user_context(winrm_exec)
+        notification_wrapped_wr = with_completion_notification(context_wrapped_wr)
+        final_wr_func = wrap_func_with_capture(notification_wrapped_wr, "winrm_exec") if tool_capture else notification_wrapped_wr
+        tools.append(StructuredTool.from_function(
+            func=final_wr_func,
+            name="winrm_exec",
+            description=(
+                "Run a PowerShell script on a Windows host over WinRM using the stored Windows "
+                "credentials. Returns {ok, status_code, stdout, stderr}. Use for Windows VM "
+                "operations (patching, diagnostics, AD, remediation)."
+            ),
+            args_schema=WinRMExecArgs,
+        ))
+        logging.info(f"Added WinRM exec tool for user {user_id} (background)")
 
     # Add New Relic tool if connected
     if is_newrelic_connected(user_id):

@@ -101,6 +101,18 @@ class ConnectorRegistry {
     });
 
     this.register({
+      id: "winrm",
+      name: "Windows (WinRM)",
+      description: "Connect Windows credentials so approval-gated workflows can run PowerShell on Windows VMs (patch/upgrade, troubleshooting, Active Directory, remediation) over WinRM.",
+      iconPath: "/windows.svg",
+      iconBgColor: "bg-white dark:bg-white",
+      category: "Infrastructure",
+      path: "/winrm/auth",
+      storageKey: "isWinRMConnected",
+      useCustomConnection: true,
+    });
+
+    this.register({
       id: "netdata",
       name: "Netdata",
       description: "Real-time infrastructure monitoring with Netdata Cloud. Receive alerts and monitor system metrics across all your nodes.",

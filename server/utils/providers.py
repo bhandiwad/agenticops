@@ -51,6 +51,7 @@ CONNECTOR_DIRS: frozenset = frozenset({
     "terraform",
     "thousandeyes",
     "whatsapp",
+    "winrm",
     "zabbix",
 })
 

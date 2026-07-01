@@ -122,3 +122,6 @@ temporalio>=1.8,<2
 
 # Platform self-monitoring — Prometheus exposition at GET /metrics (epic #33)
 prometheus_client>=0.24.1
+
+# Windows remote execution (WinRM) for the windows connector / VM ops workflows
+pywinrm>=0.4.3
