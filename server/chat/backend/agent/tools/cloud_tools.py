@@ -134,6 +134,8 @@ from .fortigate_tool import (
     query_fortigate,
     is_fortigate_connected,
     QueryFortiGateArgs,
+    fortigate_open_port,
+    FortiGateOpenPortArgs,
 )
 from .opsgenie_tool import query_opsgenie, is_opsgenie_connected, QueryOpsGenieArgs
 from .newrelic_tool import (
@@ -2034,6 +2036,27 @@ Once you identify which account has the issue, pass account_id (e.g. 'account') 
             args_schema=QueryFortiGateArgs,
         ))
         logging.info(f"Added FortiGate tool for user {user_id}")
+
+        # Firewall-WRITE tool: registered ONLY in background/workflow execution, never in
+        # interactive chat. The approval-gated open-firewall-port workflow runs its apply
+        # step as a background agent with this tool allowlisted, so a change can only happen
+        # after a human approval.
+        if is_background:
+            context_wrapped_fgw = with_user_context(fortigate_open_port)
+            notification_wrapped_fgw = with_completion_notification(context_wrapped_fgw)
+            final_fgw_func = wrap_func_with_capture(notification_wrapped_fgw, "fortigate_open_port") if tool_capture else notification_wrapped_fgw
+
+            tools.append(StructuredTool.from_function(
+                func=final_fgw_func,
+                name="fortigate_open_port",
+                description=(
+                    "Open a firewall port on the connected FortiGate by creating a service object "
+                    "(and destination address object if given an IP/subnet) and an allow policy. "
+                    "Use ONLY the parameters approved for this workflow run."
+                ),
+                args_schema=FortiGateOpenPortArgs,
+            ))
+            logging.info(f"Added FortiGate open-port (write) tool for user {user_id} (background)")
 
     # Add New Relic tool if connected
     if is_newrelic_connected(user_id):

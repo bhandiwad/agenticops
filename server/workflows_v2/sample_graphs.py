@@ -62,3 +62,42 @@ SAMPLE_HITL = {
     ],
     "edges": [{"source": "ap1", "target": "s1"}],
 }
+
+
+# Open a FortiGate firewall port, with a human approval gate before any change is applied.
+# Trigger context supplies the requested change, e.g.:
+#   {"protocol": "TCP", "port": "443", "dstaddr": "10.0.0.5",
+#    "srcintf": "wan1", "dstintf": "port2", "srcaddr": "all", "nat": false}
+# Flow: approval (review the summary) -> agent (apply via the background-only
+# fortigate_open_port tool, then verify) -> set (result summary). The write tool exists only
+# in background/workflow execution, so a firewall change can only happen after approval here.
+FIREWALL_OPEN_PORT = {
+    "key": "fortigate_open_port",
+    "name": "Open FortiGate firewall port (with approval)",
+    "nodes": [
+        {"id": "approve", "type": "approval", "config": {
+            "summary": "Approve opening {{ $context.protocol }}/{{ $context.port }} to "
+                       "{{ $context.dstaddr }} ({{ $context.srcintf }} -> {{ $context.dstintf }}, "
+                       "src {{ $context.srcaddr }}, NAT {{ $context.nat }}) on FortiGate.",
+        }},
+        {"id": "apply", "type": "agent", "ref": "runbook_executor_agent", "config": {
+            "purpose": (
+                "A human has APPROVED this firewall change. Apply it EXACTLY once by calling "
+                "fortigate_open_port with these approved parameters and nothing else: "
+                "protocol={{ $context.protocol }}, port={{ $context.port }}, "
+                "dstaddr={{ $context.dstaddr }}, srcintf={{ $context.srcintf }}, "
+                "dstintf={{ $context.dstintf }}, srcaddr={{ $context.srcaddr }}, "
+                "nat={{ $context.nat }}. Then confirm by calling query_fortigate("
+                "resource_type='policies') and report the created policy. Do not make any other changes."
+            ),
+        }},
+        {"id": "result", "type": "set", "config": {
+            "approved_by": "{{ $node.approve.output.decision }}",
+            "apply_summary": "{{ $node.apply.output.summary }}",
+        }},
+    ],
+    "edges": [
+        {"source": "approve", "target": "apply"},
+        {"source": "apply", "target": "result"},
+    ],
+}
