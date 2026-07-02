@@ -536,11 +536,15 @@ class Agent:
             # Langfuse tracing (no-op unless LANGFUSE_ENABLED): tag the trace and attach a
             # callback handler so this agent's generations + tool calls are captured.
             from utils.observability import tracing as _tracing
+            from utils.observability.debug_flag import is_debug_enabled as _is_debug
             _lf_handler = _tracing.langchain_handler()
             _lf_callbacks = [usage_callback] + ([_lf_handler] if _lf_handler else [])
+            _lf_tags = ["agent", f"model:{model_name}"]
+            if _is_debug(state.user_id):
+                _lf_tags.append("debug")
             _tracing.update_trace(
                 session_id=state.session_id, user_id=state.user_id,
-                tags=["agent", f"model:{model_name}"],
+                tags=_lf_tags,
                 metadata={"provider": detected_provider,
                           "incident_id": getattr(state, "incident_id", None),
                           "is_background": getattr(state, "is_background", False)},

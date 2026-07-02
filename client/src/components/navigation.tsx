@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { getEnv } from "@/lib/env"
 import ChatHistory from "@/components/ChatHistory"
+import ObservabilityNav from "@/components/ObservabilityNav"
 import { useState, useEffect, useRef } from "react"
 import { useUser } from "@/hooks/useAuthHooks"
 import { signOut } from "next-auth/react"
@@ -457,6 +458,9 @@ export default function Navigation({
               </div>
             </Link>
           </li>
+
+          {/* Observability: open traces + per-user debug toggle (only when tracing is enabled) */}
+          <ObservabilityNav />
 
           {/* Chat History Section */}
           {(
