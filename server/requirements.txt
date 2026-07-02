@@ -127,4 +127,6 @@ prometheus_client>=0.24.1
 pywinrm>=0.4.3
 
 # Agent/LLM tracing + observability (self-hosted Langfuse; tracing is off unless LANGFUSE_ENABLED)
-langfuse>=3.0.0
+# Pinned to the v3 SDK: matches the self-hosted Langfuse server v3 and the tracing API used in
+# utils/observability/tracing.py (start_as_current_span / update_current_trace / langfuse.langchain).
+langfuse>=3.0.0,<4
