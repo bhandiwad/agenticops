@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ChevronLeft, Settings, LogOut, User, Zap, Plug, Gauge, SquarePen, Workflow, Wrench, Bot, Route, ShieldCheck, History, Sun, Moon, Brain, BarChart3, Sparkles } from "lucide-react"
+import { ChevronLeft, Settings, LogOut, User, Zap, Plug, Gauge, SquarePen, Workflow, Wrench, Bot, Route, ShieldCheck, History, Sun, Moon, Brain, BarChart3, Sparkles, ClipboardList } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -455,6 +455,24 @@ export default function Navigation({
               <div className="flex items-center">
                 <Plug size={16} />
                 <span className="ml-2">Connectors</span>
+              </div>
+            </Link>
+          </li>
+
+          {/* Service Catalog & Fulfillment */}
+          <li>
+            <Link
+              href="/service-catalog"
+              className={cn(
+                "w-full flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-primary/10 transition-colors text-sm border border-transparent hover:border-border/50",
+                pathname?.startsWith("/service-catalog")
+                  ? "bg-card rounded-lg border border-border shadow-sm"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div className="flex items-center">
+                <ClipboardList size={16} />
+                <span className="ml-2">Service Catalog</span>
               </div>
             </Link>
           </li>

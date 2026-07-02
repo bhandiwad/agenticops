@@ -456,6 +456,9 @@ app.register_blueprint(winrm_bp, url_prefix="/winrm")
 from routes.observability import bp as observability_bp  # noqa: F401
 app.register_blueprint(observability_bp)
 
+from routes.fulfillment import bp as fulfillment_bp  # noqa: F401
+app.register_blueprint(fulfillment_bp)
+
 # --- Netdata Integration Routes ---
 from routes.netdata import bp as netdata_bp  # noqa: F401
 import routes.netdata.tasks  # noqa: F401

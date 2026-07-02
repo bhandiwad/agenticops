@@ -38,9 +38,44 @@ def _env_allowlist() -> frozenset:
     return frozenset(k.strip() for k in raw.split(",") if k.strip())
 
 
+_ORG_KEY = "aurora:fulfillment_allowlist:{}"
+
+
+def _org_redis():
+    try:
+        from utils.cache.redis_client import get_redis_client
+        return get_redis_client()
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def _org_allowlist(org_id: Optional[str]) -> frozenset:
-    """Per-org allowlist override hook. Phase 2 uses env-only; a DB/UI layer plugs in here."""
-    return frozenset()
+    """Per-org auto-allowlist, stored as a Redis set (managed from the Catalog/Policy UI)."""
+    if not org_id:
+        return frozenset()
+    r = _org_redis()
+    if r is None:
+        return frozenset()
+    try:
+        return frozenset(r.smembers(_ORG_KEY.format(org_id)) or [])
+    except Exception:  # noqa: BLE001
+        return frozenset()
+
+
+def set_org_auto(org_id: str, entry_key: str, enabled: bool) -> bool:
+    """Add/remove a catalog entry from the org's auto-allowlist. Returns success."""
+    r = _org_redis()
+    if r is None or not org_id or not entry_key:
+        return False
+    try:
+        key = _ORG_KEY.format(org_id)
+        if enabled:
+            r.sadd(key, entry_key)
+        else:
+            r.srem(key, entry_key)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def allowlist(org_id: Optional[str] = None) -> frozenset:
