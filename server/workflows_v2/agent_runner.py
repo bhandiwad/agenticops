@@ -47,6 +47,36 @@ def run_agent_node(user_id: str, ref: str, incident_id: Optional[str],
                    purpose: Optional[str] = None) -> dict:
     """Run a single agent synchronously and return its output. Never raises —
     returns a status dict so the interpreter can continue."""
+    from utils.observability import tracing as _tracing
+
+    @_tracing.observe(name=f"workflow.agent:{ref}")
+    def _run() -> dict:
+        _tracing.update_trace(
+            user_id=user_id,
+            tags=["workflow", f"agent:{ref}"],
+            metadata={"incident_id": incident_id,
+                      "workflow_run_id": (context or {}).get("workflow_run_id"),
+                      "org_id": (context or {}).get("org_id")},
+        )
+        try:
+            out = _impl()
+            # Surface the trace URL on the node output so a run links straight to its trace.
+            trace_url = _tracing.get_trace_url()
+            if trace_url and isinstance(out, dict):
+                out.setdefault("trace_url", trace_url)
+            return out
+        finally:
+            _tracing.flush()
+
+    def _impl() -> dict:
+        return _run_agent_node_impl(user_id, ref, incident_id, context, custom_roles, purpose)
+
+    return _run()
+
+
+def _run_agent_node_impl(user_id: str, ref: str, incident_id: Optional[str],
+                         context: dict, custom_roles: Optional[dict] = None,
+                         purpose: Optional[str] = None) -> dict:
     try:
         from services.routing.events import RCA_COMPLETED, LifecycleEvent
         from services.routing.executor import build_dispatch_plan

@@ -533,6 +533,19 @@ class Agent:
                 api_provider=detected_provider
             )
 
+            # Langfuse tracing (no-op unless LANGFUSE_ENABLED): tag the trace and attach a
+            # callback handler so this agent's generations + tool calls are captured.
+            from utils.observability import tracing as _tracing
+            _lf_handler = _tracing.langchain_handler()
+            _lf_callbacks = [usage_callback] + ([_lf_handler] if _lf_handler else [])
+            _tracing.update_trace(
+                session_id=state.session_id, user_id=state.user_id,
+                tags=["agent", f"model:{model_name}"],
+                metadata={"provider": detected_provider,
+                          "incident_id": getattr(state, "incident_id", None),
+                          "is_background": getattr(state, "is_background", False)},
+            )
+
             # Route to native SDK when provider_mode is direct, or when the model's
             # provider requires its native SDK (e.g., Gemini thinking needs ChatGoogleGenerativeAI).
             _use_direct = provider_mode != "openrouter" or is_direct_only
@@ -546,7 +559,7 @@ class Agent:
                     temperature=self.llm_manager.main_llm.temperature,
                     provider_mode=effective_mode,
                     streaming=True,
-                    callbacks=[usage_callback],
+                    callbacks=_lf_callbacks,
                 )
             else:
                 # Use OpenRouter mode
@@ -581,7 +594,7 @@ class Agent:
                     stream_usage=True,
                     openai_api_base="https://openrouter.ai/api/v1",
                     openai_api_key=openrouter_api_key,
-                    callbacks=[usage_callback],
+                    callbacks=_lf_callbacks,
                     request_timeout=120.0,
                     max_retries=3,
                     model_kwargs=openrouter_model_kwargs,

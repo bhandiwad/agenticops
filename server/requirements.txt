@@ -125,3 +125,6 @@ prometheus_client>=0.24.1
 
 # Windows remote execution (WinRM) for the windows connector / VM ops workflows
 pywinrm>=0.4.3
+
+# Agent/LLM tracing + observability (self-hosted Langfuse; tracing is off unless LANGFUSE_ENABLED)
+langfuse>=3.0.0
