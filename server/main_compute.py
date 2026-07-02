@@ -247,6 +247,10 @@ _OPEN_PREFIXES = (
     # Workflow V2 webhook trigger — authenticated by the high-entropy token in the
     # URL (resolved server-side), like the connector webhooks above.
     "/api/registry/wf2/hook",
+    # Fulfillment intake webhook — a ServiceNow business rule POSTs a ticket here;
+    # authenticated by the shared token in the URL (constant-time compared in the route),
+    # so it must bypass the internal-secret gate like the other inbound webhooks.
+    "/fulfillment/intake/webhook",
 )
 
 @app.before_request
