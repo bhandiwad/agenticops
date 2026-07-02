@@ -242,6 +242,7 @@ export default function WorkflowsV2Page() {
   const [edges, setEdges, onEdgesChange] = useEdgesState<WFEdge>([]);
   const [selNode, setSelNode] = useState<string | null>(null);
   const [selEdge, setSelEdge] = useState<string | null>(null);
+  const [ctxMenu, setCtxMenu] = useState<{ id: string; x: number; y: number } | null>(null);
 
   const [view, setView] = useState<'list' | 'builder'>('list');
   const [wfKey, setWfKey] = useState('');
@@ -323,6 +324,35 @@ export default function WorkflowsV2Page() {
   const setEdgePort = (id: string, port: string) => {
     setEdges((eds) => eds.map((e) => e.id === id ? { ...e, label: port || undefined, data: { ...e.data, port: port || undefined } } : e));
   };
+
+  // ---- node context-menu (right-click) actions ----
+  const duplicateNode = (id: string) => {
+    setNodes((nds) => {
+      const src = nds.find((n) => n.id === id);
+      if (!src) return nds;
+      return nds.concat({
+        ...src,
+        id: nid(),
+        position: { x: src.position.x + 40, y: src.position.y + 40 },
+        data: { ...src.data },
+        selected: false,
+      });
+    });
+  };
+
+  const deleteNode = (id: string) => {
+    setNodes((nds) => nds.filter((n) => n.id !== id));
+    setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
+    setSelNode((cur) => (cur === id ? null : cur));
+  };
+
+  // Close the context menu on Escape.
+  useEffect(() => {
+    if (!ctxMenu) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCtxMenu(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [ctxMenu]);
 
   const newGraph = () => {
     setNodes([]); setEdges([]); setWfKey(''); setWfName(''); setOnError(''); setRcaEnrich(false); setSelNode(null); setSelEdge(null); setMsg(null);
@@ -590,8 +620,11 @@ export default function WorkflowsV2Page() {
             nodeTypes={nodeTypes}
             colorMode={colorMode}
             onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
-            onNodeClick={(_, n) => { setSelNode(n.id); setSelEdge(null); }}
-            onEdgeClick={(_, e) => { setSelEdge(e.id); setSelNode(null); }}
+            onNodeClick={(_, n) => { setSelNode(n.id); setSelEdge(null); setCtxMenu(null); }}
+            onEdgeClick={(_, e) => { setSelEdge(e.id); setSelNode(null); setCtxMenu(null); }}
+            onNodeContextMenu={(e, n) => { e.preventDefault(); setSelNode(n.id); setSelEdge(null); setCtxMenu({ id: n.id, x: e.clientX, y: e.clientY }); }}
+            onPaneClick={() => setCtxMenu(null)}
+            onMoveStart={() => setCtxMenu(null)}
             defaultEdgeOptions={{ animated: true }}
             connectionRadius={42}
             connectionLineStyle={{ strokeWidth: 2 }}
@@ -609,6 +642,45 @@ export default function WorkflowsV2Page() {
             />
           </ReactFlow>
         </div>
+
+        {/* node right-click context menu */}
+        {ctxMenu && (
+          <>
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setCtxMenu(null)}
+              onContextMenu={(e) => { e.preventDefault(); setCtxMenu(null); }}
+            />
+            <div
+              className="fixed z-50 min-w-[168px] rounded-md border border-border bg-popover text-popover-foreground shadow-lg py-1 text-sm"
+              style={{ top: ctxMenu.y, left: ctxMenu.x }}
+            >
+              <button
+                className="w-full text-left px-3 py-1.5 hover:bg-primary/10"
+                onClick={() => { setSelNode(ctxMenu.id); setSelEdge(null); setCtxMenu(null); }}
+              >Configure</button>
+              {isAdmin && (
+                <button
+                  className="w-full text-left px-3 py-1.5 hover:bg-primary/10"
+                  onClick={() => { duplicateNode(ctxMenu.id); setCtxMenu(null); }}
+                >Duplicate</button>
+              )}
+              <button
+                className="w-full text-left px-3 py-1.5 hover:bg-primary/10"
+                onClick={() => { navigator.clipboard?.writeText(ctxMenu.id); setMsg('Node ID copied'); setCtxMenu(null); }}
+              >Copy node ID</button>
+              {isAdmin && (
+                <>
+                  <div className="my-1 border-t border-border/60" />
+                  <button
+                    className="w-full text-left px-3 py-1.5 text-destructive hover:bg-destructive/10"
+                    onClick={() => { deleteNode(ctxMenu.id); setCtxMenu(null); }}
+                  >Delete node</button>
+                </>
+              )}
+            </div>
+          </>
+        )}
 
         {/* inspector / config */}
         <div className="w-72 shrink-0 overflow-y-auto border-l border-border p-3 text-sm">
