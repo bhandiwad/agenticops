@@ -13,6 +13,7 @@ import { canWrite } from '@/lib/roles';
 import IncidentCard from '../components/IncidentCard';
 import ThoughtsPanel, { PANEL_WIDTH_DEFAULT } from '../components/ThoughtsPanel';
 import IncidentEvidencePanel from '../components/IncidentEvidencePanel';
+import IncidentTraceLink from '../components/IncidentTraceLink';
 
 const STALE_POLL_MS = 5 * 60 * 1000;
 
@@ -213,6 +214,9 @@ export default function IncidentDetailPage() {
               citations={incident.citations}
               onRefresh={refreshIncident}
             />
+            <div className="flex justify-end">
+              <IncidentTraceLink incidentId={params.id as string} />
+            </div>
             <IncidentEvidencePanel incidentId={params.id as string} />
           </div>
         </div>

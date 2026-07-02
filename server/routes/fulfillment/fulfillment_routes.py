@@ -6,7 +6,9 @@
 - POST /fulfillment/intake   — classify a ticket and (for a service request) plan+dispatch.
 """
 
+import hmac
 import logging
+import os
 from typing import Any, Dict
 
 from flask import Blueprint, jsonify, request
@@ -74,6 +76,31 @@ def set_policy(user_id):
 @require_permission("connectors", "write")
 def intake(user_id):
     org_id = get_org_id_from_request() or ""
+    ticket = request.get_json(force=True, silent=True) or {}
+    if not ticket:
+        return jsonify({"error": "ticket payload required"}), 400
+    result = intk.handle_ticket(ticket, user_id, org_id)
+    return jsonify(result)
+
+
+@fulfillment_bp.route("/fulfillment/intake/webhook/<token>", methods=["POST"])
+def intake_webhook(token):
+    """Hands-free intake for a ServiceNow business rule / integration to POST a ticket to.
+
+    Authenticated by a shared token in the URL (constant-time compared) rather than RBAC, and
+    exempt from the RBAC coverage test via the '...webhook' name suffix. Identity to fulfill as
+    is resolved from env (FULFILLMENT_INTAKE_USER_ID/ORG_ID, falling back to the CFX poll
+    identity). Fulfillment policy still decides auto vs approval, so this cannot bypass the gate.
+    """
+    expected = os.getenv("FULFILLMENT_INTAKE_TOKEN", "")
+    if not expected or not hmac.compare_digest(token or "", expected):
+        return jsonify({"error": "unauthorized"}), 401
+
+    user_id = os.getenv("FULFILLMENT_INTAKE_USER_ID") or os.getenv("CFX_POLL_USER_ID") or ""
+    org_id = os.getenv("FULFILLMENT_INTAKE_ORG_ID") or os.getenv("CFX_POLL_ORG_ID") or ""
+    if not user_id:
+        return jsonify({"error": "intake identity not configured (set FULFILLMENT_INTAKE_USER_ID)"}), 503
+
     ticket = request.get_json(force=True, silent=True) or {}
     if not ticket:
         return jsonify({"error": "ticket payload required"}), 400

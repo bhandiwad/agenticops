@@ -94,6 +94,16 @@ DEFAULT_CATALOG: List[FulfillmentEntry] = [
         description="Apply approved Windows updates to the host, verify, update the ticket.",
     ),
     FulfillmentEntry(
+        key="status_report", title="Status / SLA / health report",
+        intent=SERVICE_REQUEST, target_type="agent", target_ref="status_report_agent",
+        risk_class=RISK_SAFE, read_only=True,
+        categories=("report", "reporting", "sla"),
+        keywords=("sla report", "status report", "health report", "uptime", "availability report",
+                  "generate report", "monthly report"),
+        params=("scope", "time_window"),
+        description="Read-only status/SLA/health report from connected monitoring, posted to the ticket.",
+    ),
+    FulfillmentEntry(
         key="ad_replication_health", title="Active Directory replication health report",
         intent=SERVICE_REQUEST, target_type="workflow", target_ref="ad_replication_health",
         risk_class=RISK_SAFE, read_only=True,
