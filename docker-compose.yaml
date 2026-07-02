@@ -77,6 +77,8 @@ x-common-env: &common-env
   FALLBACK_MODEL: ${FALLBACK_MODEL:-}
   # Operator-trusted private CIDRs the SSRF guard may reach (on-prem infra connectors: FortiGate, Zabbix, VMs). Blank = strict public-only.
   AURORA_SSRF_ALLOWED_CIDRS: ${AURORA_SSRF_ALLOWED_CIDRS:-}
+  AURORA_AUTO_REMEDIATION_ENABLED: ${AURORA_AUTO_REMEDIATION_ENABLED:-false}
+  AURORA_AUTO_REMEDIATE_ALLOWLIST: ${AURORA_AUTO_REMEDIATE_ALLOWLIST:-}
   # Agent/LLM tracing (Langfuse) — off unless LANGFUSE_ENABLED=true + keys set
   LANGFUSE_ENABLED: ${LANGFUSE_ENABLED:-false}
   LANGFUSE_HOST: ${LANGFUSE_HOST:-http://langfuse-web:3000}

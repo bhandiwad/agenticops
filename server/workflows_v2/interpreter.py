@@ -140,6 +140,15 @@ class WorkflowRunner:
 
             # ---- HITL nodes: pause until a resume_node signal ----
             if ntype in _HITL:
+                # Fulfillment policy can pre-approve a run (safe-allowlisted, non-privileged):
+                # the run carries context.auto_approved, so an approval node resolves immediately
+                # instead of waiting. Default (flag absent) is unchanged — it waits for a human.
+                if ntype == "approval" and (context or {}).get("auto_approved"):
+                    data = {"decision": "approved", "note": "auto-approved by fulfillment policy"}
+                    node_outputs[nid] = {"output": data, "status": "completed"}
+                    activate_outgoing(nid)
+                    await self._persist(run_id, nid, ntype, "completed", cfg, data, context)
+                    continue
                 await self._persist(run_id, nid, ntype, "waiting", cfg, None, context)
                 try:
                     await workflow.execute_activity(

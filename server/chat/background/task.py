@@ -829,6 +829,24 @@ def run_background_chat(
             except Exception:
                 logger.debug("[BackgroundChat] trigger-router emit failed (fail-safe)")
 
+            # Auto-remediation bridge: map the RCA finding to a remediation via the generic
+            # Fulfillment engine. Flag-gated (AURORA_AUTO_REMEDIATION_ENABLED, off by default)
+            # and fail-safe. Safe-allowlisted actions auto-run; everything else (incl. all
+            # privileged actions) lands in the Approvals inbox. Never affects RCA completion.
+            try:
+                if os.getenv("AURORA_AUTO_REMEDIATION_ENABLED", "false").strip().lower() in ("1", "true", "yes", "on"):
+                    from services.fulfillment.engine import plan_and_dispatch
+                    from utils.auth.stateless_auth import get_org_id_for_user
+                    from workflows_v2.agent_runner import _last_assistant_message
+                    rca_text = _last_assistant_message(user_id, session_id)
+                    if rca_text:
+                        plan_and_dispatch(
+                            intent="remediation", text=rca_text, user_id=user_id,
+                            org_id=get_org_id_for_user(user_id) or "", incident_id=str(incident_id),
+                        )
+            except Exception:
+                logger.debug("[BackgroundChat] remediation bridge failed (fail-safe)")
+
         logger.info(f"[BackgroundChat] Completed for session {session_id}")
         return result
     
